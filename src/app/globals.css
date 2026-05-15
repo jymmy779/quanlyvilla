@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --accent: #f97316;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --glass: rgba(255, 255, 255, 0.8);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
+}
+
+@layer utilities {
+  .glassmorphism {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.05);
+  }
+}

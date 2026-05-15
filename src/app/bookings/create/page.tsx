@@ -1,0 +1,421 @@
+'use client';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Villa, Booking, MonthlyPrice, AdditionalService } from '@/types';
+import { ArrowLeft, User, Calendar as CalendarIcon, Save, Plus, Calculator, AlertTriangle, Search, Loader2, Users, RefreshCw, Trash2, PlusCircle } from 'lucide-react';
+
+const CreateBookingPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const villaIdFromUrl = searchParams.get('villaId') || '';
+  const dateStr = searchParams.get('date') || '';
+
+  const [villas, setVillas] = useState<Villa[]>([]);
+  const [villaId, setVillaId] = useState(villaIdFromUrl);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isManualDeposit, setIsManualDeposit] = useState(false);
+
+  const [booking, setBooking] = useState({
+    customerName: '',
+    customerPhone: '',
+    checkIn: dateStr,
+    checkOut: '',
+    adults: 10,
+    children: 0,
+    totalAmount: 0,
+    depositAmount: 0,
+    notes: '',
+    additionalServices: [] as AdditionalService[]
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const today = new Date().toISOString().split('T')[0];
+
+  const totalAmountInputRef = useRef<HTMLInputElement>(null);
+  const depositAmountInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchVillas();
+  }, []);
+
+  const fetchVillas = async () => {
+    try {
+      setLoading(true);
+      const { data } = await supabase.from('villas').select('*').neq('status', 'inactive');
+      if (data && data.length > 0) {
+        setVillas(data);
+        if (!villaId) setVillaId(data[0].id);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const villa = villas.find(v => v.id === villaId);
+
+  const handleRecalculate = useCallback(() => {
+    if (!villa || !booking.checkIn || !booking.checkOut) return;
+
+    const start = new Date(booking.checkIn);
+    const end = new Date(booking.checkOut);
+    
+    if (end <= start) return;
+
+    let total = 0;
+    const current = new Date(start);
+
+    while (current < end) {
+      const month = current.getMonth() + 1;
+      const year = current.getFullYear();
+      const dayOfWeek = current.getDay(); 
+
+      const priceConfig = villa.monthly_prices?.find((p: MonthlyPrice) => p.month === month && p.year === year);
+      
+      if (priceConfig) {
+        const price = dayOfWeek === 6 ? priceConfig.weekend_price : priceConfig.weekday_price;
+        total += price;
+      } else {
+        total += villa.price || 5000000;
+      }
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    // Cộng thêm tiền dịch vụ
+    const servicesTotal = booking.additionalServices.reduce((sum, s) => sum + s.price, 0);
+    const grandTotal = total + servicesTotal;
+
+    setBooking(prev => ({
+      ...prev,
+      totalAmount: grandTotal,
+      depositAmount: isManualDeposit ? prev.depositAmount : grandTotal / 2
+    }));
+  }, [villa, booking.checkIn, booking.checkOut, booking.additionalServices, isManualDeposit]);
+
+  useEffect(() => {
+    handleRecalculate();
+  }, [handleRecalculate]);
+
+  useEffect(() => {
+    if (villaId && booking.checkIn && booking.checkOut) {
+      checkAvailability();
+    }
+  }, [booking.checkIn, booking.checkOut, villaId]);
+
+  const checkAvailability = async () => {
+    try {
+      const { data } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('villa_id', villaId)
+        .neq('status', 'cancelled')
+        .lt('check_in', booking.checkOut)
+        .gt('check_out', booking.checkIn);
+
+      if (data && data.length > 0) {
+        setError("Cảnh báo: Dải ngày này đã có khách đặt trên hệ thống!");
+      } else {
+        setError(null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('bookings')
+        .insert([{
+          villa_id: villaId,
+          customer_name: booking.customerName,
+          customer_phone: booking.customerPhone,
+          check_in: booking.checkIn,
+          check_out: booking.checkOut,
+          adults: booking.adults,
+          children: booking.children,
+          total_amount: booking.totalAmount,
+          deposit_amount: booking.depositAmount,
+          notes: booking.notes,
+          additional_services: booking.additionalServices,
+          status: 'deposited' 
+        }]);
+
+      if (error) throw error;
+      alert('Đã tạo phiếu đặt thành công!');
+      router.push('/calendar');
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi khi lưu phiếu đặt!');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formatMoney = (amount: number) => {
+    if (amount === 0) return '';
+    return amount.toLocaleString('vi-VN');
+  };
+
+  const handleMoneyChange = (field: 'totalAmount' | 'depositAmount', e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const value = input.value;
+    
+    // Thuật toán: Đếm số chữ số đứng trước con trỏ hiện tại
+    const cursorPosition = input.selectionStart || 0;
+    const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
+
+    const rawValue = value.replace(/\D/g, ''); 
+    const numValue = rawValue === '' ? 0 : Number(rawValue);
+
+    if (field === 'totalAmount') {
+      setBooking(prev => ({ ...prev, totalAmount: numValue, depositAmount: isManualDeposit ? prev.depositAmount : Math.floor(numValue / 2) }));
+    } else {
+      setBooking(prev => ({ ...prev, depositAmount: numValue }));
+      setIsManualDeposit(true);
+    }
+
+    // Đợi React render xong thì tính toán lại vị trí con trỏ
+    setTimeout(() => {
+      const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
+      
+      // Tìm vị trí mới sao cho số lượng chữ số đứng trước con trỏ vẫn như cũ
+      let newPos = 0;
+      let digitsFound = 0;
+      for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {
+        if (/\d/.test(formatted[i])) digitsFound++;
+        newPos = i + 1;
+      }
+      
+      const targetInput = field === 'totalAmount' ? totalAmountInputRef : depositAmountInputRef;
+      if (targetInput.current) {
+        targetInput.current.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
+  };
+
+  const addService = () => {
+    setBooking({
+      ...booking,
+      additionalServices: [...booking.additionalServices, { name: '', price: 0 }]
+    });
+  };
+
+  const removeService = (index: number) => {
+    const newServices = [...booking.additionalServices];
+    newServices.splice(index, 1);
+    setBooking({ ...booking, additionalServices: newServices });
+  };
+
+  const updateService = (index: number, field: keyof AdditionalService, value: string, e?: React.ChangeEvent<HTMLInputElement>) => {
+    const newServices = [...booking.additionalServices];
+    if (field === 'price' && e) {
+      const input = e.target;
+      const val = input.value;
+      const cursorPosition = input.selectionStart || 0;
+      const digitsBeforeCursor = val.substring(0, cursorPosition).replace(/\D/g, '').length;
+
+      const num = val.replace(/\D/g, '');
+      const numValue = num === '' ? 0 : Number(num);
+      newServices[index].price = numValue;
+
+      setTimeout(() => {
+        const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
+        let newPos = 0;
+        let digitsFound = 0;
+        for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {
+          if (/\d/.test(formatted[i])) digitsFound++;
+          newPos = i + 1;
+        }
+        input.setSelectionRange(newPos, newPos);
+      }, 0);
+    } else {
+      newServices[index].name = value;
+    }
+    setBooking({ ...booking, additionalServices: newServices });
+  };
+
+  const handleCapacityChange = (field: 'adults' | 'children', value: string) => {
+    const numValue = value === '' ? 0 : Number(value);
+    setBooking({ ...booking, [field]: numValue });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <Loader2 className="text-orange-500 animate-spin" size={48} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-700 pb-32 px-4 mt-10">
+      <header className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Tạo Phiếu đặt mới</h1>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">Villa: {villa?.name}</p>
+          </div>
+        </div>
+        <button 
+          disabled={!!error || !booking.checkOut || saving}
+          onClick={handleSave} 
+          className="bg-slate-900 text-white hover:bg-orange-600 px-10 py-4 rounded-2xl font-black shadow-xl shadow-slate-200 flex items-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+          Xác nhận & Lưu phiếu
+        </button>
+      </header>
+
+      {error && (
+        <div className="p-6 rounded-3xl flex items-center gap-4 border-2 bg-red-50 border-red-100 animate-pulse">
+          <AlertTriangle className="text-red-500" size={24} />
+          <p className="font-black text-red-600">{error}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          {/* Thông tin khách */}
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
+                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-2xl p-5 font-bold text-lg" value={booking.customerName} onChange={e => setBooking({...booking, customerName: e.target.value})} />
+                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-2xl p-5 font-bold text-lg" value={booking.customerPhone} onChange={e => setBooking({...booking, customerPhone: e.target.value})} />
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-in</span>
+                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-xl p-4 font-black text-sm" value={booking.checkIn} onChange={e => setBooking({...booking, checkIn: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-out</span>
+                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-xl p-4 font-black text-sm" value={booking.checkOut} onChange={e => setBooking({...booking, checkOut: e.target.value})} />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Người lớn</span>
+                    <div className="flex items-center bg-slate-50 rounded-xl px-4 py-3">
+                      <Users size={14} className="text-slate-400 mr-2" />
+                      <input type="number" value={booking.adults === 0 ? '' : booking.adults} onChange={e => handleCapacityChange('adults', e.target.value)} className="bg-transparent border-none w-full font-black text-sm outline-none" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Trẻ em</span>
+                    <div className="flex items-center bg-slate-50 rounded-xl px-4 py-3">
+                      <Users size={14} className="text-slate-400 mr-2" />
+                      <input type="number" value={booking.children === 0 ? '' : booking.children} onChange={e => handleCapacityChange('children', e.target.value)} className="bg-transparent border-none w-full font-black text-sm outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dịch vụ thêm */}
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                <div className="w-2 h-8 bg-emerald-500 rounded-full"></div>
+                Dịch vụ / Yêu cầu thêm
+              </h2>
+              <button onClick={addService} className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-all uppercase tracking-widest">
+                <PlusCircle size={14} /> Thêm dịch vụ
+              </button>
+            </div>
+            
+            {booking.additionalServices.length > 0 ? (
+              <div className="space-y-4">
+                {booking.additionalServices.map((service, idx) => (
+                  <div key={idx} className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl animate-in zoom-in duration-300">
+                    <div className="flex-1">
+                      <input 
+                        type="text" 
+                        placeholder="Tên dịch vụ (VD: Than nướng, Loa kéo...)" 
+                        className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold"
+                        value={service.name}
+                        onChange={e => updateService(idx, 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className="w-48">
+                      <input 
+                        type="text" 
+                        placeholder="Giá phí (VNĐ)" 
+                        className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-black text-emerald-600 text-right"
+                        value={formatMoney(service.price)}
+                        onChange={e => updateService(idx, 'price', e.target.value, e)}
+                      />
+                    </div>
+                    <button onClick={() => removeService(idx)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 text-xs italic font-medium">Bấm "Thêm dịch vụ" để ghi nhận các phí phát sinh khác.</p>
+            )}
+          </div>
+
+          {/* Phí dịch vụ & Thanh toán */}
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-6">
+              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3"><Calculator className="text-indigo-500" size={24} /> Tổng kết thanh toán</h2>
+              <button 
+                onClick={handleRecalculate}
+                className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1 rounded-lg"
+              >
+                <RefreshCw size={12} /> Tính lại giá chuẩn
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tổng tiền (VNĐ)</label>
+                <input 
+                  ref={totalAmountInputRef}
+                  type="text" 
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-[1.5rem] p-6 font-black text-slate-900 text-3xl outline-none transition-all shadow-inner" 
+                  value={formatMoney(booking.totalAmount)} 
+                  onChange={e => handleMoneyChange('totalAmount', e)} 
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest ml-1">Tiền cọc (VNĐ)</label>
+                <input 
+                  ref={depositAmountInputRef}
+                  type="text" 
+                  className={`w-full bg-orange-50/50 border-2 rounded-[1.5rem] p-6 font-black text-orange-600 text-3xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`} 
+                  value={formatMoney(booking.depositAmount)} 
+                  onChange={e => handleMoneyChange('depositAmount', e)} 
+                />
+                {isManualDeposit && <p className="text-[10px] font-bold text-orange-500 ml-1 italic">* Đã sửa tay (Tắt tự động tính cọc)</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-6">
+            <h3 className="text-lg font-black text-slate-900 border-b border-slate-50 pb-4">Ghi chú phiếu đặt</h3>
+            <textarea className="w-full bg-slate-50 border-none rounded-2xl p-6 text-slate-600 font-bold text-sm min-h-[250px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({...booking, notes: e.target.value})} placeholder="Thông tin thêm về yêu cầu của khách..." />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateBookingPage;
