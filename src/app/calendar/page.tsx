@@ -69,19 +69,19 @@ const CalendarPage = () => {
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const days = [];
     const startPadding = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-    
+
     for (let i = 0; i < startPadding; i++) {
       const d = new Date(year, month, -i);
       days.unshift({ date: d, isCurrentMonth: false });
     }
-    
+
     for (let i = 1; i <= lastDay.getDate(); i++) {
       days.push({ date: new Date(year, month, i), isCurrentMonth: true });
     }
-    
+
     return days;
   };
 
@@ -96,7 +96,7 @@ const CalendarPage = () => {
 
   const getDailyBookings = (date: Date) => {
     const dateStr = formatDateLocal(date);
-    
+
     return {
       checkingIn: bookings.find(b => b.check_in === dateStr),
       checkingOut: bookings.find(b => b.check_out === dateStr),
@@ -139,19 +139,18 @@ const CalendarPage = () => {
         {villas.map((villa) => {
           const isSelected = selectedVillaId === villa.id;
           const isMaintenance = villa.status === 'maintenance';
-          
+
           return (
             <button
               key={villa.id}
               disabled={isMaintenance}
               onClick={() => setSelectedVillaId(villa.id)}
-              className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-t-xl md:rounded-t-2xl font-black text-xs md:text-sm transition-all border-b-2 md:border-b-4 flex items-center gap-2 ${
-                isSelected 
-                   ? 'border-orange-500 text-slate-900 bg-orange-50/20' 
-                   : isMaintenance
+              className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-t-xl md:rounded-t-2xl font-black text-xs md:text-sm transition-all border-b-2 md:border-b-4 flex items-center gap-2 ${isSelected
+                  ? 'border-orange-500 text-slate-900 bg-orange-50/20'
+                  : isMaintenance
                     ? 'border-transparent text-slate-300 cursor-not-allowed opacity-50 grayscale'
                     : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}
+                }`}
             >
               {isMaintenance && <Wrench size={14} />}
               {villa.name}
@@ -170,33 +169,32 @@ const CalendarPage = () => {
                   <div key={day} className="py-2.5 md:py-3 text-center text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</div>
                 ))}
               </div>
-              
+
               {/* Grid các ngày */}
               <div className="grid grid-cols-7">
                 {days.map((day, idx) => {
                   const { checkingIn, checkingOut, staying } = getDailyBookings(day.date);
                   const isToday = day.date.toDateString() === new Date().toDateString();
-                  
+
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
                   const isPast = day.date < today;
-                  
+
                   return (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className={`min-h-[110px] md:min-h-[140px] border-r border-b border-slate-50 p-1.5 md:p-2 transition-colors relative group ${!day.isCurrentMonth ? 'bg-slate-50/30' : isPast ? 'bg-slate-50/10' : 'hover:bg-slate-50/50'}`}
                     >
                       <div className="flex justify-between items-center h-6 md:h-8 mb-1 md:mb-2">
-                        <span className={`text-xs md:text-sm font-black ${
-                          !day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'
-                        }`}>
+                        <span className={`text-xs md:text-sm font-black ${!day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'
+                          }`}>
                           {day.date.getDate()}
                         </span>
-                        
+
                         {day.isCurrentMonth && !checkingIn && !staying && !isPast && (
-                          <button 
+                          <button
                             onClick={() => router.push(`/bookings/create?villaId=${selectedVillaId}&date=${formatDateLocal(day.date)}`)}
-                            className="opacity-0 group-hover:opacity-100 p-1 bg-slate-900 text-white rounded md:rounded-lg transition-all hover:bg-orange-600"
+                            className="p-1 bg-slate-100 text-slate-400 cursor-pointer rounded-md md:rounded-lg transition-all hover:bg-slate-900 hover:text-white"
                           >
                             <Plus size={12} />
                           </button>
@@ -205,7 +203,7 @@ const CalendarPage = () => {
 
                       <div className="space-y-1">
                         {checkingOut && (
-                          <div 
+                          <div
                             onClick={() => router.push(`/bookings/${checkingOut.id}`)}
                             className="p-1 md:p-1.5 bg-slate-50 text-slate-500 rounded-lg md:rounded-xl cursor-pointer border border-slate-100 hover:border-red-300 hover:bg-red-50 transition-all"
                           >
@@ -217,11 +215,10 @@ const CalendarPage = () => {
                         )}
 
                         {staying && (
-                          <div 
+                          <div
                             onClick={() => router.push(`/bookings/${staying.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
-                              staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                            } ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
+                              } ${isPast ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[7px] md:text-[8px] font-black uppercase opacity-70 mb-0.5">
                               {staying.status === 'checked_in' ? (
@@ -235,11 +232,10 @@ const CalendarPage = () => {
                         )}
 
                         {checkingIn && (
-                          <div 
+                          <div
                             onClick={() => router.push(`/bookings/${checkingIn.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
-                              checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                            } ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
+                              } ${isPast ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[7px] md:text-[8px] font-black uppercase opacity-70 mb-0.5">
                               <LogIn size={8} className="md:w-2.5 md:h-2.5" /> {checkingIn.status === 'checked_in' ? 'Đang ở' : 'Nhận (14h)'}
@@ -257,7 +253,7 @@ const CalendarPage = () => {
         </div>
       ) : (
         <div className="py-20 text-center bg-white border border-slate-200 rounded-[2.5rem]">
-           <p className="text-slate-400 font-black uppercase text-xs">Chưa có Villa nào để hiển thị lịch</p>
+          <p className="text-slate-400 font-black uppercase text-xs">Chưa có Villa nào để hiển thị lịch</p>
         </div>
       )}
     </div>
