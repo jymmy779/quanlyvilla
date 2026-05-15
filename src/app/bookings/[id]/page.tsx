@@ -239,25 +239,25 @@ const BookingDetailPage = () => {
   const isCheckInDisabled = booking.check_in > todayStr;
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-10 animate-in fade-in duration-700 pb-32 px-4 mt-10">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button onClick={() => router.back()} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:text-slate-900 transition-all"><ArrowLeft size={24} /></button>
+    <div className="max-w-[1100px] mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-16 md:pb-24 px-4 mt-6 md:mt-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <button onClick={() => router.back()} className="p-2 md:p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm"><ArrowLeft size={20} /></button>
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Chi tiết Phiếu đặt</h1>
-            <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1">Mã đơn: #{booking.id.slice(0, 8).toUpperCase()}</p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Chi tiết Phiếu đặt</h1>
+            <p className="text-slate-500 font-bold text-[9px] md:text-[10px] uppercase tracking-widest mt-0.5">Mã đơn: #{booking.id.slice(0, 8).toUpperCase()}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={copyConfirmation} className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-black transition-all border ${copied ? 'bg-emerald-500 text-white' : 'bg-white text-indigo-600 border-indigo-100'}`}>
-            {copied ? <Check size={20} /> : <Copy size={20} />} {copied ? 'Đã sao chép!' : 'Sao chép mẫu'}
+        <div className="flex items-center gap-2 md:gap-3">
+          <button onClick={copyConfirmation} className={`flex items-center gap-2 px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black text-xs md:text-sm transition-all border ${copied ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50'}`}>
+            {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Đã chép!' : 'Sao chép mẫu'}
           </button>
           {!isEditing ? (
-            <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-black hover:bg-slate-200 transition-all"><Edit3 size={20} /> Sửa phiếu</button>
+            <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-slate-900 text-white px-4 md:px-5 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black text-xs md:text-sm hover:bg-slate-800 transition-all shadow-md"><Edit3 size={16} /> Sửa phiếu</button>
           ) : (
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsEditing(false)} className="p-4 bg-white border border-slate-200 text-slate-400 rounded-2xl hover:text-slate-900"><X size={24} /></button>
-              <button onClick={handleUpdate} disabled={updating || !!conflictError} className="flex items-center gap-2 bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl disabled:opacity-50"><Save size={20} /> Lưu</button>
+              <button onClick={() => setIsEditing(false)} className="p-2.5 md:p-3 bg-white border border-slate-200 text-slate-400 rounded-xl md:rounded-2xl hover:text-slate-900"><X size={20} /></button>
+              <button onClick={handleUpdate} disabled={updating || !!conflictError} className="flex items-center gap-2 bg-emerald-600 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black text-xs md:text-sm shadow-lg disabled:opacity-50"><Save size={16} /> Lưu</button>
             </div>
           )}
         </div>
@@ -270,43 +270,43 @@ const BookingDetailPage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8 space-y-10">
-          <div className="bg-white border border-slate-200 rounded-[3rem] p-12 shadow-sm space-y-12">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng thái hiện tại</p>
-                <div className={`flex items-center gap-3 ${currentStatus.text}`}>
-                  <currentStatus.icon size={28} />
-                  <span className="text-3xl font-black tracking-tighter">{currentStatus.label}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="lg:col-span-8 space-y-6 md:space-y-8">
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 shadow-sm space-y-8 md:space-y-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Trạng thái hiện tại</p>
+                <div className={`flex items-center gap-2 md:gap-3 ${currentStatus.text}`}>
+                  <currentStatus.icon size={24} className="md:w-7 md:h-7" />
+                  <span className="text-xl md:text-2xl font-black tracking-tighter">{currentStatus.label}</span>
                 </div>
               </div>
               {!isEditing && (
-                <div className="flex p-2 rounded-2xl gap-3">
+                <div className="flex gap-2">
                   {booking.status === 'deposited' && (
-                    <div className="relative group">
+                    <div className="relative group flex-1 md:flex-none">
                       <button
                         onClick={() => updateStatus('checked_in')}
                         disabled={updating || isCheckInDisabled}
-                        className={`bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl transition-all ${isCheckInDisabled ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+                        className={`w-full md:w-auto bg-indigo-600 text-white px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm shadow-lg transition-all ${isCheckInDisabled ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:bg-indigo-700 active:scale-95'}`}
                       >
                         {isCheckInDisabled ? 'Chưa đến ngày Check-in' : 'Check-in ngay'}
                       </button>
                       {isCheckInDisabled && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 p-3 bg-slate-900 text-white text-[10px] font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center">
-                          Lưu ý: Bạn không thể Check-in trước ngày hẹn. Hãy dùng nút "Sửa phiếu" nếu khách đến sớm!
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-2.5 bg-slate-900 text-white text-[9px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center shadow-xl z-20">
+                          Bạn không thể Check-in trước ngày hẹn. Dùng "Sửa phiếu" nếu khách đến sớm!
                         </div>
                       )}
                     </div>
                   )}
                   {booking.status === 'checked_in' && (
-                    <button onClick={() => updateStatus('completed')} disabled={updating} className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl hover:bg-blue-700">Check-out & Hoàn thành</button>
+                    <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 md:flex-none bg-blue-600 text-white px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm shadow-lg hover:bg-blue-700 active:scale-95">Check-out & Hoàn tất</button>
                   )}
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-16 py-12 border-y border-slate-50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 py-6 md:py-8 border-y border-slate-50">
               <div className="space-y-8">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><User size={24} /></div>
@@ -371,29 +371,29 @@ const BookingDetailPage = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-5 md:space-y-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-slate-900">
-                  <PackagePlus size={24} className="text-emerald-500" />
-                  <h3 className="font-black text-xl tracking-tighter uppercase">Dịch vụ yêu cầu thêm</h3>
+                <div className="flex items-center gap-2 md:gap-3 text-slate-900">
+                  <PackagePlus size={20} className="text-emerald-500 md:w-6 md:h-6" />
+                  <h3 className="font-black text-lg md:text-xl tracking-tighter uppercase">Dịch vụ thêm</h3>
                 </div>
                 {isEditing && (
-                  <button onClick={() => setEditForm({ ...editForm, additional_services: [...(editForm.additional_services || []), { name: '', price: 0 }] })} className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl">Thêm dịch vụ</button>
+                  <button onClick={() => setEditForm({ ...editForm, additional_services: [...(editForm.additional_services || []), { name: '', price: 0 }] })} className="text-[9px] md:text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl">Thêm mới</button>
                 )}
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2.5 md:gap-3">
                 {(isEditing ? editForm.additional_services : booking.additional_services)?.map((service, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                  <div key={idx} className="flex items-center justify-between bg-slate-50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-100">
                     {isEditing ? (
-                      <div className="flex items-center gap-4 w-full">
-                        <input type="text" className="flex-1 bg-white p-2 rounded-xl border border-slate-200 font-bold" value={service.name} onChange={e => { const s = [...(editForm.additional_services || [])]; s[idx].name = e.target.value; setEditForm({ ...editForm, additional_services: s }) }} />
-                        <input type="text" className="w-32 bg-white p-2 rounded-xl border border-slate-200 font-black text-right" value={formatMoney(service.price)} onChange={e => updateService(idx, 'price', e.target.value, e)} />
-                        <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="text-slate-300 hover:text-red-500"><Trash2 size={20} /></button>
+                      <div className="flex items-center gap-3 md:gap-4 w-full">
+                        <input type="text" className="flex-1 bg-white p-2 rounded-lg md:rounded-xl border border-slate-200 font-bold text-xs md:text-sm" value={service.name} onChange={e => { const s = [...(editForm.additional_services || [])]; s[idx].name = e.target.value; setEditForm({ ...editForm, additional_services: s }) }} />
+                        <input type="text" className="w-24 md:w-32 bg-white p-2 rounded-lg md:rounded-xl border border-slate-200 font-black text-right text-xs md:text-sm" value={formatMoney(service.price)} onChange={e => updateService(idx, 'price', e.target.value, e)} />
+                        <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="text-slate-300 hover:text-red-500"><Trash2 size={18} /></button>
                       </div>
                     ) : (
                       <>
-                        <span className="font-bold text-slate-700">{service.name}</span>
-                        <span className="font-black text-emerald-600">{service.price.toLocaleString()}đ</span>
+                        <span className="font-bold text-slate-700 text-xs md:text-sm">{service.name}</span>
+                        <span className="font-black text-emerald-600 text-xs md:text-sm">{service.price.toLocaleString()}đ</span>
                       </>
                     )}
                   </div>
@@ -403,29 +403,29 @@ const BookingDetailPage = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-4 space-y-8">
-          <div className="bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm space-y-10">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-3"><CreditCard className="text-emerald-500" size={24} /> Thanh toán</h2>
-            <div className="space-y-6">
+        <div className="lg:col-span-4 space-y-6 md:space-y-8">
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
+            <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2 md:gap-3"><CreditCard className="text-emerald-500 md:w-6 md:h-6" size={20} /> Thanh toán</h2>
+            <div className="space-y-4 md:space-y-5">
               <div className="flex justify-between items-center text-slate-500 font-bold">
-                <span className="text-sm">Tổng cộng</span>
+                <span className="text-xs md:text-sm">Tổng cộng</span>
                 {isEditing ? (
-                  <input ref={totalAmountRef} type="text" className="w-32 bg-slate-50 p-2 rounded-lg text-right font-black" value={formatMoney(editForm.total_amount || 0)} onChange={e => handleMoneyChange('total_amount', e)} />
+                  <input ref={totalAmountRef} type="text" className="w-28 md:w-32 bg-slate-50 p-2 rounded-lg text-right font-black text-sm" value={formatMoney(editForm.total_amount || 0)} onChange={e => handleMoneyChange('total_amount', e)} />
                 ) : (
-                  <span className="text-xl font-black text-slate-900">{booking.total_amount.toLocaleString()}đ</span>
+                  <span className="text-lg md:text-xl font-black text-slate-900">{booking.total_amount.toLocaleString()}đ</span>
                 )}
               </div>
               <div className="flex justify-between items-center text-emerald-600 font-black">
-                <span className="text-sm uppercase tracking-widest">Đã đặt cọc</span>
+                <span className="text-xs md:text-sm uppercase tracking-widest">Đã đặt cọc</span>
                 {isEditing ? (
-                  <input ref={depositAmountRef} type="text" className="w-32 bg-emerald-50 p-2 rounded-lg text-right font-black" value={formatMoney(editForm.deposit_amount || 0)} onChange={e => handleMoneyChange('deposit_amount', e)} />
+                  <input ref={depositAmountRef} type="text" className="w-28 md:w-32 bg-emerald-50 p-2 rounded-lg text-right font-black text-sm" value={formatMoney(editForm.deposit_amount || 0)} onChange={e => handleMoneyChange('deposit_amount', e)} />
                 ) : (
-                  <span className="text-xl">{booking.deposit_amount.toLocaleString()}đ</span>
+                  <span className="text-lg md:text-xl">{booking.deposit_amount.toLocaleString()}đ</span>
                 )}
               </div>
-              <div className="pt-6 border-t border-slate-100 flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Còn lại cần thu</span>
-                <span className="text-2xl font-black text-orange-600">{(Number(isEditing ? editForm.total_amount : booking.total_amount) - Number(isEditing ? editForm.deposit_amount : booking.deposit_amount)).toLocaleString()}đ</span>
+              <div className="pt-4 md:pt-6 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Cần thu thêm</span>
+                <span className="text-xl md:text-2xl font-black text-orange-600">{(Number(isEditing ? editForm.total_amount : booking.total_amount) - Number(isEditing ? editForm.deposit_amount : booking.deposit_amount)).toLocaleString()}đ</span>
               </div>
             </div>
           </div>

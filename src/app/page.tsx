@@ -110,98 +110,98 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-20 px-4">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4">
       <header>
-        <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Báo cáo Villa hôm nay 👋</h1>
+        <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Báo cáo hôm nay 👋</h1>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-[2.5rem] border border-slate-200 hover:shadow-xl transition-all group">
+          <div key={idx} className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 hover:shadow-lg transition-all group">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{stat.label}</p>
-                <p className="text-2xl font-black mt-1 text-slate-900 tracking-tight">{stat.value}</p>
+              <div className="min-w-0">
+                <p className="text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest truncate">{stat.label}</p>
+                <p className="text-base md:text-xl font-black mt-0.5 text-slate-900 tracking-tight truncate">{stat.value}</p>
               </div>
-              <div className={`${stat.color} p-4 rounded-2xl shadow-lg`}>
-                <stat.icon size={24} className="text-white" />
+              <div className={`${stat.color} p-2 md:p-3 rounded-xl md:rounded-2xl shadow-md flex-shrink-0 ml-2`}>
+                <stat.icon size={18} className="text-white md:w-5 md:h-5" />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <BarChart3 className="text-orange-500" size={24} /> Dòng tiền 7 ngày qua
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6 md:mb-8">
+            <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
+              <BarChart3 className="text-orange-500" size={20} /> Dòng tiền 7 ngày
             </h2>
           </div>
-          <div className="h-[300px] flex items-end justify-between gap-4 px-4 relative">
+          <div className="h-[200px] md:h-[250px] flex items-end justify-between gap-2 md:gap-4 px-2 relative">
             {weeklyRevenueData.map((data, idx) => {
               const height = (data.amount / maxRevenue) * 100;
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-4 group relative h-full justify-end">
+                <div key={idx} className="flex-1 flex flex-col items-center gap-3 group relative h-full justify-end">
                   {data.amount > 0 && (
-                    <div className="absolute bottom-[20%] mb-12 opacity-0 group-hover:opacity-100 transition-all bg-slate-900 text-white text-[10px] font-black py-2 px-3 rounded-xl pointer-events-none z-10 whitespace-nowrap">
+                    <div className="absolute bottom-[20%] mb-10 opacity-0 group-hover:opacity-100 transition-all bg-slate-900 text-white text-[9px] font-black py-1.5 px-2 rounded-lg pointer-events-none z-10 whitespace-nowrap">
                       {data.amount.toLocaleString()}đ
                     </div>
                   )}
-                  <div style={{ height: `${Math.max(height, 5)}%` }} className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ${data.amount > 0 ? 'bg-orange-500' : 'bg-slate-50'}`}></div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{data.day}</span>
+                  <div style={{ height: `${Math.max(height, 5)}%` }} className={`w-full max-w-[32px] rounded-t-lg md:rounded-t-xl transition-all duration-700 ${data.amount > 0 ? 'bg-orange-500' : 'bg-slate-50'}`}></div>
+                  <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">{data.day}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm flex flex-col">
-          <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
-            <div className="w-2 h-8 bg-indigo-500 rounded-full"></div> Villa hệ thống
+        <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm flex flex-col">
+          <h2 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 flex items-center gap-2.5">
+            <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div> Villa hệ thống
           </h2>
-          <div className="space-y-5">
-            {villas.slice(0, 6).map((villa) => (
-              <div key={villa.id} onClick={() => router.push(`/villas/${villa.id}`)} className="flex gap-5 items-center group cursor-pointer p-4 hover:bg-slate-50 rounded-3xl transition-all border border-transparent hover:border-slate-100">
-                <div className="overflow-hidden rounded-2xl w-16 h-16 shadow-sm flex-shrink-0 bg-slate-50 border border-slate-100">
+          <div className="space-y-3 md:space-y-4">
+            {villas.slice(0, 5).map((villa) => (
+              <div key={villa.id} onClick={() => router.push(`/villas/${villa.id}`)} className="flex gap-3 md:gap-4 items-center group cursor-pointer p-3 hover:bg-slate-50 rounded-xl md:rounded-2xl transition-all border border-transparent hover:border-slate-100">
+                <div className="overflow-hidden rounded-lg md:rounded-xl w-10 h-10 md:w-12 md:h-12 shadow-sm flex-shrink-0 bg-slate-50 border border-slate-100">
                   {villa.images && villa.images.length > 0 ? (
-                    <img src={getOptimizedImageUrl(villa.images[0], 200)} alt={villa.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={getOptimizedImageUrl(villa.images[0], 150)} alt={villa.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-200"><Users size={24} /></div>
+                    <div className="w-full h-full flex items-center justify-center text-slate-200"><Users size={18} /></div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-sm truncate text-slate-900">{villa.name}</h3>
-                  <div className="mt-1 flex items-center gap-2">
+                  <h3 className="font-black text-xs md:text-sm truncate text-slate-900 leading-tight">{villa.name}</h3>
+                  <div className="mt-0.5 flex items-center gap-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${villa.status === 'active' ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{villa.status === 'active' ? 'Hoạt động' : 'Bảo trì'}</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{villa.status === 'active' ? 'Hoạt động' : 'Bảo trì'}</span>
                   </div>
                 </div>
-                <ChevronRight size={18} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
+                <ChevronRight size={16} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-            <div className="w-2 h-8 bg-blue-500 rounded-full"></div> Đơn đặt mới nhất
+      <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2.5">
+            <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div> Đơn mới nhất
           </h2>
-          <Link href="/bookings" className="text-slate-900 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 border border-slate-200 px-6 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-sm">
-            Quản lý đơn <ChevronRight size={16} />
+          <Link href="/bookings" className="text-slate-900 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 border border-slate-200 px-4 md:px-5 py-2 md:py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
+            Quản lý <ChevronRight size={14} />
           </Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[600px] md:min-w-0">
             <thead>
-              <tr className="text-slate-400 text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
-                <th className="pb-6 pl-4">Khách hàng</th>
-                <th className="pb-6">Villa</th>
-                <th className="pb-6">Ngày</th>
-                <th className="pb-6">Trạng thái</th>
-                <th className="pb-6 text-right pr-4">Tổng tiền</th>
+              <tr className="text-slate-400 text-[9px] md:text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
+                <th className="pb-4 pl-2">Khách hàng</th>
+                <th className="pb-4">Villa</th>
+                <th className="pb-4">Ngày</th>
+                <th className="pb-4">Trạng thái</th>
+                <th className="pb-4 text-right pr-2">Tổng tiền</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -209,15 +209,17 @@ const DashboardPage = () => {
                 const villa = villas.find(v => v.id === booking.villa_id);
                 return (
                   <tr key={booking.id} onClick={() => router.push(`/bookings/${booking.id}`)} className="group hover:bg-slate-50 transition-colors cursor-pointer">
-                    <td className="py-8 pl-4 font-black text-slate-900 text-sm">{booking.customer_name}</td>
-                    <td className="py-8 text-slate-600 font-bold text-sm">{villa?.name}</td>
-                    <td className="py-8 text-slate-500 font-medium text-xs">{booking.check_in} → {booking.check_out}</td>
-                    <td className="py-8">
-                      <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${booking.status === 'deposited' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'}`}>
+                    <td className="py-4 pl-2">
+                      <p className="font-black text-slate-900 text-sm leading-tight">{booking.customer_name}</p>
+                    </td>
+                    <td className="py-4 text-slate-600 font-bold text-xs md:text-sm">{villa?.name}</td>
+                    <td className="py-4 text-slate-500 font-medium text-[10px] md:text-xs">{booking.check_in} → {booking.check_out}</td>
+                    <td className="py-4">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${booking.status === 'deposited' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
                         {booking.status === 'deposited' ? 'Đã cọc' : 'Đang ở'}
                       </span>
                     </td>
-                    <td className="py-8 text-right font-black text-slate-900 pr-4 text-xl">{Number(booking.total_amount).toLocaleString()}đ</td>
+                    <td className="py-4 text-right font-black text-slate-900 pr-2 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</td>
                   </tr>
                 )
               })}

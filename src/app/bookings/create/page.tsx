@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Villa, Booking, MonthlyPrice, AdditionalService } from '@/types';
 import { ArrowLeft, User, Calendar as CalendarIcon, Save, Plus, Calculator, AlertTriangle, Search, Loader2, Users, RefreshCw, Trash2, PlusCircle } from 'lucide-react';
 
-const CreateBookingPage = () => {
+const CreateBookingPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -256,68 +256,68 @@ const CreateBookingPage = () => {
   }
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-700 pb-32 px-4 mt-10">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+    <div className="max-w-[1100px] mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-16 md:pb-24 px-4 mt-6 md:mt-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <button onClick={() => router.back()} className="p-2 md:p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Tạo Phiếu đặt mới</h1>
-            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">Villa: {villa?.name}</p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Tạo Phiếu mới</h1>
+            <p className="text-slate-500 font-bold text-[9px] md:text-[10px] uppercase tracking-widest mt-0.5">Villa: {villa?.name}</p>
           </div>
         </div>
         <button 
           disabled={!!error || !booking.checkOut || saving}
           onClick={handleSave} 
-          className="bg-slate-900 text-white hover:bg-orange-600 px-10 py-4 rounded-2xl font-black shadow-xl shadow-slate-200 flex items-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+          className="bg-slate-900 text-white hover:bg-emerald-600 px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all active:scale-95 disabled:opacity-50"
         >
-          {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-          Xác nhận & Lưu phiếu
+          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+          Lưu phiếu đặt
         </button>
       </header>
 
       {error && (
-        <div className="p-6 rounded-3xl flex items-center gap-4 border-2 bg-red-50 border-red-100 animate-pulse">
-          <AlertTriangle className="text-red-500" size={24} />
-          <p className="font-black text-red-600">{error}</p>
+        <div className="p-4 md:p-5 rounded-xl md:rounded-2xl flex items-center gap-3 border-2 bg-red-50 border-red-100 animate-pulse">
+          <AlertTriangle className="text-red-500" size={20} />
+          <p className="font-black text-red-600 text-xs md:text-sm">{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
           {/* Thông tin khách */}
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
-                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-2xl p-5 font-bold text-lg" value={booking.customerName} onChange={e => setBooking({...booking, customerName: e.target.value})} />
-                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-2xl p-5 font-bold text-lg" value={booking.customerPhone} onChange={e => setBooking({...booking, customerPhone: e.target.value})} />
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 shadow-sm space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+              <div className="space-y-4 md:space-y-5">
+                <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
+                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl p-4 md:p-5 font-bold text-base md:text-lg" value={booking.customerName} onChange={e => setBooking({...booking, customerName: e.target.value})} />
+                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl p-4 md:p-5 font-bold text-base md:text-lg" value={booking.customerPhone} onChange={e => setBooking({...booking, customerPhone: e.target.value})} />
               </div>
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 md:space-y-5">
+                <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-in</span>
-                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-xl p-4 font-black text-sm" value={booking.checkIn} onChange={e => setBooking({...booking, checkIn: e.target.value})} />
+                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-3 md:p-4 font-black text-[10px] md:text-xs" value={booking.checkIn} onChange={e => setBooking({...booking, checkIn: e.target.value})} />
                   </div>
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-out</span>
-                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-xl p-4 font-black text-sm" value={booking.checkOut} onChange={e => setBooking({...booking, checkOut: e.target.value})} />
+                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-3 md:p-4 font-black text-[10px] md:text-xs" value={booking.checkOut} onChange={e => setBooking({...booking, checkOut: e.target.value})} />
                   </div>
                   
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Người lớn</span>
-                    <div className="flex items-center bg-slate-50 rounded-xl px-4 py-3">
-                      <Users size={14} className="text-slate-400 mr-2" />
-                      <input type="number" value={booking.adults === 0 ? '' : booking.adults} onChange={e => handleCapacityChange('adults', e.target.value)} className="bg-transparent border-none w-full font-black text-sm outline-none" />
+                    <div className="flex items-center bg-slate-50 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-3">
+                      <Users size={12} className="text-slate-400 mr-2" />
+                      <input type="number" value={booking.adults === 0 ? '' : booking.adults} onChange={e => handleCapacityChange('adults', e.target.value)} className="bg-transparent border-none w-full font-black text-[11px] md:text-xs outline-none" />
                     </div>
                   </div>
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Trẻ em</span>
-                    <div className="flex items-center bg-slate-50 rounded-xl px-4 py-3">
-                      <Users size={14} className="text-slate-400 mr-2" />
-                      <input type="number" value={booking.children === 0 ? '' : booking.children} onChange={e => handleCapacityChange('children', e.target.value)} className="bg-transparent border-none w-full font-black text-sm outline-none" />
+                    <div className="flex items-center bg-slate-50 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-3">
+                      <Users size={12} className="text-slate-400 mr-2" />
+                      <input type="number" value={booking.children === 0 ? '' : booking.children} onChange={e => handleCapacityChange('children', e.target.value)} className="bg-transparent border-none w-full font-black text-[11px] md:text-xs outline-none" />
                     </div>
                   </div>
                 </div>
@@ -326,95 +326,107 @@ const CreateBookingPage = () => {
           </div>
 
           {/* Dịch vụ thêm */}
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-5 md:space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
-                <div className="w-2 h-8 bg-emerald-500 rounded-full"></div>
-                Dịch vụ / Yêu cầu thêm
+              <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2.5">
+                <div className="w-1.5 h-6 md:h-8 bg-emerald-500 rounded-full"></div>
+                Dịch vụ / Yêu cầu
               </h2>
-              <button onClick={addService} className="flex items-center gap-2 text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-all uppercase tracking-widest">
-                <PlusCircle size={14} /> Thêm dịch vụ
+              <button onClick={addService} className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl hover:bg-emerald-100 transition-all uppercase tracking-widest">
+                <PlusCircle size={14} /> Thêm mới
               </button>
             </div>
             
             {booking.additionalServices.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {booking.additionalServices.map((service, idx) => (
-                  <div key={idx} className="flex gap-4 items-center bg-slate-50 p-4 rounded-2xl animate-in zoom-in duration-300">
+                  <div key={idx} className="flex gap-3 md:gap-4 items-center bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl animate-in zoom-in duration-300">
                     <div className="flex-1">
                       <input 
                         type="text" 
-                        placeholder="Tên dịch vụ (VD: Than nướng, Loa kéo...)" 
-                        className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold"
+                        placeholder="Tên dịch vụ..." 
+                        className="w-full bg-white border border-slate-100 rounded-lg md:rounded-xl px-3 md:px-4 py-2 text-xs md:text-sm font-bold"
                         value={service.name}
                         onChange={e => updateService(idx, 'name', e.target.value)}
                       />
                     </div>
-                    <div className="w-48">
+                    <div className="w-32 md:w-48">
                       <input 
                         type="text" 
-                        placeholder="Giá phí (VNĐ)" 
-                        className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-black text-emerald-600 text-right"
+                        placeholder="VNĐ" 
+                        className="w-full bg-white border border-slate-100 rounded-lg md:rounded-xl px-3 md:px-4 py-2 text-xs md:text-sm font-black text-emerald-600 text-right"
                         value={formatMoney(service.price)}
                         onChange={e => updateService(idx, 'price', e.target.value, e)}
                       />
                     </div>
-                    <button onClick={() => removeService(idx)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
-                      <Trash2 size={20} />
+                    <button onClick={() => removeService(idx)} className="p-1.5 md:p-2 text-slate-300 hover:text-red-500 transition-colors">
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-slate-400 text-xs italic font-medium">Bấm "Thêm dịch vụ" để ghi nhận các phí phát sinh khác.</p>
+              <p className="text-slate-400 text-[10px] md:text-xs italic font-medium">Bấm "Thêm mới" để ghi nhận dịch vụ phát sinh.</p>
             )}
           </div>
 
           {/* Phí dịch vụ & Thanh toán */}
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-8">
-            <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3"><Calculator className="text-indigo-500" size={24} /> Tổng kết thanh toán</h2>
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 lg:p-10 shadow-sm space-y-6 md:space-y-8">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-4 md:pb-6">
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2.5 md:gap-3"><Calculator className="text-indigo-500 md:w-6 md:h-6" size={20} /> Thanh toán</h2>
               <button 
                 onClick={handleRecalculate}
-                className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1 rounded-lg"
+                className="flex items-center gap-1.5 text-[8px] md:text-[10px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-2.5 md:px-3 py-1 rounded-lg"
               >
-                <RefreshCw size={12} /> Tính lại giá chuẩn
+                <RefreshCw size={10} /> Tính lại
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tổng tiền (VNĐ)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+              <div className="space-y-2 md:space-y-3">
+                <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tổng tiền (VNĐ)</label>
                 <input 
                   ref={totalAmountInputRef}
                   type="text" 
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-[1.5rem] p-6 font-black text-slate-900 text-3xl outline-none transition-all shadow-inner" 
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl md:rounded-[1.5rem] p-4 md:p-6 font-black text-slate-900 text-xl md:text-3xl outline-none transition-all shadow-inner" 
                   value={formatMoney(booking.totalAmount)} 
                   onChange={e => handleMoneyChange('totalAmount', e)} 
                 />
               </div>
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest ml-1">Tiền cọc (VNĐ)</label>
+              <div className="space-y-2 md:space-y-3">
+                <label className="text-[8px] md:text-[10px] font-black text-orange-400 uppercase tracking-widest ml-1">Tiền cọc (VNĐ)</label>
                 <input 
                   ref={depositAmountInputRef}
                   type="text" 
-                  className={`w-full bg-orange-50/50 border-2 rounded-[1.5rem] p-6 font-black text-orange-600 text-3xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`} 
+                  className={`w-full bg-orange-50/50 border-2 rounded-xl md:rounded-[1.5rem] p-4 md:p-6 font-black text-orange-600 text-xl md:text-3xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`} 
                   value={formatMoney(booking.depositAmount)} 
                   onChange={e => handleMoneyChange('depositAmount', e)} 
                 />
-                {isManualDeposit && <p className="text-[10px] font-bold text-orange-500 ml-1 italic">* Đã sửa tay (Tắt tự động tính cọc)</p>}
+                {isManualDeposit && <p className="text-[8px] md:text-[9px] font-bold text-orange-500 ml-1 italic">* Đã sửa tay</p>}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-10 shadow-sm space-y-6">
-            <h3 className="text-lg font-black text-slate-900 border-b border-slate-50 pb-4">Ghi chú phiếu đặt</h3>
-            <textarea className="w-full bg-slate-50 border-none rounded-2xl p-6 text-slate-600 font-bold text-sm min-h-[250px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({...booking, notes: e.target.value})} placeholder="Thông tin thêm về yêu cầu của khách..." />
+        <div className="space-y-6 md:space-y-8">
+          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 shadow-sm space-y-4 md:space-y-6">
+            <h3 className="text-base md:text-lg font-black text-slate-900 border-b border-slate-50 pb-3 md:pb-4">Ghi chú</h3>
+            <textarea className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl p-4 md:p-6 text-slate-600 font-bold text-xs md:text-sm min-h-[150px] md:min-h-[250px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({...booking, notes: e.target.value})} placeholder="Thông tin thêm về yêu cầu của khách..." />
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+const CreateBookingPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <Loader2 className="text-orange-500 animate-spin" size={48} />
+      </div>
+    }>
+      <CreateBookingPageContent />
+    </Suspense>
   );
 };
 

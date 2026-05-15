@@ -115,27 +115,27 @@ const CalendarPage = () => {
   const selectedVilla = villas.find(v => v.id === selectedVillaId);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 pb-20">
-      <header className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-16 md:pb-20 px-2 md:px-4 mt-6 md:mt-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Lịch gối đầu</h1>
-          <p className="text-slate-500 font-medium italic">Dữ liệu thời gian thực từ Supabase Database.</p>
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Lịch điều phối</h1>
+          <p className="text-slate-500 font-bold text-[10px] md:text-xs">Dữ liệu thời gian thực từ hệ thống.</p>
         </div>
-        <div className="flex bg-white border border-slate-200 rounded-2xl p-1.5 shadow-sm">
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-colors">
-            <ChevronLeft size={20} />
+        <div className="flex bg-white border border-slate-200 rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-sm self-start md:self-auto">
+          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+            <ChevronLeft size={18} />
           </button>
-          <div className="px-6 flex items-center font-black text-slate-900 min-w-[180px] justify-center uppercase tracking-widest text-sm">
+          <div className="px-3 md:px-6 flex items-center font-black text-slate-900 min-w-[140px] md:min-w-[180px] justify-center uppercase tracking-widest text-[10px] md:text-xs">
             Tháng {currentDate.getMonth() + 1}, {currentDate.getFullYear()}
           </div>
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 transition-colors">
-            <ChevronRight size={20} />
+          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+            <ChevronRight size={18} />
           </button>
         </div>
       </header>
 
       {/* Villa Tabs Selection */}
-      <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar border-b border-slate-100">
+      <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100">
         {villas.map((villa) => {
           const isSelected = selectedVillaId === villa.id;
           const isMaintenance = villa.status === 'maintenance';
@@ -145,109 +145,114 @@ const CalendarPage = () => {
               key={villa.id}
               disabled={isMaintenance}
               onClick={() => setSelectedVillaId(villa.id)}
-              className={`flex-shrink-0 px-8 py-4 rounded-t-2xl font-black transition-all border-b-4 flex items-center gap-3 ${
+              className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-t-xl md:rounded-t-2xl font-black text-xs md:text-sm transition-all border-b-2 md:border-b-4 flex items-center gap-2 ${
                 isSelected 
-                  ? 'border-orange-500 text-slate-900 bg-orange-50/30' 
-                  : isMaintenance
+                   ? 'border-orange-500 text-slate-900 bg-orange-50/20' 
+                   : isMaintenance
                     ? 'border-transparent text-slate-300 cursor-not-allowed opacity-50 grayscale'
                     : 'border-transparent text-slate-400 hover:text-slate-600'
               }`}
             >
-              {isMaintenance && <Wrench size={16} />}
+              {isMaintenance && <Wrench size={14} />}
               {villa.name}
-              {isMaintenance && <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full">Sửa chữa</span>}
             </button>
           );
         })}
       </div>
 
       {villas.length > 0 ? (
-        <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
-          <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
-            {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'].map(day => (
-              <div key={day} className="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7">
-            {days.map((day, idx) => {
-              const { checkingIn, checkingOut, staying } = getDailyBookings(day.date);
-              const isToday = day.date.toDateString() === new Date().toDateString();
+        <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto custom-scrollbar">
+            <div className="min-w-[700px]">
+              {/* Header T2-CN */}
+              <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
+                {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
+                  <div key={day} className="py-2.5 md:py-3 text-center text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{day}</div>
+                ))}
+              </div>
               
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const isPast = day.date < today;
-              
-              return (
-                <div 
-                  key={idx} 
-                  className={`min-h-[160px] border-r border-b border-slate-50 p-2 transition-colors relative group ${!day.isCurrentMonth ? 'bg-slate-50/30' : isPast ? 'bg-slate-50/10' : 'hover:bg-slate-50/50'}`}
-                >
-                  <div className="flex justify-between items-center h-8 mb-2">
-                    <span className={`text-sm font-black ${
-                      !day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-2 py-1 rounded-lg' : isPast ? 'text-slate-300' : 'text-slate-400'
-                    }`}>
-                      {day.date.getDate()}
-                    </span>
-                    
-                    {day.isCurrentMonth && !checkingIn && !staying && !isPast && (
-                      <button 
-                        onClick={() => router.push(`/bookings/create?villaId=${selectedVillaId}&date=${formatDateLocal(day.date)}`)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 bg-slate-900 text-white rounded-lg transition-all hover:bg-orange-600"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    {checkingOut && (
-                      <div 
-                        onClick={() => router.push(`/bookings/${checkingOut.id}`)}
-                        className="p-2 bg-slate-50 text-slate-500 rounded-xl cursor-pointer border border-slate-100 hover:border-red-300 hover:bg-red-50 transition-all"
-                      >
-                        <div className="flex items-center gap-1 text-[8px] font-black uppercase opacity-60 mb-1">
-                          <LogOut size={10} /> Trả (12h)
-                        </div>
-                        <p className="font-black text-[10px] truncate">{checkingOut.customer_name}</p>
+              {/* Grid các ngày */}
+              <div className="grid grid-cols-7">
+                {days.map((day, idx) => {
+                  const { checkingIn, checkingOut, staying } = getDailyBookings(day.date);
+                  const isToday = day.date.toDateString() === new Date().toDateString();
+                  
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const isPast = day.date < today;
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`min-h-[110px] md:min-h-[140px] border-r border-b border-slate-50 p-1.5 md:p-2 transition-colors relative group ${!day.isCurrentMonth ? 'bg-slate-50/30' : isPast ? 'bg-slate-50/10' : 'hover:bg-slate-50/50'}`}
+                    >
+                      <div className="flex justify-between items-center h-6 md:h-8 mb-1 md:mb-2">
+                        <span className={`text-xs md:text-sm font-black ${
+                          !day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'
+                        }`}>
+                          {day.date.getDate()}
+                        </span>
+                        
+                        {day.isCurrentMonth && !checkingIn && !staying && !isPast && (
+                          <button 
+                            onClick={() => router.push(`/bookings/create?villaId=${selectedVillaId}&date=${formatDateLocal(day.date)}`)}
+                            className="opacity-0 group-hover:opacity-100 p-1 bg-slate-900 text-white rounded md:rounded-lg transition-all hover:bg-orange-600"
+                          >
+                            <Plus size={12} />
+                          </button>
+                        )}
                       </div>
-                    )}
 
-                    {staying && (
-                      <div 
-                        onClick={() => router.push(`/bookings/${staying.id}`)}
-                        className={`p-2 rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
-                          staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                        } ${isPast ? 'opacity-50' : ''}`}
-                      >
-                        <div className="flex items-center gap-1 text-[8px] font-black uppercase opacity-70 mb-1">
-                          {staying.status === 'checked_in' ? (
-                            <><div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div> Đang ở</>
-                          ) : (
-                            <><div className="w-1.5 h-1.5 rounded-full bg-white/50"></div> Đã đặt</>
-                          )}
-                        </div>
-                        <p className="font-black text-[10px] truncate">{staying.customer_name}</p>
-                      </div>
-                    )}
+                      <div className="space-y-1">
+                        {checkingOut && (
+                          <div 
+                            onClick={() => router.push(`/bookings/${checkingOut.id}`)}
+                            className="p-1 md:p-1.5 bg-slate-50 text-slate-500 rounded-lg md:rounded-xl cursor-pointer border border-slate-100 hover:border-red-300 hover:bg-red-50 transition-all"
+                          >
+                            <div className="flex items-center gap-1 text-[7px] md:text-[8px] font-black uppercase opacity-60 mb-0.5">
+                              <LogOut size={8} className="md:w-2.5 md:h-2.5" /> Trả (12h)
+                            </div>
+                            <p className="font-black text-[9px] md:text-[10px] truncate leading-tight">{checkingOut.customer_name}</p>
+                          </div>
+                        )}
 
-                    {checkingIn && (
-                      <div 
-                        onClick={() => router.push(`/bookings/${checkingIn.id}`)}
-                        className={`p-2 rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
-                          checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                        } ${isPast ? 'opacity-50' : ''}`}
-                      >
-                        <div className="flex items-center gap-1 text-[8px] font-black uppercase opacity-70 mb-1">
-                          <LogIn size={10} /> {checkingIn.status === 'checked_in' ? 'Đang ở' : 'Nhận (14h)'}
-                        </div>
-                        <p className="font-black text-[10px] truncate">{checkingIn.customer_name}</p>
+                        {staying && (
+                          <div 
+                            onClick={() => router.push(`/bookings/${staying.id}`)}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
+                              staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
+                            } ${isPast ? 'opacity-50' : ''}`}
+                          >
+                            <div className="flex items-center gap-1 text-[7px] md:text-[8px] font-black uppercase opacity-70 mb-0.5">
+                              {staying.status === 'checked_in' ? (
+                                <><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-white animate-pulse"></div> Đang ở</>
+                              ) : (
+                                <><div className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-white/50"></div> Đã đặt</>
+                              )}
+                            </div>
+                            <p className="font-black text-[9px] md:text-[10px] truncate leading-tight">{staying.customer_name}</p>
+                          </div>
+                        )}
+
+                        {checkingIn && (
+                          <div 
+                            onClick={() => router.push(`/bookings/${checkingIn.id}`)}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${
+                              checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
+                            } ${isPast ? 'opacity-50' : ''}`}
+                          >
+                            <div className="flex items-center gap-1 text-[7px] md:text-[8px] font-black uppercase opacity-70 mb-0.5">
+                              <LogIn size={8} className="md:w-2.5 md:h-2.5" /> {checkingIn.status === 'checked_in' ? 'Đang ở' : 'Nhận (14h)'}
+                            </div>
+                            <p className="font-black text-[9px] md:text-[10px] truncate leading-tight">{checkingIn.customer_name}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       ) : (

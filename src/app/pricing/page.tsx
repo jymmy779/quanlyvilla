@@ -123,44 +123,44 @@ const PricingPage = () => {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-20">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4 mt-6 md:mt-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
            <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Cấu hình giá chi tiết</h1>
-            <p className="text-slate-500 font-medium italic">Quản lý giá theo năm và loại ngày (Thường/Cuối tuần).</p>
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Cấu hình giá</h1>
+            <p className="text-slate-500 font-bold text-[10px] md:text-xs">Quản lý giá theo loại ngày (Thường/Cuối tuần).</p>
           </div>
           
-          <div className="flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
-            <button onClick={() => setSelectedYear(selectedYear - 1)} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-xl"><ChevronLeft size={20} /></button>
-            <div className="px-6 py-2 flex flex-col items-center">
-              <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest leading-none mb-1">Năm</span>
-              <span className="text-xl font-black text-slate-900 leading-none">{selectedYear}</span>
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl md:rounded-2xl p-1 shadow-sm self-start">
+            <button onClick={() => setSelectedYear(selectedYear - 1)} className="p-1.5 md:p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-lg md:rounded-xl"><ChevronLeft size={18} /></button>
+            <div className="px-4 md:px-6 py-1 flex flex-col items-center">
+              <span className="text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-widest leading-none mb-0.5">Năm</span>
+              <span className="text-base md:text-lg font-black text-slate-900 leading-none">{selectedYear}</span>
             </div>
-            <button onClick={() => setSelectedYear(selectedYear + 1)} className="p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-xl"><ChevronRight size={20} /></button>
+            <button onClick={() => setSelectedYear(selectedYear + 1)} className="p-1.5 md:p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-lg md:rounded-xl"><ChevronRight size={18} /></button>
           </div>
         </div>
 
         <button 
           onClick={handleSave}
           disabled={saving || !selectedVillaId}
-          className="bg-slate-900 text-white hover:bg-orange-600 px-10 py-4 rounded-2xl font-black shadow-xl shadow-slate-200 flex items-center gap-3 transition-all active:scale-95 disabled:opacity-50"
+          className="bg-slate-900 text-white hover:bg-emerald-600 px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-black text-xs md:text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all active:scale-95 disabled:opacity-50"
         >
-          {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
           Lưu bảng giá {selectedYear}
         </button>
       </header>
 
       {/* Villa Tabs */}
-      <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+      <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 custom-scrollbar border-b border-slate-100">
         {villas.map((villa) => (
           <button
             key={villa.id}
             onClick={() => setSelectedVillaId(villa.id)}
-            className={`flex-shrink-0 px-8 py-4 rounded-2xl font-black transition-all border-2 ${
+            className={`flex-shrink-0 px-4 md:px-6 py-2 md:py-3 rounded-t-xl md:rounded-t-2xl font-black text-xs md:text-sm transition-all border-b-2 md:border-b-4 ${
               selectedVillaId === villa.id 
-                ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-lg shadow-orange-100' 
-                : 'border-slate-100 bg-white text-slate-400 hover:border-slate-300'
+                ? 'border-orange-500 bg-orange-50/20 text-orange-600' 
+                : 'border-transparent text-slate-400 hover:text-slate-600'
             }`}
           >
             {villa.name}
@@ -169,14 +169,14 @@ const PricingPage = () => {
       </div>
 
       {selectedVilla && (
-        <div className="bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm overflow-hidden w-full">
+        <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-sm overflow-hidden w-full">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-slate-400 text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
-                <th className="pb-6 pl-4">Tháng</th>
-                <th className="pb-6">Phân loại</th>
-                <th className="pb-6 text-center">Giá Ngày Thường (T2-T6, CN)</th>
-                <th className="pb-6 text-center">Giá Cuối Tuần (Thứ 7)</th>
+              <tr className="text-slate-400 text-[9px] md:text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
+                <th className="pb-4 pl-2">Tháng</th>
+                <th className="pb-4 hidden md:table-cell">Mùa vụ</th>
+                <th className="pb-4 text-center">Giá Ngày Thường</th>
+                <th className="pb-4 text-center">Giá Cuối Tuần</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -191,36 +191,36 @@ const PricingPage = () => {
 
                 return (
                   <tr key={month} className={`group ${isPast ? 'opacity-40' : ''} hover:bg-slate-50 transition-colors`}>
-                    <td className="py-6 pl-4">
-                      <span className="font-black text-slate-900 text-lg">Tháng {month}</span>
-                      <p className="text-[10px] text-slate-400 font-bold tracking-widest">{selectedYear}</p>
+                    <td className="py-4 pl-2">
+                      <span className="font-black text-slate-900 text-sm md:text-lg leading-tight">T{month}</span>
+                      <p className="text-[8px] md:text-[9px] text-slate-400 font-bold tracking-widest uppercase">{selectedYear}</p>
                     </td>
-                    <td className="py-6">
+                    <td className="py-4 hidden md:table-cell">
                       {isPeak ? (
-                        <span className="bg-red-50 text-red-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100 italic">Cao điểm</span>
+                        <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border border-red-100">Cao điểm</span>
                       ) : (
-                        <span className="bg-slate-50 text-slate-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-100">Thường</span>
+                        <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border border-slate-100">Thường</span>
                       )}
                     </td>
-                    <td className="py-6 px-4">
-                      <div className="flex items-center justify-center gap-3 bg-white border border-slate-100 rounded-2xl p-1 focus-within:ring-2 focus-within:ring-orange-500 transition-all">
-                        <span className="pl-3 text-slate-300 font-black text-xs">VNĐ</span>
+                    <td className="py-4 px-2 md:px-4">
+                      <div className="flex items-center justify-center gap-1.5 md:gap-2 bg-white border border-slate-100 rounded-lg md:rounded-2xl p-0.5 md:p-1 focus-within:ring-2 focus-within:ring-orange-500 transition-all">
+                        <span className="pl-1.5 md:pl-3 text-slate-300 font-black text-[9px] md:text-xs">Đ</span>
                         <input 
                           type="text" 
                           disabled={isPast}
-                          className="bg-transparent border-none p-3 text-right font-black text-slate-900 w-full outline-none"
+                          className="bg-transparent border-none py-2 md:py-3 text-right font-black text-slate-900 w-full outline-none text-xs md:text-sm"
                           value={displayWeekday}
                           onChange={(e) => handlePriceChange(month, 'weekday', e.target.value, e)}
                         />
                       </div>
                     </td>
-                    <td className="py-6 px-4">
-                      <div className="flex items-center justify-center gap-3 bg-indigo-50/50 border border-indigo-100 rounded-2xl p-1 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
-                        <span className="pl-3 text-indigo-300 font-black text-xs">VNĐ</span>
+                    <td className="py-4 px-2 md:px-4">
+                      <div className="flex items-center justify-center gap-1.5 md:gap-2 bg-indigo-50/50 border border-indigo-100 rounded-lg md:rounded-2xl p-0.5 md:p-1 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                        <span className="pl-1.5 md:pl-3 text-indigo-300 font-black text-[9px] md:text-xs">Đ</span>
                         <input 
                           type="text" 
                           disabled={isPast}
-                          className="bg-transparent border-none p-3 text-right font-black text-indigo-600 w-full outline-none"
+                          className="bg-transparent border-none py-2 md:py-3 text-right font-black text-indigo-600 w-full outline-none text-xs md:text-sm"
                           value={displayWeekend}
                           onChange={(e) => handlePriceChange(month, 'weekend', e.target.value, e)}
                         />

@@ -16,7 +16,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 z-50 flex flex-col p-6 shadow-sm">
+    <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 z-50 flex-col p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-500/20">
           <Home className="text-white" size={24} />

@@ -64,30 +64,30 @@ const BookingsListPage = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-20">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-10 md:pb-16">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Danh sách Đơn đặt</h1>
-          <p className="text-slate-500 font-medium">Theo dõi và quản lý toàn bộ luồng khách hàng từ Supabase.</p>
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Danh sách Đơn đặt</h1>
+          <p className="text-slate-500 text-xs md:text-sm font-medium">Theo dõi và quản lý toàn bộ luồng khách hàng từ Supabase.</p>
         </div>
       </header>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm">
         <div className="md:col-span-2 relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input 
             type="text" 
             placeholder="Tìm theo tên khách hoặc SĐT..." 
-            className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="relative">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <select 
-            className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-4 font-bold outline-none focus:ring-2 focus:ring-orange-500 appearance-none transition-all"
+            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-orange-500 appearance-none transition-all"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -101,17 +101,17 @@ const BookingsListPage = () => {
       </div>
 
       {/* Booking List */}
-      <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm">
         {filteredBookings.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[700px] md:min-w-0">
               <thead>
-                <tr className="bg-slate-50/50 text-slate-400 text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
-                  <th className="py-5 pl-8">Khách hàng</th>
-                  <th className="py-5">Villa</th>
-                  <th className="py-5">Thời gian</th>
-                  <th className="py-5">Trạng thái</th>
-                  <th className="py-5 text-right pr-8">Tổng tiền</th>
+                <tr className="bg-slate-50/50 text-slate-400 text-[9px] md:text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
+                  <th className="py-3 md:py-4 pl-4 md:pl-6">Khách hàng</th>
+                  <th className="py-3 md:py-4">Villa</th>
+                  <th className="py-3 md:py-4">Thời gian</th>
+                  <th className="py-3 md:py-4">Trạng thái</th>
+                  <th className="py-3 md:py-4 text-right pr-4 md:pr-6">Tổng tiền</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -124,27 +124,27 @@ const BookingsListPage = () => {
                       onClick={() => router.push(`/bookings/${booking.id}`)}
                       className="group hover:bg-slate-50/80 transition-all cursor-pointer"
                     >
-                      <td className="py-6 pl-8">
-                        <p className="font-black text-slate-900">{booking.customer_name}</p>
-                        <p className="text-slate-400 text-xs font-bold mt-0.5">{booking.customer_phone}</p>
+                      <td className="py-3 md:py-4 pl-4 md:pl-6">
+                        <p className="font-black text-slate-900 text-sm md:text-base leading-tight">{booking.customer_name}</p>
+                        <p className="text-slate-400 text-[10px] md:text-xs font-bold mt-0.5">{booking.customer_phone}</p>
                       </td>
-                      <td className="py-6">
-                        <span className="font-bold text-slate-700 text-sm">{villa?.name || 'N/A'}</span>
+                      <td className="py-3 md:py-4">
+                        <span className="font-bold text-slate-700 text-xs md:text-sm">{villa?.name || 'N/A'}</span>
                       </td>
-                      <td className="py-6">
-                        <div className="flex items-center gap-2 text-slate-500 font-medium text-xs">
-                          <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">{booking.check_in}</span>
+                      <td className="py-3 md:py-4">
+                        <div className="flex items-center gap-1.5 text-slate-500 font-medium text-[10px] md:text-xs">
+                          <span className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{booking.check_in}</span>
                           <span className="text-slate-200">→</span>
-                          <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">{booking.check_out}</span>
+                          <span className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{booking.check_out}</span>
                         </div>
                       </td>
-                      <td className="py-6">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${status.color}`}>
+                      <td className="py-3 md:py-4">
+                        <span className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border ${status.color}`}>
                           {status.label}
                         </span>
                       </td>
-                      <td className="py-6 text-right pr-8">
-                        <p className="font-black text-slate-900 text-lg">{Number(booking.total_amount).toLocaleString()}đ</p>
+                      <td className="py-3 md:py-4 text-right pr-4 md:pr-6">
+                        <p className="font-black text-slate-900 text-base md:text-lg">{Number(booking.total_amount).toLocaleString()}đ</p>
                       </td>
                     </tr>
                   )
@@ -153,13 +153,13 @@ const BookingsListPage = () => {
             </table>
           </div>
         ) : (
-          <div className="py-32 flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200">
-               <Calendar size={40} />
+          <div className="py-16 md:py-24 flex flex-col items-center justify-center space-y-3 text-center">
+            <div className="w-14 h-14 md:w-20 md:h-20 bg-slate-50 rounded-2xl md:rounded-3xl flex items-center justify-center text-slate-200">
+               <Calendar size={32} className="md:w-10 md:h-10" />
             </div>
-            <div className="space-y-1">
-              <p className="text-slate-900 font-black text-lg">Không tìm thấy đơn đặt nào</p>
-              <p className="text-slate-400 text-sm font-medium">Hãy thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.</p>
+            <div className="space-y-1 px-4">
+              <p className="text-slate-900 font-black text-base md:text-lg">Không tìm thấy đơn đặt nào</p>
+              <p className="text-slate-400 text-xs md:text-sm font-medium">Hãy thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.</p>
             </div>
           </div>
         )}
