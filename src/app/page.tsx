@@ -94,11 +94,21 @@ const DashboardPage = () => {
 
   const maxRevenue = Math.max(...weeklyRevenueData.map(d => d.amount), 1);
 
+  const formatCompactNumber = (number: number) => {
+    if (number >= 1000000000) {
+      return (number / 1000000000).toFixed(2).replace(/\.00$/, '') + ' Tỷ';
+    }
+    if (number >= 1000000) {
+      return (number / 1000000).toFixed(1).replace(/\.0$/, '') + ' Tr';
+    }
+    return number.toLocaleString() + 'đ';
+  };
+
   const stats = [
-    { label: 'Thực thu (Tiền mặt)', value: `${actualRevenue.toLocaleString()}đ`, icon: Wallet, color: 'bg-emerald-600' },
-    { label: 'Dự kiến (Tổng đơn)', value: `${totalExpectedRevenue.toLocaleString()}đ`, icon: DollarSign, color: 'bg-blue-600' },
-    { label: 'Lấp đầy tháng này', value: `${occupancyRate}%`, icon: TrendingUp, color: 'bg-orange-600' },
-    { label: 'Tổng Villa', value: villas.length, icon: Users, color: 'bg-indigo-600' },
+    { label: 'Thực thu (Tiền mặt)', value: formatCompactNumber(actualRevenue), fullValue: actualRevenue.toLocaleString() + 'đ', icon: Wallet, color: 'bg-emerald-600' },
+    { label: 'Dự kiến (Tổng đơn)', value: formatCompactNumber(totalExpectedRevenue), fullValue: totalExpectedRevenue.toLocaleString() + 'đ', icon: DollarSign, color: 'bg-blue-600' },
+    { label: 'Lấp đầy tháng này', value: `${occupancyRate}%`, fullValue: `${occupancyRate}%`, icon: TrendingUp, color: 'bg-orange-600' },
+    { label: 'Tổng Villa', value: villas.length.toString(), fullValue: villas.length.toString(), icon: Users, color: 'bg-indigo-600' },
   ];
 
   if (loading) {
@@ -117,16 +127,20 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between">
+          <div key={idx} className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 hover:shadow-lg transition-all group relative overflow-hidden" title={stat.fullValue}>
+            <div className="flex items-center justify-between relative z-10">
               <div className="min-w-0">
                 <p className="text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest truncate">{stat.label}</p>
-                <p className="text-base md:text-xl font-black mt-0.5 text-slate-900 tracking-tight truncate">{stat.value}</p>
+                <p className={`font-black mt-0.5 text-slate-900 tracking-tight truncate ${
+                  stat.value.length > 8 ? 'text-sm md:text-lg' : 'text-base md:text-xl'
+                }`}>{stat.value}</p>
               </div>
               <div className={`${stat.color} p-2 md:p-3 rounded-xl md:rounded-2xl shadow-md flex-shrink-0 ml-2`}>
                 <stat.icon size={18} className="text-white md:w-5 md:h-5" />
               </div>
             </div>
+            {/* Trang trí nền nhẹ */}
+            <div className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full opacity-5 group-hover:scale-150 transition-transform duration-700 ${stat.color}`}></div>
           </div>
         ))}
       </div>
