@@ -9,7 +9,7 @@ import { ArrowLeft, User, Calendar as CalendarIcon, Save, Plus, Calculator, Aler
 const CreateBookingPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const villaIdFromUrl = searchParams.get('villaId') || '';
   const dateStr = searchParams.get('date') || '';
 
@@ -64,7 +64,7 @@ const CreateBookingPageContent = () => {
 
     const start = new Date(booking.checkIn);
     const end = new Date(booking.checkOut);
-    
+
     if (end <= start) return;
 
     let total = 0;
@@ -73,10 +73,10 @@ const CreateBookingPageContent = () => {
     while (current < end) {
       const month = current.getMonth() + 1;
       const year = current.getFullYear();
-      const dayOfWeek = current.getDay(); 
+      const dayOfWeek = current.getDay();
 
       const priceConfig = villa.monthly_prices?.find((p: MonthlyPrice) => p.month === month && p.year === year);
-      
+
       if (priceConfig) {
         const price = dayOfWeek === 6 ? priceConfig.weekend_price : priceConfig.weekday_price;
         total += price;
@@ -145,7 +145,7 @@ const CreateBookingPageContent = () => {
           deposit_amount: booking.depositAmount,
           notes: booking.notes,
           additional_services: booking.additionalServices,
-          status: 'deposited' 
+          status: 'deposited'
         }]);
 
       if (error) throw error;
@@ -167,12 +167,12 @@ const CreateBookingPageContent = () => {
   const handleMoneyChange = (field: 'totalAmount' | 'depositAmount', e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const value = input.value;
-    
+
     // Thuật toán: Đếm số chữ số đứng trước con trỏ hiện tại
     const cursorPosition = input.selectionStart || 0;
     const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    const rawValue = value.replace(/\D/g, ''); 
+    const rawValue = value.replace(/\D/g, '');
     const numValue = rawValue === '' ? 0 : Number(rawValue);
 
     if (field === 'totalAmount') {
@@ -185,7 +185,7 @@ const CreateBookingPageContent = () => {
     // Đợi React render xong thì tính toán lại vị trí con trỏ
     setTimeout(() => {
       const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
-      
+
       // Tìm vị trí mới sao cho số lượng chữ số đứng trước con trỏ vẫn như cũ
       let newPos = 0;
       let digitsFound = 0;
@@ -193,7 +193,7 @@ const CreateBookingPageContent = () => {
         if (/\d/.test(formatted[i])) digitsFound++;
         newPos = i + 1;
       }
-      
+
       const targetInput = field === 'totalAmount' ? totalAmountInputRef : depositAmountInputRef;
       if (targetInput.current) {
         targetInput.current.setSelectionRange(newPos, newPos);
@@ -267,9 +267,9 @@ const CreateBookingPageContent = () => {
             <p className="text-slate-500 font-bold text-[9px] md:text-[10px] uppercase tracking-widest mt-0.5">Villa: {villa?.name}</p>
           </div>
         </div>
-        <button 
+        <button
           disabled={!!error || !booking.checkOut || saving}
-          onClick={handleSave} 
+          onClick={handleSave}
           className="bg-slate-900 text-white hover:bg-emerald-600 px-6 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
         >
           {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
@@ -291,21 +291,21 @@ const CreateBookingPageContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-4">
                 <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
-                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerName} onChange={e => setBooking({...booking, customerName: e.target.value})} />
-                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerPhone} onChange={e => setBooking({...booking, customerPhone: e.target.value})} />
+                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerName} onChange={e => setBooking({ ...booking, customerName: e.target.value })} />
+                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerPhone} onChange={e => setBooking({ ...booking, customerPhone: e.target.value })} />
               </div>
               <div className="space-y-4">
                 <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-in</span>
-                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkIn} onChange={e => setBooking({...booking, checkIn: e.target.value})} />
+                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkIn} onChange={e => setBooking({ ...booking, checkIn: e.target.value })} />
                   </div>
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-out</span>
-                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkOut} onChange={e => setBooking({...booking, checkOut: e.target.value})} />
+                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkOut} onChange={e => setBooking({ ...booking, checkOut: e.target.value })} />
                   </div>
-                  
+
                   <div className="space-y-1">
                     <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Người lớn</span>
                     <div className="flex items-center bg-slate-50 rounded-lg md:rounded-xl px-3 md:px-4 py-2">
@@ -332,32 +332,32 @@ const CreateBookingPageContent = () => {
                 <div className="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
                 Dịch vụ / Yêu cầu
               </h2>
-              <button onClick={addService} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-all uppercase tracking-widest">
+              <button onClick={addService} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100 transition-all uppercase tracking-widest">
                 <PlusCircle size={14} /> Thêm
               </button>
             </div>
-            
+
             {booking.additionalServices.length > 0 ? (
               <div className="space-y-3 md:space-y-4">
                 {booking.additionalServices.map((service, idx) => (
                   <div key={idx} className="bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl animate-in zoom-in duration-300">
                     <div className="flex flex-col md:flex-row md:items-center gap-3">
-                      <input 
-                        type="text" 
-                        placeholder="Tên dịch vụ..." 
+                      <input
+                        type="text"
+                        placeholder="Tên dịch vụ..."
                         className="flex-1 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-xs md:text-sm font-bold"
                         value={service.name}
                         onChange={e => updateService(idx, 'name', e.target.value)}
                       />
                       <div className="flex items-center gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="VNĐ" 
+                        <input
+                          type="text"
+                          placeholder="VNĐ"
                           className="flex-1 md:w-32 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-xs md:text-sm font-black text-emerald-600 text-right"
                           value={formatMoney(service.price)}
                           onChange={e => updateService(idx, 'price', e.target.value, e)}
                         />
-                        <button onClick={() => removeService(idx)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                        <button onClick={() => removeService(idx)} className="p-2 text-slate-300 hover:text-red-500 transition-colors cursor-pointer">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -374,32 +374,32 @@ const CreateBookingPageContent = () => {
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-slate-50 pb-4">
               <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2.5"><Calculator className="text-indigo-500" size={18} /> Thanh toán</h2>
-              <button 
+              <button
                 onClick={handleRecalculate}
-                className="flex items-center gap-1 text-[8px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-lg"
+                className="flex items-center gap-1 text-[9px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-lg cursor-pointer"
               >
-                <RefreshCw size={10} /> Tính lại
+                <RefreshCw size={14} /> Tính lại
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-1.5">
                 <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tổng cộng (VNĐ)</label>
-                <input 
+                <input
                   ref={totalAmountInputRef}
-                  type="text" 
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-black text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner" 
-                  value={formatMoney(booking.totalAmount)} 
-                  onChange={e => handleMoneyChange('totalAmount', e)} 
+                  type="text"
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-black text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
+                  value={formatMoney(booking.totalAmount)}
+                  onChange={e => handleMoneyChange('totalAmount', e)}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[8px] md:text-[10px] font-black text-orange-400 uppercase tracking-widest ml-1">Tiền cọc (VNĐ)</label>
-                <input 
+                <input
                   ref={depositAmountInputRef}
-                  type="text" 
-                  className={`w-full bg-orange-50/50 border-2 rounded-xl p-3.5 md:p-4 font-black text-orange-600 text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`} 
-                  value={formatMoney(booking.depositAmount)} 
-                  onChange={e => handleMoneyChange('depositAmount', e)} 
+                  type="text"
+                  className={`w-full bg-orange-50/50 border-2 rounded-xl p-3.5 md:p-4 font-black text-orange-600 text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`}
+                  value={formatMoney(booking.depositAmount)}
+                  onChange={e => handleMoneyChange('depositAmount', e)}
                 />
                 {isManualDeposit && <p className="text-[8px] font-bold text-orange-500 ml-1 italic">* Đã sửa tay</p>}
               </div>
@@ -410,7 +410,7 @@ const CreateBookingPageContent = () => {
         <div className="space-y-6 md:space-y-8">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
             <h3 className="text-base md:text-lg font-black text-slate-900 border-b border-slate-50 pb-3">Ghi chú</h3>
-            <textarea className="w-full bg-slate-50 border-none rounded-xl p-4 text-slate-600 font-bold text-xs min-h-[120px] md:min-h-[200px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({...booking, notes: e.target.value})} placeholder="Thông tin thêm..." />
+            <textarea className="w-full bg-slate-50 border-none rounded-xl p-4 text-slate-600 font-bold text-xs min-h-[120px] md:min-h-[200px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({ ...booking, notes: e.target.value })} placeholder="Thông tin thêm..." />
           </div>
         </div>
       </div>

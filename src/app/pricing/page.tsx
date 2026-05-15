@@ -183,7 +183,10 @@ const PricingPage = () => {
               {months.map((month) => {
                 const seasonal = getPriceForMonth(month);
                 const isPeak = [6, 7, 8].includes(month);
-                const isPast = selectedYear === new Date().getFullYear() && month < new Date().getMonth() + 1;
+                const now = new Date();
+                const currentMonth = now.getMonth() + 1;
+                const currentYear = now.getFullYear();
+                const isPast = selectedYear < currentYear || (selectedYear === currentYear && month < currentMonth);
                 
                 // Hiển thị rỗng nếu giá trị bằng 0 để dễ nhập
                 const displayWeekday = seasonal?.weekday_price === 0 ? '' : (seasonal?.weekday_price || 5000000).toLocaleString('vi-VN');

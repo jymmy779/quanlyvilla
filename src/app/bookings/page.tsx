@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
-import { Search, Filter, Calendar, Users, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, Filter, Calendar, Users, ChevronRight, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 
 const BookingsListPage = () => {
   const router = useRouter();
@@ -22,7 +22,7 @@ const BookingsListPage = () => {
     try {
       setLoading(true);
       const [bookingsRes, villasRes] = await Promise.all([
-        supabase.from('bookings').select('*').order('check_in', { ascending: false }),
+        supabase.from('bookings').select('*').neq('status', 'deleted').order('check_in', { ascending: false }),
         supabase.from('villas').select('*')
       ]);
 
@@ -35,6 +35,24 @@ const BookingsListPage = () => {
       console.error('Error fetching bookings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Bạn có chắc chắn muốn xóa đơn này không? (Đơn sẽ bị ẩn hoàn toàn khỏi hệ thống)')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'deleted' })
+        .eq('id', id);
+        
+      if (error) throw error;
+      setBookings(prev => prev.filter(b => b.id !== id));
+    } catch (error) {
+      console.error('Error deleting booking:', error);
+      alert('Không thể xóa đơn này!');
     }
   };
 
@@ -111,7 +129,7 @@ const BookingsListPage = () => {
                   <th className="py-3 md:py-4">Villa</th>
                   <th className="py-3 md:py-4">Thời gian</th>
                   <th className="py-3 md:py-4">Trạng thái</th>
-                  <th className="py-3 md:py-4 text-right pr-4 md:pr-6">Tổng tiền</th>
+                  <th className="py-3 md:py-4 pr-4 md:pr-6 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -144,7 +162,17 @@ const BookingsListPage = () => {
                         </span>
                       </td>
                       <td className="py-3 md:py-4 text-right pr-4 md:pr-6">
-                        <p className="font-black text-slate-900 text-base md:text-lg">{Number(booking.total_amount).toLocaleString()}đ</p>
+                        <div className="flex items-center justify-end gap-3">
+                          <div className="text-right">
+                            <p className="font-black text-slate-900 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</p>
+                          </div>
+                          <button 
+                            onClick={(e) => handleDelete(e, booking.id)}
+                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )

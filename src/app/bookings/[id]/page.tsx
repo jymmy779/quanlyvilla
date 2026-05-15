@@ -230,7 +230,8 @@ const BookingDetailPage = () => {
   const statusMap = {
     'deposited': { label: 'Đã đặt cọc', color: 'bg-emerald-500', icon: ShieldCheck, text: 'text-emerald-600', bg: 'bg-emerald-50' },
     'checked_in': { label: 'Đang lưu trú', color: 'bg-indigo-600', icon: Clock, text: 'text-indigo-600', bg: 'bg-indigo-50' },
-    'completed': { label: 'Đã hoàn thành', color: 'bg-blue-600', icon: CheckCircle2, text: 'text-blue-600', bg: 'bg-blue-50' }
+    'completed': { label: 'Đã hoàn thành', color: 'bg-blue-600', icon: CheckCircle2, text: 'text-blue-600', bg: 'bg-blue-50' },
+    'cancelled': { label: 'Đã hủy đơn', color: 'bg-red-500', icon: Ban, text: 'text-red-600', bg: 'bg-red-50' }
   };
 
   const currentStatus = statusMap[booking.status as keyof typeof statusMap] || { label: 'Chờ xử lý', icon: Clock, text: 'text-slate-600' };
@@ -286,7 +287,7 @@ const BookingDetailPage = () => {
                 </div>
               </div>
               {!isEditing && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {booking.status === 'deposited' && (
                     <div className="relative group flex-1 md:flex-none">
                       <button
@@ -300,6 +301,15 @@ const BookingDetailPage = () => {
                   )}
                   {booking.status === 'checked_in' && (
                     <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 md:flex-none bg-blue-600 text-white px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-blue-700 active:scale-95">Check-out</button>
+                  )}
+                  {booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                    <button 
+                      onClick={() => { if(confirm('Bạn có chắc chắn muốn HỦY đơn đặt này không?')) updateStatus('cancelled') }} 
+                      disabled={updating} 
+                      className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      Hủy đơn
+                    </button>
                   )}
                 </div>
               )}
@@ -388,7 +398,7 @@ const BookingDetailPage = () => {
                         <input type="text" placeholder="Tên dịch vụ..." className="flex-1 bg-white p-2.5 rounded-xl border border-slate-200 font-bold text-xs md:text-sm" value={service.name} onChange={e => { const s = [...(editForm.additional_services || [])]; s[idx].name = e.target.value; setEditForm({ ...editForm, additional_services: s }) }} />
                         <div className="flex items-center gap-2">
                           <input type="text" placeholder="Giá tiền..." className="flex-1 md:w-32 bg-white p-2.5 rounded-xl border border-slate-200 font-black text-right text-xs md:text-sm text-emerald-600" value={formatMoney(service.price)} onChange={e => updateService(idx, 'price', e.target.value, e)} />
-                          <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="p-2.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+                          <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="p-2.5 text-slate-300 hover:text-red-500 transition-colors cursor-pointer"><Trash2 size={18} /></button>
                         </div>
                       </div>
                     ) : (

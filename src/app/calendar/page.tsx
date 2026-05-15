@@ -55,6 +55,7 @@ const CalendarPage = () => {
         .from('bookings')
         .select('*')
         .eq('villa_id', selectedVillaId)
+        .not('status', 'in', '("cancelled", "deleted")')
         .or(`check_in.lte.${lastDay},check_out.gte.${firstDay}`);
 
       if (error) throw error;
