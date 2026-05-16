@@ -12,6 +12,7 @@ const PricingPage = () => {
   const [saving, setSaving] = useState(false);
   const [monthlyPrices, setMonthlyPrices] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [editingValue, setEditingValue] = useState<{ key: string; val: string } | null>(null);
 
   useEffect(() => {
     fetchVillas();
@@ -50,16 +51,21 @@ const PricingPage = () => {
     return monthlyPrices.find(p => p.month === month && p.year === selectedYear);
   };
 
-  const handlePriceChange = (month: number, type: 'weekday' | 'weekend', value: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const val = input.value;
+  const handlePriceChange = (month: number, type: 'weekday' | 'weekend', inputVal: string, inputElement: HTMLInputElement) => {
+    const key = `${month}-${type}`;
     
-    // Thuật toán bảo toàn chữ số
-    const cursorPosition = input.selectionStart || 0;
-    const digitsBeforeCursor = val.substring(0, cursorPosition).replace(/\D/g, '').length;
+    // Đếm số chữ số trước con trỏ để giữ vị trí
+    const cursorPosition = inputElement.selectionStart || 0;
+    const digitsBeforeCursor = inputVal.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    const rawValue = val.replace(/\D/g, '');
-    const amount = rawValue === '' ? 0 : Number(rawValue);
+    // Manual VN Formatter: Thêm dấu chấm nhưng KHÔNG ép kiểu Number sớm (để giữ số 0 ở đầu)
+    const digits = inputVal.replace(/\D/g, '');
+    const formattedVal = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    setEditingValue({ key, val: formattedVal });
+
+    // Cập nhật giá trị số thực tế cho hệ thống
+    const amount = digits === '' ? 0 : Number(digits);
     
     const newPrices = [...monthlyPrices];
     const index = newPrices.findIndex(p => p.month === month && p.year === selectedYear);
@@ -78,16 +84,15 @@ const PricingPage = () => {
     }
     setMonthlyPrices(newPrices);
 
-    // Khôi phục con trỏ
+    // Khôi phục con trỏ thông minh
     setTimeout(() => {
-      const formatted = amount === 0 ? "" : amount.toLocaleString('vi-VN');
       let newPos = 0;
       let digitsFound = 0;
-      for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {
-        if (/\d/.test(formatted[i])) digitsFound++;
+      for (let i = 0; i < formattedVal.length && digitsFound < digitsBeforeCursor; i++) {
+        if (/\d/.test(formattedVal[i])) digitsFound++;
         newPos = i + 1;
       }
-      input.setSelectionRange(newPos, newPos);
+      inputElement.setSelectionRange(newPos, newPos);
     }, 0);
   };
 
@@ -188,9 +193,9 @@ const PricingPage = () => {
                 const currentYear = now.getFullYear();
                 const isPast = selectedYear < currentYear || (selectedYear === currentYear && month < currentMonth);
                 
-                // Hiển thị rỗng nếu giá trị bằng 0 để dễ nhập
-                const displayWeekday = seasonal?.weekday_price === 0 ? '' : (seasonal?.weekday_price || 5000000).toLocaleString('vi-VN');
-                const displayWeekend = seasonal?.weekend_price === 0 ? '' : (seasonal?.weekend_price || 7000000).toLocaleString('vi-VN');
+                // Hiển thị giá từ DB, nếu chưa có thì dùng mặc định
+                const displayWeekday = seasonal ? seasonal.weekday_price.toLocaleString('vi-VN') : (isPast ? '' : '5.000.000');
+                const displayWeekend = seasonal ? seasonal.weekend_price.toLocaleString('vi-VN') : (isPast ? '' : '7.000.000');
 
                 return (
                   <tr key={month} className={`group ${isPast ? 'opacity-40' : ''} hover:bg-slate-50 transition-colors`}>
@@ -212,8 +217,10 @@ const PricingPage = () => {
                           type="text" 
                           disabled={isPast}
                           className="bg-transparent border-none py-2 md:py-3 text-right font-semibold text-slate-900 w-full outline-none text-sm"
-                          value={displayWeekday}
-                          onChange={(e) => handlePriceChange(month, 'weekday', e.target.value, e)}
+                          value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
+                          onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
+                          onBlur={() => setEditingValue(null)}
+                          onChange={(e) => handlePriceChange(month, 'weekday', e.target.value, e.target)}
                         />
                       </div>
                     </td>
@@ -224,8 +231,10 @@ const PricingPage = () => {
                           type="text" 
                           disabled={isPast}
                           className="bg-transparent border-none py-2 md:py-3 text-right font-semibold text-indigo-600 w-full outline-none text-sm"
-                          value={displayWeekend}
-                          onChange={(e) => handlePriceChange(month, 'weekend', e.target.value, e)}
+                          value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
+                          onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
+                          onBlur={() => setEditingValue(null)}
+                          onChange={(e) => handlePriceChange(month, 'weekend', e.target.value, e.target)}
                         />
                       </div>
                     </td>

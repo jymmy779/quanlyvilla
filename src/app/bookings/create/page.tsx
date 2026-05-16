@@ -18,6 +18,7 @@ const CreateBookingPageContent = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isManualDeposit, setIsManualDeposit] = useState(false);
+  const [editingValue, setEditingValue] = useState<{ key: string; val: string } | null>(null);
 
   const [booking, setBooking] = useState({
     customerName: '',
@@ -160,7 +161,6 @@ const CreateBookingPageContent = () => {
   };
 
   const formatMoney = (amount: number) => {
-    if (amount === 0) return '';
     return amount.toLocaleString('vi-VN');
   };
 
@@ -168,12 +168,17 @@ const CreateBookingPageContent = () => {
     const input = e.target;
     const value = input.value;
 
-    // Thuật toán: Đếm số chữ số đứng trước con trỏ hiện tại
+    // Đếm số chữ số trước con trỏ
     const cursorPosition = input.selectionStart || 0;
     const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    const rawValue = value.replace(/\D/g, '');
-    const numValue = rawValue === '' ? 0 : Number(rawValue);
+    // Manual VN Formatter: Giữ số 0 ở đầu khi đang gõ
+    const digits = value.replace(/\D/g, '');
+    const formattedVal = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    setEditingValue({ key: field, val: formattedVal });
+
+    const numValue = digits === '' ? 0 : Number(digits);
 
     if (field === 'totalAmount') {
       setBooking(prev => ({ ...prev, totalAmount: numValue, depositAmount: isManualDeposit ? prev.depositAmount : Math.floor(numValue / 2) }));
@@ -182,22 +187,15 @@ const CreateBookingPageContent = () => {
       setIsManualDeposit(true);
     }
 
-    // Đợi React render xong thì tính toán lại vị trí con trỏ
+    // Khôi phục con trỏ thông minh
     setTimeout(() => {
-      const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
-
-      // Tìm vị trí mới sao cho số lượng chữ số đứng trước con trỏ vẫn như cũ
       let newPos = 0;
       let digitsFound = 0;
-      for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {
-        if (/\d/.test(formatted[i])) digitsFound++;
+      for (let i = 0; i < formattedVal.length && digitsFound < digitsBeforeCursor; i++) {
+        if (/\d/.test(formattedVal[i])) digitsFound++;
         newPos = i + 1;
       }
-
-      const targetInput = field === 'totalAmount' ? totalAmountInputRef : depositAmountInputRef;
-      if (targetInput.current) {
-        targetInput.current.setSelectionRange(newPos, newPos);
-      }
+      input.setSelectionRange(newPos, newPos);
     }, 0);
   };
 
@@ -384,13 +382,15 @@ const CreateBookingPageContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-400 ml-1">Tổng cộng (VNĐ)</label>
-                <input
-                  ref={totalAmountInputRef}
-                  type="text"
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-semibold text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
-                  value={formatMoney(booking.totalAmount)}
-                  onChange={e => handleMoneyChange('totalAmount', e)}
-                />
+                    <input
+                      ref={totalAmountInputRef}
+                      type="text"
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-semibold text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
+                      value={editingValue?.key === 'totalAmount' ? editingValue.val : formatMoney(booking.totalAmount)}
+                      onFocus={() => setEditingValue({ key: 'totalAmount', val: formatMoney(booking.totalAmount) })}
+                      onBlur={() => setEditingValue(null)}
+                      onChange={(e) => handleMoneyChange('totalAmount', e)}
+                    />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-orange-400 ml-1">Tiền cọc (VNĐ)</label>
@@ -398,7 +398,9 @@ const CreateBookingPageContent = () => {
                   ref={depositAmountInputRef}
                   type="text"
                   className={`w-full bg-orange-50/50 border-2 rounded-xl p-3.5 md:p-4 font-semibold text-orange-600 text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`}
-                  value={formatMoney(booking.depositAmount)}
+                  value={editingValue?.key === 'depositAmount' ? editingValue.val : formatMoney(booking.depositAmount)}
+                  onFocus={() => setEditingValue({ key: 'depositAmount', val: formatMoney(booking.depositAmount) })}
+                  onBlur={() => setEditingValue(null)}
                   onChange={e => handleMoneyChange('depositAmount', e)}
                 />
                 {isManualDeposit && <p className="text-[8px] font-bold text-orange-500 ml-1 italic">* Đã sửa tay</p>}
