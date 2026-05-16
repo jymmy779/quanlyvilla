@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
 import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 const PricingPage = () => {
   const [villas, setVillas] = useState<Villa[]>([]);
@@ -13,6 +14,7 @@ const PricingPage = () => {
   const [monthlyPrices, setMonthlyPrices] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [editingValue, setEditingValue] = useState<{ key: string; val: string } | null>(null);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     fetchVillas();
@@ -108,10 +110,10 @@ const PricingPage = () => {
       if (error) throw error;
       
       setVillas(villas.map(v => v.id === selectedVillaId ? { ...v, monthly_prices: monthlyPrices } : v));
-      alert(`Đã cập nhật thành công bảng giá năm ${selectedYear}!`);
+      showToast(`Đã cập nhật thành công bảng giá năm ${selectedYear}!`);
     } catch (error) {
       console.error(error);
-      alert('Lỗi khi lưu bảng giá!');
+      showToast('Lỗi khi lưu bảng giá!', 'error');
     } finally {
       setSaving(false);
     }

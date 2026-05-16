@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import MobileNav from "@/components/MobileNav/MobileNav";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,7 +25,9 @@ export default function RootLayout({
           <MobileNav />
           <main className="flex-1 xl:ml-64 min-h-screen p-4 md:p-8 pb-24 xl:pb-8 bg-[#f8fafc] text-gray-900 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto">
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </div>
           </main>
         </div>

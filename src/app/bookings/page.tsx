@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
 import { Search, Filter, Calendar, Users, ChevronRight, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 const BookingsListPage = () => {
   const router = useRouter();
@@ -13,6 +14,7 @@ const BookingsListPage = () => {
   const [villas, setVillas] = useState<Villa[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { showToast, confirm: showConfirm } = useNotification();
 
   useEffect(() => {
     fetchData();
@@ -40,24 +42,40 @@ const BookingsListPage = () => {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!confirm('Bạn có chắc chắn muốn xóa đơn này không? (Đơn sẽ bị ẩn hoàn toàn khỏi hệ thống)')) return;
     
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'deleted' })
-        .eq('id', id);
-        
-      if (error) throw error;
-      setBookings(prev => prev.filter(b => b.id !== id));
-    } catch (error) {
-      console.error('Error deleting booking:', error);
-      alert('Không thể xóa đơn này!');
-    }
+    showConfirm({
+      title: 'Xóa đơn đặt?',
+      message: 'Bạn có chắc chắn muốn xóa đơn này không? Đơn sẽ bị ẩn hoàn toàn khỏi hệ thống.',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase
+            .from('bookings')
+            .update({ status: 'deleted' })
+            .eq('id', id);
+            
+          if (error) throw error;
+          setBookings(prev => prev.filter(b => b.id !== id));
+          showToast('Đã xóa đơn đặt thành công');
+        } catch (error) {
+          console.error('Error deleting booking:', error);
+          showToast('Không thể xóa đơn này!', 'error');
+        }
+      }
+    });
+  };
+
+  const removeAccents = (str: string) => {
+    return str.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D');
   };
 
   const filteredBookings = bookings.filter(b => {
-    const matchesSearch = b.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const normalizedSearch = removeAccents(searchTerm.toLowerCase());
+    const normalizedName = removeAccents(b.customer_name.toLowerCase());
+    
+    const matchesSearch = normalizedName.includes(normalizedSearch) || 
                           b.customer_phone.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -129,7 +147,7 @@ const BookingsListPage = () => {
                   <th className="py-3 md:py-4">Villa</th>
                   <th className="py-3 md:py-4">Thời gian</th>
                   <th className="py-3 md:py-4">Trạng thái</th>
-                  <th className="py-3 md:py-4 pr-4 md:pr-6 text-right">Thao tác</th>
+                  <th className="py-3 md:py-4 pr-4 md:pr-6 text-right">Tổng cộng</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -162,16 +180,10 @@ const BookingsListPage = () => {
                         </span>
                       </td>
                       <td className="py-3 md:py-4 text-right pr-4 md:pr-6">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-end">
                           <div className="text-right">
                             <p className="font-semibold text-slate-900 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</p>
                           </div>
-                          <button 
-                            onClick={(e) => handleDelete(e, booking.id)}
-                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-                          >
-                            <Trash2 size={16} />
-                          </button>
                         </div>
                       </td>
                     </tr>

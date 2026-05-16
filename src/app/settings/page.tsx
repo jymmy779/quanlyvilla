@@ -7,11 +7,12 @@ import {
   Info, MessageSquare, List, Sparkles, ArrowLeft,
   Trash2, Search, Bold, Italic, Underline as UnderlineIcon,
   Type, List as ListIcon, Smile, CaseSensitive,
-  ChevronDown, MapPin, Clock, DollarSign, Home, X
+  ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import EmojiPicker, { Theme, EmojiClickData } from 'emoji-picker-react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { useNotification } from '@/context/NotificationContext';
 
 const DEFAULT_TEMPLATE = `✍️ XÁC NHẬN TIỀN CỌC VILLA
 Địa chỉ: {{villa_address}}
@@ -185,6 +186,7 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const { showToast, confirm: showConfirmModal } = useNotification();
   const editorRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -197,7 +199,7 @@ const SettingsPage = () => {
       // HOẶC nếu nội dung khác biệt hoàn toàn (ví dụ khi nhấn Reset/Load)
       const currentHtml = editorRef.current.innerHTML;
       const newHtml = templateToHtml(template);
-      
+
       if (document.activeElement !== editorRef.current && currentHtml !== newHtml) {
         editorRef.current.innerHTML = newHtml;
       }
@@ -235,10 +237,11 @@ const SettingsPage = () => {
 
       setTemplate(currentTemplate);
       setSaved(true);
+      showToast('Đã lưu cài đặt thành công!');
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       console.error(err);
-      alert('Lỗi khi lưu cài đặt!');
+      showToast('Lỗi khi lưu cài đặt!', 'error');
     } finally {
       setSaving(false);
     }
@@ -261,11 +264,16 @@ const SettingsPage = () => {
   };
 
   const clearAllPlaceholders = () => {
-    if (confirm('Bạn có chắc muốn xóa tất cả các biến {{...}} trong nội dung?')) {
-      const newTemplate = template.replace(/{{.*?}}/g, '');
-      setTemplate(newTemplate);
-      setHtmlContent(templateToHtml(newTemplate));
-    }
+    showConfirmModal({
+      title: 'Xóa tất cả biến?',
+      message: 'Bạn có chắc muốn xóa tất cả các biến trong nội dung?',
+      onConfirm: () => {
+        const newTemplate = template.replace(/{{.*?}}/g, '');
+        setTemplate(newTemplate);
+        setHtmlContent(templateToHtml(newTemplate));
+        showToast('Đã xóa sạch các biến');
+      }
+    });
   };
 
   const transformSelection = (type: 'bold' | 'italic' | 'underline' | 'uppercase' | 'list', bulletStyle?: string) => {
@@ -396,7 +404,16 @@ const SettingsPage = () => {
                 Mẫu Xác nhận Tiền cọc
               </h2>
               <button
-                onClick={() => { if (confirm('Khôi phục về mẫu mặc định?')) setTemplate(DEFAULT_TEMPLATE) }}
+                onClick={() => { 
+                  showConfirmModal({
+                    title: 'Khôi phục mặc định?',
+                    message: 'Toàn bộ nội dung hiện tại sẽ bị thay thế bằng mẫu mặc định. Bạn có muốn tiếp tục?',
+                    onConfirm: () => {
+                      setTemplate(DEFAULT_TEMPLATE);
+                      showToast('Đã khôi phục mẫu mặc định');
+                    }
+                  })
+                }}
                 className="text-slate-400 hover:text-orange-600 transition-colors flex items-center gap-1.5 text-xs font-bold w-fit"
               >
                 <RotateCcw size={14} /> Khôi phục mặc định
@@ -470,7 +487,7 @@ const SettingsPage = () => {
 
                 <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles size={12} className="text-indigo-400" /> 
+                    <Sparkles size={12} className="text-indigo-400" />
                     Biến tự động
                   </span>
                   <button

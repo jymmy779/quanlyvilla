@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Save, Plus, X, Upload, Image as ImageIcon, Trash2, CheckCircle2, Star, Info, AlertCircle, Power, MapPin, Loader2, ListTree, Camera, Eraser } from 'lucide-react';
 import { VillaStatus, Villa, VillaDetailItem } from '@/types';
+import { useNotification } from '@/context/NotificationContext';
 
 const VillaEditPage = () => {
   const { id } = useParams();
@@ -33,6 +34,7 @@ const VillaEditPage = () => {
   const [capacity, setCapacity] = useState({ adults: 15, children: 5 });
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [monthlyPrices, setMonthlyPrices] = useState<any[]>([]);
+  const { showToast, confirm: showConfirm } = useNotification();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,7 +76,7 @@ const VillaEditPage = () => {
       }
     } catch (error) {
       console.error('Error fetching villa:', error);
-      alert('Không tìm thấy Villa!');
+      showToast('Không tìm thấy Villa!', 'error');
       router.push('/villas');
     } finally {
       setLoading(false);
@@ -153,11 +155,11 @@ const VillaEditPage = () => {
 
       if (result.error) throw result.error;
 
-      alert(isEdit ? 'Đã cập nhật thành công!' : 'Đã thêm Villa mới thành công!');
+      showToast(isEdit ? 'Đã cập nhật thành công!' : 'Đã thêm Villa mới thành công!');
       router.push('/villas');
     } catch (error) {
       console.error('Error saving villa:', error);
-      alert('Có lỗi xảy ra khi lưu dữ liệu!');
+      showToast('Có lỗi xảy ra khi lưu dữ liệu!', 'error');
     } finally {
       setSaving(false);
     }
@@ -201,10 +203,15 @@ const VillaEditPage = () => {
   };
 
   const removeAllImages = () => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa toàn bộ ảnh trong album này không?')) {
-      setPreviews([]);
-      setCoverIndex(0);
-    }
+    showConfirm({
+      title: 'Xóa toàn bộ ảnh?',
+      message: 'Bạn có chắc chắn muốn xóa toàn bộ ảnh trong album này không?',
+      onConfirm: () => {
+        setPreviews([]);
+        setCoverIndex(0);
+        showToast('Đã xóa sạch album ảnh');
+      }
+    });
   };
 
   if (loading) {

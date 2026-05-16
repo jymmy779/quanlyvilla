@@ -10,6 +10,7 @@ import {
   Users, CreditCard, ShieldCheck, Printer, Trash2, Loader2, PackagePlus,
   Edit3, Save, X, Copy, Check, PlusCircle, RefreshCw, AlertTriangle, Info
 } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 const BookingDetailPage = () => {
   const { id } = useParams();
@@ -32,6 +33,7 @@ const BookingDetailPage = () => {
   const depositAmountRef = useRef<HTMLInputElement>(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
+  const { showToast, confirm: showConfirm } = useNotification();
 
   useEffect(() => {
     fetchBookingDetail();
@@ -60,7 +62,7 @@ const BookingDetailPage = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Không tìm thấy thông tin đơn đặt!');
+      showToast('Không tìm thấy thông tin đơn đặt!', 'error');
       router.push('/bookings');
     } finally {
       setLoading(false);
@@ -128,10 +130,10 @@ const BookingDetailPage = () => {
       if (error) throw error;
       setBooking({ ...booking, ...editForm } as Booking);
       setIsEditing(false);
-      alert('Đã cập nhật thông tin thành công!');
+      showToast('Đã cập nhật thông tin thành công!');
     } catch (error) {
       console.error(error);
-      alert('Lỗi khi cập nhật!');
+      showToast('Lỗi khi cập nhật!', 'error');
     } finally {
       setUpdating(false);
     }
@@ -144,10 +146,10 @@ const BookingDetailPage = () => {
       const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', id);
       if (error) throw error;
       setBooking({ ...booking, status: newStatus as any });
-      alert('Cập nhật trạng thái thành công!');
+      showToast('Cập nhật trạng thái thành công!');
     } catch (error) {
       console.error(error);
-      alert('Lỗi khi cập nhật trạng thái!');
+      showToast('Lỗi khi cập nhật trạng thái!', 'error');
     } finally {
       setUpdating(false);
     }
@@ -401,7 +403,13 @@ Cám ơn quý khách 🌸`;
                   )}
                   {booking.status !== 'completed' && booking.status !== 'cancelled' && (
                     <button
-                      onClick={() => { if (confirm('Bạn có chắc chắn muốn HỦY đơn đặt này không?')) updateStatus('cancelled') }}
+                      onClick={() => { 
+                        showConfirm({
+                          title: 'Hủy đơn đặt?',
+                          message: 'Bạn có chắc chắn muốn HỦY đơn đặt này không? Hành động này không thể hoàn tác.',
+                          onConfirm: () => updateStatus('cancelled')
+                        })
+                      }}
                       disabled={updating}
                       className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm hover:bg-red-500 hover:text-white transition-all"
                     >
