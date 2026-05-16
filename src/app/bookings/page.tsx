@@ -85,7 +85,7 @@ const BookingsListPage = () => {
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-10 md:pb-16">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Danh sách Đơn đặt</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách Đơn đặt</h1>
           <p className="text-slate-500 text-xs md:text-sm font-medium">Theo dõi và quản lý toàn bộ luồng khách hàng từ Supabase.</p>
         </div>
       </header>
@@ -97,7 +97,7 @@ const BookingsListPage = () => {
           <input 
             type="text" 
             placeholder="Tìm theo tên khách hoặc SĐT..." 
-            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-medium text-sm outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -105,7 +105,7 @@ const BookingsListPage = () => {
         <div className="relative">
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <select 
-            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-bold text-sm outline-none focus:ring-2 focus:ring-orange-500 appearance-none transition-all"
+            className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-medium text-sm outline-none focus:ring-2 focus:ring-orange-500 appearance-none transition-all"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -124,7 +124,7 @@ const BookingsListPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[700px] md:min-w-0">
               <thead>
-                <tr className="bg-slate-50/50 text-slate-400 text-[9px] md:text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
+                <tr className="bg-slate-50/50 text-slate-400 text-sm border-b border-slate-100 font-medium">
                   <th className="py-3 md:py-4 pl-4 md:pl-6">Khách hàng</th>
                   <th className="py-3 md:py-4">Villa</th>
                   <th className="py-3 md:py-4">Thời gian</th>
@@ -143,28 +143,28 @@ const BookingsListPage = () => {
                       className="group hover:bg-slate-50/80 transition-all cursor-pointer"
                     >
                       <td className="py-3 md:py-4 pl-4 md:pl-6">
-                        <p className="font-black text-slate-900 text-sm md:text-base leading-tight">{booking.customer_name}</p>
-                        <p className="text-slate-400 text-[10px] md:text-xs font-bold mt-0.5">{booking.customer_phone}</p>
+                        <p className="font-semibold text-slate-900 text-sm md:text-base leading-tight">{booking.customer_name}</p>
+                        <p className="text-slate-400 text-xs font-medium mt-0.5">{booking.customer_phone}</p>
                       </td>
                       <td className="py-3 md:py-4">
-                        <span className="font-bold text-slate-700 text-xs md:text-sm">{villa?.name || 'N/A'}</span>
+                        <span className="font-medium text-slate-700 text-sm">{villa?.name || 'N/A'}</span>
                       </td>
                       <td className="py-3 md:py-4">
-                        <div className="flex items-center gap-1.5 text-slate-500 font-medium text-[10px] md:text-xs">
+                        <div className="flex items-center gap-1.5 text-slate-500 font-medium text-xs">
                           <span className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{booking.check_in}</span>
                           <span className="text-slate-200">→</span>
                           <span className="bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">{booking.check_out}</span>
                         </div>
                       </td>
                       <td className="py-3 md:py-4">
-                        <span className={`px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border ${status.color}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}>
                           {status.label}
                         </span>
                       </td>
                       <td className="py-3 md:py-4 text-right pr-4 md:pr-6">
                         <div className="flex items-center justify-end gap-3">
                           <div className="text-right">
-                            <p className="font-black text-slate-900 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</p>
+                            <p className="font-semibold text-slate-900 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</p>
                           </div>
                           <button 
                             onClick={(e) => handleDelete(e, booking.id)}
@@ -186,7 +186,7 @@ const BookingsListPage = () => {
                <Calendar size={32} className="md:w-10 md:h-10" />
             </div>
             <div className="space-y-1 px-4">
-              <p className="text-slate-900 font-black text-base md:text-lg">Không tìm thấy đơn đặt nào</p>
+              <p className="text-slate-900 font-semibold text-base md:text-lg">Không tìm thấy đơn đặt nào</p>
               <p className="text-slate-400 text-xs md:text-sm font-medium">Hãy thử điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.</p>
             </div>
           </div>

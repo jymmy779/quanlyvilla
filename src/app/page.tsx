@@ -122,7 +122,7 @@ const DashboardPage = () => {
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4">
       <header>
-        <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Báo cáo hôm nay 👋</h1>
+        <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Báo cáo hôm nay 👋</h1>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
@@ -130,8 +130,8 @@ const DashboardPage = () => {
           <div key={idx} className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 hover:shadow-lg transition-all group relative overflow-hidden" title={stat.fullValue}>
             <div className="flex items-center justify-between relative z-10">
               <div className="min-w-0">
-                <p className="text-slate-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest truncate">{stat.label}</p>
-                <p className={`font-black mt-0.5 text-slate-900 tracking-tight truncate ${
+                <p className="text-slate-500 text-xs font-semibold">{stat.label}</p>
+                <p className={`font-semibold mt-0.5 text-slate-900 ${
                   stat.value.length > 8 ? 'text-sm md:text-lg' : 'text-base md:text-xl'
                 }`}>{stat.value}</p>
               </div>
@@ -148,7 +148,7 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 flex items-center gap-2">
               <BarChart3 className="text-orange-500" size={20} /> Dòng tiền 7 ngày
             </h2>
           </div>
@@ -158,12 +158,12 @@ const DashboardPage = () => {
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-3 group relative h-full justify-end">
                   {data.amount > 0 && (
-                    <div className="absolute bottom-[20%] mb-10 opacity-0 group-hover:opacity-100 transition-all bg-slate-900 text-white text-[9px] font-black py-1.5 px-2 rounded-lg pointer-events-none z-10 whitespace-nowrap">
+                    <div className="absolute bottom-[20%] mb-10 opacity-0 group-hover:opacity-100 transition-all bg-slate-900 text-white text-xs font-semibold py-1.5 px-2 rounded-lg pointer-events-none z-10 whitespace-nowrap">
                       {data.amount.toLocaleString()}đ
                     </div>
                   )}
                   <div style={{ height: `${Math.max(height, 5)}%` }} className={`w-full max-w-[32px] rounded-t-lg md:rounded-t-xl transition-all duration-700 ${data.amount > 0 ? 'bg-orange-500' : 'bg-slate-50'}`}></div>
-                  <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">{data.day}</span>
+                  <span className="text-xs font-semibold text-slate-400">{data.day}</span>
                 </div>
               );
             })}
@@ -171,7 +171,7 @@ const DashboardPage = () => {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm flex flex-col">
-          <h2 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 flex items-center gap-2.5">
+          <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-6 md:mb-8 flex items-center gap-2.5">
             <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div> Villa hệ thống
           </h2>
           <div className="space-y-3 md:space-y-4">
@@ -185,10 +185,10 @@ const DashboardPage = () => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-xs md:text-sm truncate text-slate-900 leading-tight">{villa.name}</h3>
+                  <h3 className="font-semibold text-sm truncate text-slate-900 leading-tight">{villa.name}</h3>
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${villa.status === 'active' ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{villa.status === 'active' ? 'Hoạt động' : 'Bảo trì'}</span>
+                    <span className="text-xs font-medium text-slate-400">{villa.status === 'active' ? 'Hoạt động' : 'Bảo trì'}</span>
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-slate-200 group-hover:text-slate-900 transition-colors" />
@@ -200,17 +200,17 @@ const DashboardPage = () => {
 
       <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6 md:mb-8">
-          <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2.5">
+          <h2 className="text-lg md:text-xl font-semibold text-slate-900 flex items-center gap-2.5">
             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div> Đơn mới nhất
           </h2>
-          <Link href="/bookings" className="text-slate-900 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 border border-slate-200 px-4 md:px-5 py-2 md:py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
+          <Link href="/bookings" className="text-slate-900 text-xs font-semibold hover:bg-slate-50 border border-slate-200 px-4 md:px-5 py-2 md:py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
             Quản lý <ChevronRight size={14} />
           </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[600px] md:min-w-0">
             <thead>
-              <tr className="text-slate-400 text-[9px] md:text-[10px] border-b border-slate-100 uppercase tracking-widest font-black">
+              <tr className="text-slate-400 text-xs border-b border-slate-100 font-semibold">
                 <th className="pb-4 pl-2">Khách hàng</th>
                 <th className="pb-4">Villa</th>
                 <th className="pb-4">Ngày</th>
@@ -224,16 +224,16 @@ const DashboardPage = () => {
                 return (
                   <tr key={booking.id} onClick={() => router.push(`/bookings/${booking.id}`)} className="group hover:bg-slate-50 transition-colors cursor-pointer">
                     <td className="py-4 pl-2">
-                      <p className="font-black text-slate-900 text-sm leading-tight">{booking.customer_name}</p>
+                      <p className="font-semibold text-slate-900 text-sm leading-tight">{booking.customer_name}</p>
                     </td>
-                    <td className="py-4 text-slate-600 font-bold text-xs md:text-sm">{villa?.name}</td>
+                    <td className="py-4 text-slate-600 font-medium text-sm">{villa?.name}</td>
                     <td className="py-4 text-slate-500 font-medium text-[10px] md:text-xs">{booking.check_in} → {booking.check_out}</td>
                     <td className="py-4">
-                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${booking.status === 'deposited' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${booking.status === 'deposited' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
                         {booking.status === 'deposited' ? 'Đã cọc' : 'Đang ở'}
                       </span>
                     </td>
-                    <td className="py-4 text-right font-black text-slate-900 pr-2 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</td>
+                    <td className="py-4 text-right font-semibold text-slate-900 pr-2 text-sm md:text-base">{Number(booking.total_amount).toLocaleString()}đ</td>
                   </tr>
                 )
               })}

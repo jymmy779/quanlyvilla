@@ -46,9 +46,9 @@ const VillaDetailPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-500 px-6 text-center">
         <AlertCircle size={40} className="text-slate-200 mb-4" />
-        <p className="text-lg font-black text-slate-900">Không tìm thấy Villa</p>
+        <p className="text-lg font-semibold text-slate-900">Không tìm thấy Villa</p>
         <p className="text-sm text-slate-400 font-medium">Villa có thể đã bị xóa hoặc đường dẫn sai.</p>
-        <button onClick={() => router.push('/villas')} className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-black shadow-lg">Quay lại</button>
+        <button onClick={() => router.push('/villas')} className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg">Quay lại</button>
       </div>
     );
   }
@@ -58,7 +58,7 @@ const VillaDetailPage = () => {
       <div className="flex items-center justify-between">
         <button 
           onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 font-bold transition-colors p-1 text-sm"
+          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 font-medium transition-colors p-1 text-sm"
         >
           <ArrowLeft size={18} />
           Quay lại
@@ -67,7 +67,7 @@ const VillaDetailPage = () => {
         <div className="flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => router.push(`/villas/edit/${id}`)}
-            className="flex items-center gap-2 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm transition-all hover:bg-emerald-600 shadow-lg shadow-slate-100"
+            className="flex items-center gap-2 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm transition-all hover:bg-emerald-600 shadow-lg shadow-slate-100"
           >
             <Edit size={16} />
             <span className="hidden md:inline">Chỉnh sửa</span>
@@ -86,19 +86,19 @@ const VillaDetailPage = () => {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
         <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 text-white pr-6">
-          <div className="flex items-center gap-1.5 text-orange-400 font-black uppercase tracking-widest text-[10px] md:text-xs mb-2">
+          <div className="flex items-center gap-1.5 text-orange-400 font-medium text-sm mb-2">
             <MapPin size={14} />
             {villa.address}
           </div>
-          <h1 className="text-2xl md:text-4xl font-black tracking-tighter leading-tight">{villa.name}</h1>
+          <h1 className="text-2xl md:text-4xl font-semibold leading-tight">{villa.name}</h1>
           
           <div className="mt-3 flex flex-wrap gap-2">
             {villa.status === 'active' ? (
-              <span className="bg-emerald-500/20 backdrop-blur-md text-emerald-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-500/30">Đang kinh doanh</span>
+              <span className="bg-emerald-500/20 backdrop-blur-md text-emerald-400 px-3 py-1 rounded-lg text-xs font-medium border border-emerald-500/30">Đang kinh doanh</span>
             ) : villa.status === 'maintenance' ? (
-              <span className="bg-orange-500/20 backdrop-blur-md text-orange-400 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-orange-500/30 flex items-center gap-1.5"><AlertCircle size={10} /> Đang sửa chữa</span>
+              <span className="bg-orange-500/20 backdrop-blur-md text-orange-400 px-3 py-1 rounded-lg text-xs font-medium border border-orange-500/30 flex items-center gap-1.5"><AlertCircle size={10} /> Đang sửa chữa</span>
             ) : (
-              <span className="bg-slate-500/20 backdrop-blur-md text-slate-300 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-500/30">Ngừng kinh doanh</span>
+              <span className="bg-slate-500/20 backdrop-blur-md text-slate-300 px-3 py-1 rounded-lg text-xs font-medium border border-slate-500/30">Ngừng kinh doanh</span>
             )}
           </div>
         </div>
@@ -107,7 +107,7 @@ const VillaDetailPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10">
         <div className="lg:col-span-2 space-y-8 md:space-y-12">
           <section className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm">
-            <h2 className="text-lg md:text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
               Giới thiệu chung
             </h2>
@@ -117,12 +117,12 @@ const VillaDetailPage = () => {
           </section>
 
           <section>
-            <h2 className="text-lg md:text-xl font-black text-slate-900 mb-4 md:mb-6">Tiện ích đặc sắc</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 md:mb-6">Tiện ích đặc sắc</h2>
             <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
               {villa.amenities?.length > 0 ? villa.amenities.map((amenity, idx) => (
                 <div key={idx} className="flex items-center gap-2.5 bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
                   <CheckCircle2 className="text-emerald-500" size={18} />
-                  <span className="font-bold text-slate-700 text-xs md:text-sm">{amenity}</span>
+                  <span className="font-medium text-slate-700 text-sm">{amenity}</span>
                 </div>
               )) : (
                 <p className="text-slate-400 text-xs italic">Chưa có tiện ích nào được liệt kê.</p>
@@ -132,7 +132,7 @@ const VillaDetailPage = () => {
 
           {/* Thông tin căn - CHUYỂN VỀ TÔNG MÀU SÁNG */}
           <section className="bg-white border border-slate-100 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm">
-            <h3 className="text-base md:text-lg font-black mb-6 uppercase tracking-widest flex items-center gap-3 text-slate-900">
+            <h3 className="text-base md:text-lg font-semibold mb-6 flex items-center gap-3 text-slate-900">
               <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
               Thông tin chi tiết căn
             </h3>
@@ -142,9 +142,9 @@ const VillaDetailPage = () => {
                   <div key={idx} className="flex items-center justify-between p-3.5 md:p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-orange-200 transition-all">
                     <div className="flex items-center gap-2 text-slate-400">
                       <CheckCircle2 size={14} className="text-orange-500" />
-                      <span className="font-bold text-[10px] md:text-xs uppercase tracking-tight">{detail.label}</span>
+                      <span className="font-medium text-xs">{detail.label}</span>
                     </div>
-                    <span className="font-black text-xs md:text-sm text-slate-900">{detail.value}</span>
+                    <span className="font-semibold text-sm text-slate-900">{detail.value}</span>
                   </div>
                 ))
               ) : (
@@ -152,16 +152,16 @@ const VillaDetailPage = () => {
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <div className="flex items-center gap-2 text-slate-400">
                       <Users size={16} />
-                      <span className="font-bold text-xs">Sức chứa</span>
+                      <span className="font-medium text-sm">Sức chứa</span>
                     </div>
-                    <span className="font-black text-sm text-slate-900">{(villa.capacity?.adults || 0) + (villa.capacity?.children || 0)} khách</span>
+                    <span className="font-semibold text-sm text-slate-900">{(villa.capacity?.adults || 0) + (villa.capacity?.children || 0)} khách</span>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <div className="flex items-center gap-2 text-slate-400">
                       <Bed size={16} />
-                      <span className="font-bold text-xs">Phòng ngủ</span>
+                      <span className="font-medium text-sm">Phòng ngủ</span>
                     </div>
-                    <span className="font-black text-sm text-slate-900">{villa.bedrooms} PN</span>
+                    <span className="font-semibold text-sm text-slate-900">{villa.bedrooms} PN</span>
                   </div>
                 </>
               )}
@@ -170,8 +170,8 @@ const VillaDetailPage = () => {
 
           <section>
             <div className="flex items-center gap-3 mb-4 md:mb-6">
-              <h2 className="text-lg md:text-xl font-black text-slate-900">Hình ảnh thực tế</h2>
-              <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md text-[9px] font-black">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-900">Hình ảnh thực tế</h2>
+              <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md text-xs font-semibold">
                 {villa.images?.length || 0} ẢNH
               </span>
             </div>
@@ -186,7 +186,7 @@ const VillaDetailPage = () => {
 
           <section className="pt-6 md:pt-8 border-t border-slate-100">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2.5">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-900 flex items-center gap-2.5">
                 <MapPin className="text-red-500" size={24} />
                 Vị trí & Chỉ đường
               </h2>
@@ -195,7 +195,7 @@ const VillaDetailPage = () => {
                   href={villa.map_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-xs font-black hover:bg-orange-600 hover:text-white transition-all"
+                  className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-all"
                 >
                   <Navigation size={16} /> Mở Bản đồ
                 </a>
@@ -213,7 +213,7 @@ const VillaDetailPage = () => {
               </div>
             ) : (
               <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-slate-400 font-bold uppercase text-[10px] italic">Bản đồ chưa được tích hợp.</p>
+                <p className="text-slate-400 font-medium text-sm italic">Bản đồ chưa được tích hợp.</p>
               </div>
             )}
           </section>
@@ -221,12 +221,12 @@ const VillaDetailPage = () => {
 
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm md:sticky md:top-8">
-            <h3 className="text-sm font-black text-slate-400 mb-6 uppercase tracking-widest text-center">Tác vụ quản trị</h3>
+            <h3 className="text-sm font-semibold text-slate-400 mb-6 text-center">Tác vụ quản trị</h3>
             
             <div className="space-y-3">
               <button 
                 onClick={() => router.push('/pricing')}
-                className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-black hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 text-sm"
+                className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 text-sm"
               >
                 <DollarSign size={18} />
                 Cài đặt bảng giá
@@ -234,7 +234,7 @@ const VillaDetailPage = () => {
               
               <button 
                 onClick={() => router.push(`/villas/edit/${id}`)}
-                className="w-full bg-slate-100 text-slate-600 py-3.5 md:py-4 rounded-xl font-black hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-sm"
+                className="w-full bg-slate-100 text-slate-600 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-sm"
               >
                 <Edit size={18} />
                 Chỉnh sửa thông tin
@@ -244,7 +244,7 @@ const VillaDetailPage = () => {
             <div className="mt-6 pt-6 border-t border-slate-100">
               <div className="flex items-center gap-3 text-slate-400 mb-4">
                 <Info size={16} />
-                <span className="text-[10px] font-bold uppercase">Lưu ý quản trị</span>
+                <span className="text-sm font-medium">Lưu ý quản trị</span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed italic">
                 Mọi thay đổi về thông tin căn sẽ ảnh hưởng trực tiếp đến dữ liệu hiển thị trên các phiếu đặt và lịch gối đầu.

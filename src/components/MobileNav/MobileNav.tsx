@@ -30,7 +30,7 @@ const MobileNav = () => {
             <div className={`p-1 rounded-lg ${isActive ? 'bg-orange-50' : ''}`}>
               <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
             </div>
-            <span className={`text-[10px] font-black uppercase tracking-tighter ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+            <span className={`text-[10px] font-semibold ${isActive ? 'opacity-100' : 'opacity-60'}`}>
               {item.name}
             </span>
           </Link>

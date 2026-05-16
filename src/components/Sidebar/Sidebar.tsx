@@ -21,7 +21,7 @@ const Sidebar = () => {
         <div className="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-500/20">
           <Home className="text-white" size={24} />
         </div>
-        <span className="text-xl font-bold tracking-tight text-slate-900">
+        <span className="text-xl font-semibold text-slate-900">
           VillaManager
         </span>
       </div>
@@ -35,7 +35,7 @@ const Sidebar = () => {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                 isActive
-                  ? 'bg-orange-50 text-orange-600 font-bold'
+                  ? 'bg-orange-50 text-orange-600 font-semibold'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >

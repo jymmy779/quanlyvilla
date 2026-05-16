@@ -221,20 +221,20 @@ const VillaEditPage = () => {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
               {isEdit ? `Chỉnh sửa Villa` : 'Thêm Villa mới'}
             </h1>
-            <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-0.5">Cập nhật dữ liệu hệ thống</p>
+            <p className="text-slate-500 font-medium text-sm mt-0.5">Cập nhật dữ liệu hệ thống</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="px-4 py-2 rounded-xl font-black text-xs text-slate-600 hover:bg-slate-100 transition-all">
+          <button onClick={() => router.back()} className="px-4 py-2 rounded-xl font-semibold text-sm text-slate-600 hover:bg-slate-100 transition-all">
             Hủy
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !name}
-            className="bg-slate-900 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+            className="bg-slate-900 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
           >
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             {saving ? 'Đang lưu...' : (isEdit ? 'Lưu thay đổi' : 'Tạo Villa')}
@@ -246,61 +246,61 @@ const VillaEditPage = () => {
         <div className="lg:col-span-8 space-y-6 md:space-y-8">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
             <div className="flex items-center border-l-4 border-indigo-500 pl-4">
-              <h2 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">Trạng thái vận hành</h2>
+              <h2 className="text-base md:text-lg font-semibold text-slate-900">Trạng thái vận hành</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <button onClick={() => setStatus('active')} className={`p-4 rounded-xl md:rounded-2xl border-2 transition-all text-left space-y-2 ${status === 'active' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${status === 'active' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'}`}><Power size={20} /></div>
-                <p className={`font-black text-xs md:text-sm ${status === 'active' ? 'text-emerald-700' : 'text-slate-900'}`}>Kinh doanh</p>
+                <p className={`font-semibold text-sm ${status === 'active' ? 'text-emerald-700' : 'text-slate-900'}`}>Kinh doanh</p>
               </button>
               <button onClick={() => setStatus('maintenance')} className={`p-4 rounded-xl md:rounded-2xl border-2 transition-all text-left space-y-2 ${status === 'maintenance' ? 'border-orange-500 bg-orange-50/50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${status === 'maintenance' ? 'bg-orange-500 text-white' : 'bg-white text-slate-400'}`}><AlertCircle size={20} /></div>
-                <p className={`font-black text-xs md:text-sm ${status === 'maintenance' ? 'text-orange-700' : 'text-slate-900'}`}>Sửa chữa</p>
+                <p className={`font-semibold text-sm ${status === 'maintenance' ? 'text-orange-700' : 'text-slate-900'}`}>Sửa chữa</p>
               </button>
               <button onClick={() => setStatus('inactive')} className={`p-4 rounded-xl md:rounded-2xl border-2 transition-all text-left space-y-2 ${status === 'inactive' ? 'border-slate-900 bg-slate-100' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${status === 'inactive' ? 'bg-slate-900 text-white' : 'bg-white text-slate-400'}`}><Trash2 size={20} /></div>
-                <p className={`font-black text-xs md:text-sm ${status === 'inactive' ? 'text-slate-900' : 'text-slate-900'}`}>Ngừng bán</p>
+                <p className={`font-semibold text-sm ${status === 'inactive' ? 'text-slate-900' : 'text-slate-900'}`}>Ngừng bán</p>
               </button>
             </div>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
-            <h2 className="text-base md:text-lg font-black text-slate-900 border-l-4 border-orange-500 pl-4 uppercase tracking-tight">Thông tin giới thiệu</h2>
+            <h2 className="text-base md:text-lg font-semibold text-slate-900 border-l-4 border-orange-500 pl-4">Thông tin giới thiệu</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên Villa</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Villa Blue Ocean Luxury" className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-bold text-sm md:text-base" />
+                <label className="text-sm font-medium text-slate-400 ml-1">Tên Villa</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Villa Blue Ocean Luxury" className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-medium text-sm md:text-base" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Địa chỉ / Khu vực</label>
-                <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Bãi Sau, Vũng Tàu" className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-bold text-sm md:text-base" />
+                <label className="text-sm font-medium text-slate-400 ml-1">Địa chỉ / Khu vực</label>
+                <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Bãi Sau, Vũng Tàu" className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-medium text-sm md:text-base" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5"><MapPin size={12} className="text-orange-500" /> Google Maps</label>
-              <input type="text" value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="Dán link Maps vào đây..." className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-bold text-sm md:text-base" />
+              <label className="text-sm font-medium text-slate-400 ml-1 flex items-center gap-1.5"><MapPin size={12} className="text-orange-500" /> Google Maps</label>
+              <input type="text" value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="Dán link Maps vào đây..." className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-medium text-sm md:text-base" />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mô tả chi tiết</label>
-              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Mô tả không gian, tầm nhìn..." rows={6} className="w-full bg-slate-50 border-none rounded-xl p-4 md:p-6 focus:ring-2 focus:ring-orange-500 transition-all font-bold leading-relaxed text-sm md:text-base" />
+              <label className="text-sm font-medium text-slate-400 ml-1">Mô tả chi tiết</label>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Mô tả không gian, tầm nhìn..." rows={6} className="w-full bg-slate-50 border-none rounded-xl p-4 md:p-6 focus:ring-2 focus:ring-orange-500 transition-all font-medium leading-relaxed text-sm md:text-base" />
             </div>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-blue-500 pl-4">
               <div>
-                <h2 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">Hình ảnh Villa</h2>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Ảnh bìa là ảnh đầu tiên</p>
+                <h2 className="text-base md:text-lg font-semibold text-slate-900">Hình ảnh Villa</h2>
+                <p className="text-slate-400 text-sm font-medium mt-0.5">Ảnh bìa là ảnh đầu tiên</p>
               </div>
               <div className="flex items-center gap-2">
                 {previews.length > 0 && (
-                  <button onClick={removeAllImages} className="bg-red-50 text-red-500 px-3 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 hover:bg-red-500 hover:text-white transition-all border border-red-100"><Eraser size={14} /> Xóa album</button>
+                  <button onClick={removeAllImages} className="bg-red-50 text-red-500 px-3 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 hover:bg-red-500 hover:text-white transition-all border border-red-100"><Eraser size={14} /> Xóa album</button>
                 )}
-                <button onClick={() => fileInputRef.current?.click()} className="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 hover:bg-blue-700 transition-all shadow-md"><Camera size={14} /> Tải ảnh</button>
+                <button onClick={() => fileInputRef.current?.click()} className="bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 hover:bg-blue-700 transition-all shadow-md"><Camera size={14} /> Tải ảnh</button>
               </div>
               <input type="file" ref={fileInputRef} onChange={handleImageUpload} multiple accept="image/*" className="hidden" />
             </div>
@@ -334,7 +334,7 @@ const VillaEditPage = () => {
 
               <button onClick={() => fileInputRef.current?.click()} className="aspect-[4/3] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 transition-all bg-slate-50/50">
                 <Plus size={24} />
-                <span className="text-[9px] font-black uppercase mt-1">Thêm ảnh</span>
+                <span className="text-sm font-semibold mt-1">Thêm ảnh</span>
               </button>
             </div>
           </div>
@@ -342,7 +342,7 @@ const VillaEditPage = () => {
 
         <div className="lg:col-span-4 space-y-6 md:space-y-8">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-            <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2.5">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2.5">
               <div className="w-1.5 h-6 md:h-7 bg-emerald-500 rounded-full"></div>
               Tiện ích
             </h2>
@@ -352,7 +352,7 @@ const VillaEditPage = () => {
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-emerald-200 transition-all">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 size={16} className="text-emerald-500" />
-                    <span className="font-bold text-xs md:text-sm text-slate-700">{item}</span>
+                    <span className="font-semibold text-sm text-slate-700">{item}</span>
                   </div>
                   <button onClick={() => setAmenities(amenities.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
                 </div>
@@ -361,14 +361,14 @@ const VillaEditPage = () => {
 
             <div className="pt-4 border-t border-slate-100">
               <div className="flex gap-2">
-                <input type="text" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()} placeholder="Thêm tiện ích..." className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold" />
+                <input type="text" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()} placeholder="Thêm tiện ích..." className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-sm font-medium" />
                 <button onClick={handleAddAmenity} className="bg-slate-900 text-white p-2.5 rounded-lg hover:bg-emerald-600 transition-all"><Plus size={16} /></button>
               </div>
             </div>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-            <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2.5">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2.5">
               <div className="w-1.5 h-6 md:h-7 bg-blue-500 rounded-full"></div>
               Chi tiết căn
             </h2>
@@ -377,8 +377,8 @@ const VillaEditPage = () => {
               {villaDetails.map((detail, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-blue-200 transition-all">
                   <div className="flex items-center justify-between w-full pr-2">
-                    <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tighter">{detail.label}</span>
-                    <span className="font-black text-xs md:text-sm text-slate-900">{detail.value}</span>
+                    <span className="text-slate-400 font-medium text-xs">{detail.label}</span>
+                    <span className="font-semibold text-sm text-slate-900">{detail.value}</span>
                   </div>
                   <button onClick={() => setVillaDetails(villaDetails.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
                 </div>
@@ -387,10 +387,10 @@ const VillaEditPage = () => {
 
             <div className="pt-4 border-t border-slate-100 space-y-2">
               <div className="flex gap-2">
-                <input type="text" value={newDetailLabel} onChange={(e) => setNewDetailLabel(e.target.value)} placeholder="Tên nhãn" className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold w-2/3" />
-                <input type="text" value={newDetailValue} onChange={(e) => setNewDetailValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()} placeholder="SL" className="w-1/3 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold text-center" />
+                <input type="text" value={newDetailLabel} onChange={(e) => setNewDetailLabel(e.target.value)} placeholder="Tên nhãn" className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-sm font-medium w-2/3" />
+                <input type="text" value={newDetailValue} onChange={(e) => setNewDetailValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()} placeholder="SL" className="w-1/3 bg-slate-50 border-none rounded-lg p-2.5 text-sm font-medium text-center" />
               </div>
-              <button onClick={handleAddDetail} className="w-full bg-slate-100 hover:bg-blue-500 hover:text-white text-slate-600 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all">+ Thêm thông tin</button>
+              <button onClick={handleAddDetail} className="w-full bg-slate-100 hover:bg-blue-500 hover:text-white text-slate-600 py-2.5 rounded-lg font-semibold text-sm transition-all">+ Thêm thông tin</button>
             </div>
           </div>
         </div>

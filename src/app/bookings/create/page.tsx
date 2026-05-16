@@ -263,14 +263,14 @@ const CreateBookingPageContent = () => {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Tạo Phiếu mới</h1>
-            <p className="text-slate-500 font-bold text-[9px] md:text-[10px] uppercase tracking-widest mt-0.5">Villa: {villa?.name}</p>
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Tạo Phiếu mới</h1>
+            <p className="text-slate-500 font-medium text-sm mt-0.5">Villa: {villa?.name}</p>
           </div>
         </div>
         <button
           disabled={!!error || !booking.checkOut || saving}
           onClick={handleSave}
-          className="bg-slate-900 text-white hover:bg-emerald-600 px-6 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          className="bg-slate-900 text-white hover:bg-emerald-600 px-6 py-2.5 rounded-xl font-semibold text-sm shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
         >
           {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
           Lưu phiếu đặt
@@ -280,7 +280,7 @@ const CreateBookingPageContent = () => {
       {error && (
         <div className="p-4 md:p-5 rounded-xl md:rounded-2xl flex items-center gap-3 border-2 bg-red-50 border-red-100 animate-pulse">
           <AlertTriangle className="text-red-500" size={20} />
-          <p className="font-black text-red-600 text-xs md:text-sm">{error}</p>
+          <p className="font-semibold text-red-600 text-sm">{error}</p>
         </div>
       )}
 
@@ -290,34 +290,34 @@ const CreateBookingPageContent = () => {
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-4">
-                <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
-                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerName} onChange={e => setBooking({ ...booking, customerName: e.target.value })} />
-                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-bold text-sm md:text-base" value={booking.customerPhone} onChange={e => setBooking({ ...booking, customerPhone: e.target.value })} />
+                <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2 border-l-4 border-indigo-500 pl-3">Thông tin khách</h3>
+                <input type="text" placeholder="Tên khách hàng..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-medium text-sm md:text-base" value={booking.customerName} onChange={e => setBooking({ ...booking, customerName: e.target.value })} />
+                <input type="text" placeholder="Số điện thoại..." className="w-full bg-slate-50 border-none rounded-xl p-3.5 md:p-4 font-medium text-sm md:text-base" value={booking.customerPhone} onChange={e => setBooking({ ...booking, customerPhone: e.target.value })} />
               </div>
               <div className="space-y-4">
-                <h3 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
+                <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2 border-l-4 border-blue-500 pl-3">Thời gian & Sức chứa</h3>
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-in</span>
-                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkIn} onChange={e => setBooking({ ...booking, checkIn: e.target.value })} />
+                    <span className="text-xs font-semibold text-slate-400 ml-1">Check-in</span>
+                    <input type="date" min={today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-semibold text-sm" value={booking.checkIn} onChange={e => setBooking({ ...booking, checkIn: e.target.value })} />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Check-out</span>
-                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-black text-[10px] md:text-xs" value={booking.checkOut} onChange={e => setBooking({ ...booking, checkOut: e.target.value })} />
+                    <span className="text-xs font-semibold text-slate-400 ml-1">Check-out</span>
+                    <input type="date" min={booking.checkIn || today} className="w-full bg-slate-50 border-none rounded-lg md:rounded-xl p-2.5 md:p-3 font-semibold text-sm" value={booking.checkOut} onChange={e => setBooking({ ...booking, checkOut: e.target.value })} />
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Người lớn</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">Người lớn</span>
                     <div className="flex items-center bg-slate-50 rounded-lg md:rounded-xl px-3 md:px-4 py-2">
                       <Users size={12} className="text-slate-400 mr-2" />
-                      <input type="number" value={booking.adults === 0 ? '' : booking.adults} onChange={e => handleCapacityChange('adults', e.target.value)} className="bg-transparent border-none w-full font-black text-[11px] md:text-xs outline-none" />
+                      <input type="number" value={booking.adults === 0 ? '' : booking.adults} onChange={e => handleCapacityChange('adults', e.target.value)} className="bg-transparent border-none w-full font-semibold text-sm outline-none" />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase ml-1">Trẻ em</span>
+                    <span className="text-xs font-semibold text-slate-400 ml-1">Trẻ em</span>
                     <div className="flex items-center bg-slate-50 rounded-lg md:rounded-xl px-3 md:px-4 py-2">
                       <Users size={12} className="text-slate-400 mr-2" />
-                      <input type="number" value={booking.children === 0 ? '' : booking.children} onChange={e => handleCapacityChange('children', e.target.value)} className="bg-transparent border-none w-full font-black text-[11px] md:text-xs outline-none" />
+                      <input type="number" value={booking.children === 0 ? '' : booking.children} onChange={e => handleCapacityChange('children', e.target.value)} className="bg-transparent border-none w-full font-semibold text-sm outline-none" />
                     </div>
                   </div>
                 </div>
@@ -328,11 +328,11 @@ const CreateBookingPageContent = () => {
           {/* Dịch vụ thêm */}
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2.5">
+              <h2 className="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2.5">
                 <div className="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
                 Dịch vụ / Yêu cầu
               </h2>
-              <button onClick={addService} className="flex items-center gap-1.5 text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100 transition-all uppercase tracking-widest">
+              <button onClick={addService} className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg cursor-pointer hover:bg-emerald-100 transition-all">
                 <PlusCircle size={14} /> Thêm
               </button>
             </div>
@@ -345,7 +345,7 @@ const CreateBookingPageContent = () => {
                       <input
                         type="text"
                         placeholder="Tên dịch vụ..."
-                        className="flex-1 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-xs md:text-sm font-bold"
+                        className="flex-1 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-sm font-medium"
                         value={service.name}
                         onChange={e => updateService(idx, 'name', e.target.value)}
                       />
@@ -353,7 +353,7 @@ const CreateBookingPageContent = () => {
                         <input
                           type="text"
                           placeholder="VNĐ"
-                          className="flex-1 md:w-32 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-xs md:text-sm font-black text-emerald-600 text-right"
+                          className="flex-1 md:w-32 bg-white border border-slate-100 rounded-xl px-3 md:px-4 py-2.5 text-sm font-semibold text-emerald-600 text-right"
                           value={formatMoney(service.price)}
                           onChange={e => updateService(idx, 'price', e.target.value, e)}
                         />
@@ -373,31 +373,31 @@ const CreateBookingPageContent = () => {
           {/* Phí dịch vụ & Thanh toán */}
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
             <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-              <h2 className="text-base md:text-lg font-black text-slate-900 flex items-center gap-2.5"><Calculator className="text-indigo-500" size={18} /> Thanh toán</h2>
+              <h2 className="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2.5"><Calculator className="text-indigo-500" size={18} /> Thanh toán</h2>
               <button
                 onClick={handleRecalculate}
-                className="flex items-center gap-1 text-[9px] font-black text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-lg cursor-pointer"
+                className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-lg cursor-pointer"
               >
                 <RefreshCw size={14} /> Tính lại
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-1.5">
-                <label className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tổng cộng (VNĐ)</label>
+                <label className="text-xs font-semibold text-slate-400 ml-1">Tổng cộng (VNĐ)</label>
                 <input
                   ref={totalAmountInputRef}
                   type="text"
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-black text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-semibold text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
                   value={formatMoney(booking.totalAmount)}
                   onChange={e => handleMoneyChange('totalAmount', e)}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[8px] md:text-[10px] font-black text-orange-400 uppercase tracking-widest ml-1">Tiền cọc (VNĐ)</label>
+                <label className="text-xs font-semibold text-orange-400 ml-1">Tiền cọc (VNĐ)</label>
                 <input
                   ref={depositAmountInputRef}
                   type="text"
-                  className={`w-full bg-orange-50/50 border-2 rounded-xl p-3.5 md:p-4 font-black text-orange-600 text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`}
+                  className={`w-full bg-orange-50/50 border-2 rounded-xl p-3.5 md:p-4 font-semibold text-orange-600 text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualDeposit ? 'border-orange-500' : 'border-transparent focus:border-orange-200'}`}
                   value={formatMoney(booking.depositAmount)}
                   onChange={e => handleMoneyChange('depositAmount', e)}
                 />
@@ -409,8 +409,8 @@ const CreateBookingPageContent = () => {
 
         <div className="space-y-6 md:space-y-8">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
-            <h3 className="text-base md:text-lg font-black text-slate-900 border-b border-slate-50 pb-3">Ghi chú</h3>
-            <textarea className="w-full bg-slate-50 border-none rounded-xl p-4 text-slate-600 font-bold text-xs min-h-[120px] md:min-h-[200px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({ ...booking, notes: e.target.value })} placeholder="Thông tin thêm..." />
+            <h3 className="text-base md:text-lg font-semibold text-slate-900 border-b border-slate-50 pb-3">Ghi chú</h3>
+            <textarea className="w-full bg-slate-50 border-none rounded-xl p-4 text-slate-600 font-medium text-sm min-h-[120px] md:min-h-[200px] outline-none italic leading-relaxed" value={booking.notes} onChange={e => setBooking({ ...booking, notes: e.target.value })} placeholder="Thông tin thêm..." />
           </div>
         </div>
       </div>
