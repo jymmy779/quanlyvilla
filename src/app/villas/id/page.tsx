@@ -8,7 +8,7 @@ import {
   ArrowLeft, MapPin, Users, Star, 
   CheckCircle2, Edit3, Calendar, 
   Map as MapIcon, Share2, Heart,
-  Bath, Bed, Info, Loader2, ImageIcon, AlertCircle, Edit, DollarSign, Navigation
+  Bath, Bed, Info, Loader2, ImageIcon, AlertCircle, Edit, DollarSign, Navigation, X
 } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils';
 
@@ -18,6 +18,7 @@ const VillaDetailPage = () => {
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVilla();
@@ -173,7 +174,7 @@ const VillaDetailPage = () => {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {villa.images?.map((img, idx) => (
-                <div key={idx} className="h-64 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-zoom-in group relative">
+                <div key={idx} onClick={() => setZoomedImage(img)} className="h-64 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-zoom-in group relative">
                   <img 
                     src={getOptimizedImageUrl(img, 800)} 
                     className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale opacity-60' : ''}`} 
@@ -257,6 +258,23 @@ const VillaDetailPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Lightbox Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+            <X size={32} />
+          </button>
+          <img
+            src={zoomedImage}
+            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in duration-300"
+            alt="Zoomed"
+          />
+        </div>
+      )}
     </div>
   );
 };

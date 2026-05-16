@@ -32,6 +32,7 @@ const VillaEditPage = () => {
   const [bathrooms, setBathrooms] = useState(6);
   const [capacity, setCapacity] = useState({ adults: 15, children: 5 });
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [monthlyPrices, setMonthlyPrices] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +70,7 @@ const VillaEditPage = () => {
         setBathrooms(data.bathrooms || 6);
         setCapacity(data.capacity || { adults: 15, children: 5 });
         setCoverIndex(0);
+        setMonthlyPrices(data.monthly_prices || []);
       }
     } catch (error) {
       console.error('Error fetching villa:', error);
@@ -134,7 +136,7 @@ const VillaEditPage = () => {
         bathrooms,
         capacity,
         price: 5000000,
-        monthly_prices: []
+        monthly_prices: monthlyPrices
       };
 
       let result;

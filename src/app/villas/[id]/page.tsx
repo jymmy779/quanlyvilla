@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
-import { ArrowLeft, Users, Bed, Bath, CheckCircle2, MapPin, Edit, ImageIcon, DollarSign, Navigation, AlertCircle, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Users, Bed, Bath, CheckCircle2, MapPin, Edit, ImageIcon, DollarSign, Navigation, AlertCircle, Loader2, Info, X } from 'lucide-react';
 
 const VillaDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVillaDetail();
@@ -55,8 +56,17 @@ const VillaDetailPage = () => {
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right duration-700 pb-16 px-4 mt-6 md:mt-8">
+      {zoomedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center m-0 bg-black/90 p-4" onClick={() => setZoomedImage(null)}>
+          <button className="absolute top-6 right-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20">
+            <X size={24} />
+          </button>
+          <img src={zoomedImage} className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
-        <button 
+        <button
           onClick={() => router.back()}
           className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 font-medium transition-colors p-1 text-sm"
         >
@@ -65,7 +75,7 @@ const VillaDetailPage = () => {
         </button>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <button 
+          <button
             onClick={() => router.push(`/villas/edit/${id}`)}
             className="flex items-center gap-2 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm transition-all hover:bg-emerald-600 shadow-lg shadow-slate-100"
           >
@@ -91,7 +101,7 @@ const VillaDetailPage = () => {
             {villa.address}
           </div>
           <h1 className="text-2xl md:text-4xl font-semibold leading-tight">{villa.name}</h1>
-          
+
           <div className="mt-3 flex flex-wrap gap-2">
             {villa.status === 'active' ? (
               <span className="bg-emerald-500/20 backdrop-blur-md text-emerald-400 px-3 py-1 rounded-lg text-xs font-medium border border-emerald-500/30">Đang kinh doanh</span>
@@ -130,7 +140,6 @@ const VillaDetailPage = () => {
             </div>
           </section>
 
-          {/* Thông tin căn - CHUYỂN VỀ TÔNG MÀU SÁNG */}
           <section className="bg-white border border-slate-100 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm">
             <h3 className="text-base md:text-lg font-semibold mb-6 flex items-center gap-3 text-slate-900">
               <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
@@ -177,7 +186,7 @@ const VillaDetailPage = () => {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {villa.images?.map((img, idx) => (
-                <div key={idx} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-zoom-in group">
+                <div key={idx} onClick={() => setZoomedImage(img)} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-zoom-in group">
                   <img src={img} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale' : ''}`} />
                 </div>
               ))}
@@ -191,9 +200,9 @@ const VillaDetailPage = () => {
                 Vị trí & Chỉ đường
               </h2>
               {villa.map_link && (
-                <a 
-                  href={villa.map_link} 
-                  target="_blank" 
+                <a
+                  href={villa.map_link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-all"
                 >
@@ -203,7 +212,7 @@ const VillaDetailPage = () => {
             </div>
             {villa.map_embed_url ? (
               <div className="w-full h-[300px] md:h-[400px] rounded-2xl md:rounded-[2.5rem] overflow-hidden border-4 border-white shadow-lg relative group">
-                <iframe 
+                <iframe
                   src={villa.map_embed_url}
                   className={`w-full h-full border-0 ${villa.status === 'maintenance' ? 'grayscale' : ''}`}
                   allowFullScreen={true}
@@ -222,17 +231,17 @@ const VillaDetailPage = () => {
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm md:sticky md:top-8">
             <h3 className="text-sm font-semibold text-slate-400 mb-6 text-center">Tác vụ quản trị</h3>
-            
+
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={() => router.push('/pricing')}
                 className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 text-sm"
               >
                 <DollarSign size={18} />
                 Cài đặt bảng giá
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => router.push(`/villas/edit/${id}`)}
                 className="w-full bg-slate-100 text-slate-600 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-sm"
               >
