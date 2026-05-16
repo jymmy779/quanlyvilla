@@ -22,6 +22,9 @@ const BookingDetailPage = () => {
   const [copied, setCopied] = useState(false);
   const [isManualDeposit, setIsManualDeposit] = useState(false);
   const [conflictError, setConflictError] = useState<string | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [templateText, setTemplateText] = useState('');
+  const [rawTemplate, setRawTemplate] = useState('');
 
   const [editForm, setEditForm] = useState<Partial<Booking>>({});
 
@@ -150,8 +153,22 @@ const BookingDetailPage = () => {
     }
   };
 
-  const copyConfirmation = () => {
-    if (!booking || !villa) return;
+  const fetchTemplate = async () => {
+    try {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'booking_confirmation_template')
+        .single();
+      
+      return data?.value || null;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const generateConfirmationText = (template: string) => {
+    if (!booking || !villa) return '';
 
     const formatDate = (dateStr: string) => {
       if (!dateStr) return '';
@@ -162,15 +179,48 @@ const BookingDetailPage = () => {
     const remainingAmount = booking.total_amount - booking.deposit_amount;
     const totalGuests = (booking.adults || 0) + (booking.children || 0);
 
-    const text = `✍️ XÁC NHẬN TIỀN CỌC VILLA
-Địa chỉ: ${villa.address}
-Định vị: ${villa.map_link || ''}
-Khách Hàng: ${booking.customer_name}
-SĐT: ${booking.customer_phone}
-Số lượng khách:   ${totalGuests}  gồm ${booking.adults} người lớn và ${booking.children} trẻ em
-⏰𝐂𝐡𝐞𝐜𝐤 𝐢𝐧: sau 14h ngày ${formatDate(booking.check_in)}
-⏰𝐂𝐡𝐞𝐜𝐤 𝐨𝐮𝐭: trước 12h ngày ${formatDate(booking.check_out)}
-💸 𝐓𝐢𝐞̂̀𝐧 𝐜𝐨̀𝐧 𝐥𝐚̣𝐢 (𝐭𝐡𝐚𝐧𝐡 𝐭𝐨𝐚́𝐧 𝐤𝐡𝐢 𝐧𝐡𝐚̣̂𝐧 𝐩𝐡𝐨̀𝐧𝐠): ${remainingAmount.toLocaleString('vi-VN')}đ
+    const data = {
+      customer_name: booking.customer_name,
+      customer_phone: booking.customer_phone,
+      check_in: formatDate(booking.check_in),
+      check_out: formatDate(booking.check_out),
+      villa_name: villa.name,
+      villa_address: villa.address,
+      villa_map_link: villa.map_link || '',
+      total_guests: totalGuests.toString(),
+      adults: booking.adults.toString(),
+      children: booking.children.toString(),
+      remaining_amount: remainingAmount.toLocaleString('vi-VN') + 'đ',
+    };
+
+    let result = template;
+    Object.entries(data).forEach(([key, val]) => {
+      result = result.replace(new RegExp(`{{${key}}}`, 'g'), val);
+    });
+
+    return result;
+  };
+
+  const handleOpenTemplate = async () => {
+    if (!booking || !villa) return;
+    
+    let template = rawTemplate;
+    if (!template) {
+      const fetched = await fetchTemplate();
+      if (fetched) {
+        setRawTemplate(fetched);
+        template = fetched;
+      } else {
+        // Fallback to the original hardcoded template if DB is empty
+        template = `✍️ XÁC NHẬN TIỀN CỌC VILLA
+Địa chỉ: {{villa_address}}
+Định vị: {{villa_map_link}}
+Khách Hàng: {{customer_name}}
+SĐT: {{customer_phone}}
+Số lượng khách: {{total_guests}} gồm {{adults}} người lớn và {{children}} trẻ em
+⏰𝐂𝐡𝐞𝐜𝐤 𝐢𝐧: sau 14h ngày {{check_in}}
+⏰𝐂𝐡𝐞𝐜𝐤 𝐨𝐮𝐭: trước 12h ngày {{check_out}}
+💸 𝐓𝐢𝐞̂̀𝐧 𝐜𝐨̀𝐧 𝐥𝐚̣𝐢 (𝐭𝐡𝐚𝐧𝐡 𝐭𝐨𝐚́𝐧 𝐤𝐡𝐢 𝐧𝐡𝐚̣̂𝐧 𝐩𝐡𝐨̀𝐧𝐠): {{remaining_amount}}
 
 📞  Quản giá đón khách và hỗ trợ: 0326151111 (a Tùng)
 
@@ -188,12 +238,22 @@ Số lượng khách:   ${totalGuests}  gồm ${booking.adults} người lớn v
 ♻️ Khách hàng hủy đặt phòng sẽ không được hoàn lại tiền cọc.
 
 Cám ơn quý khách 🌸`;
+        setRawTemplate(template);
+      }
+    }
 
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTemplateText(generateConfirmationText(template));
+    setShowTemplateModal(true);
   };
 
+  const handleCopyFinal = () => {
+    navigator.clipboard.writeText(templateText);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+      setShowTemplateModal(false);
+    }, 1500);
+  };
 
   const formatMoney = (amount: number) => {
     if (amount === 0) return '';
@@ -289,8 +349,8 @@ Cám ơn quý khách 🌸`;
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={copyConfirmation} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all border ${copied ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50'}`}>
-            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Đã chép!' : 'Mẫu xác nhận'}
+          <button onClick={handleOpenTemplate} className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all border bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50">
+            <MessageSquare size={14} /> Mẫu xác nhận
           </button>
           {!isEditing ? (
             <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-orange-600 transition-all shadow-md">
@@ -482,6 +542,53 @@ Cám ơn quý khách 🌸`;
           </div>
         </div>
       </div>
+
+      {/* Modal Preview & Edit Template */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">Xác nhận nội dung</h3>
+                  <p className="text-xs text-slate-500 font-medium">Bạn có thể chỉnh sửa nhanh trước khi chép</p>
+                </div>
+              </div>
+              <button onClick={() => setShowTemplateModal(false)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-900">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <textarea
+                value={templateText}
+                onChange={(e) => setTemplateText(e.target.value)}
+                className="w-full h-[450px] bg-slate-50 border-none rounded-2xl p-5 text-slate-700 font-medium text-sm leading-relaxed outline-none focus:ring-2 focus:ring-indigo-100 transition-all resize-none"
+              />
+            </div>
+
+            <div className="p-6 border-t border-slate-50 bg-slate-50/30 flex items-center justify-end gap-3">
+              <button 
+                onClick={() => setShowTemplateModal(false)}
+                className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-500 hover:bg-white transition-all"
+              >
+                Đóng
+              </button>
+              <button 
+                onClick={handleCopyFinal}
+                disabled={copied}
+                className={`flex items-center gap-2 px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${copied ? 'bg-emerald-500 text-white' : 'bg-slate-900 text-white hover:bg-indigo-600'}`}
+              >
+                {copied ? <Check size={18} /> : <Copy size={18} />}
+                {copied ? 'Đã sao chép!' : 'Chép nội dung'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

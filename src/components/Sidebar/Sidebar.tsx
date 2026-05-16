@@ -47,10 +47,17 @@ const Sidebar = () => {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-slate-100 space-y-1">
-        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all">
-          <Settings size={20} />
+        <Link 
+          href="/settings"
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+            pathname === '/settings'
+              ? 'bg-orange-50 text-orange-600 font-semibold'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <Settings size={20} className={pathname === '/settings' ? 'text-orange-600' : 'group-hover:rotate-45 transition-transform duration-500'} />
           <span className="font-medium">Cài đặt</span>
-        </button>
+        </Link>
         <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all">
           <LogOut size={20} />
           <span className="font-medium">Đăng xuất</span>
