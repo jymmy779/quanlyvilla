@@ -152,11 +152,48 @@ const BookingDetailPage = () => {
 
   const copyConfirmation = () => {
     if (!booking || !villa) return;
-    const text = `✍️ XÁC NHẬN TIỀN CỌC VILLA\nĐịa chỉ: ${villa.address}... (nội dung cũ)`;
+
+    const formatDate = (dateStr: string) => {
+      if (!dateStr) return '';
+      const [year, month, day] = dateStr.split('-');
+      return `${day}/${month}/${year}`;
+    };
+
+    const remainingAmount = booking.total_amount - booking.deposit_amount;
+    const totalGuests = (booking.adults || 0) + (booking.children || 0);
+
+    const text = `✍️ XÁC NHẬN TIỀN CỌC VILLA
+Địa chỉ: ${villa.address}
+Định vị: ${villa.map_link || ''}
+Khách Hàng: ${booking.customer_name}
+SĐT: ${booking.customer_phone}
+Số lượng khách:   ${totalGuests}  gồm ${booking.adults} người lớn và ${booking.children} trẻ em
+⏰𝐂𝐡𝐞𝐜𝐤 𝐢𝐧: sau 14h ngày ${formatDate(booking.check_in)}
+⏰𝐂𝐡𝐞𝐜𝐤 𝐨𝐮𝐭: trước 12h ngày ${formatDate(booking.check_out)}
+💸 𝐓𝐢𝐞̂̀𝐧 𝐜𝐨̀𝐧 𝐥𝐚̣𝐢 (𝐭𝐡𝐚𝐧𝐡 𝐭𝐨𝐚́𝐧 𝐤𝐡𝐢 𝐧𝐡𝐚̣̂𝐧 𝐩𝐡𝐨̀𝐧𝐠): ${remainingAmount.toLocaleString('vi-VN')}đ
+
+📞  Quản giá đón khách và hỗ trợ: 0326151111 (a Tùng)
+
+🚫 QUY ĐỊNH LƯU TRÚ & PHỤ PHÍ
+-  Quý khách vui lòng cung cấp ảnh chụp CCCD của cả đoàn để làm thủ tục khai báo tạm trú. Chúng em sẽ từ chối nhận khách nếu mục này không thể thực hiện.
+-  Theo quy định mới ko được giữ căn cước công dân nên villa sẽ giữ thế chân 2 triệu đối với mỗi đoàn . Số tiền này sẽ được gửi lại vào ngày check out khi thủ tục check out không xảy ra hư hỏng gì nghiêm trọng.
+-  Ở quá giờ phụ thu 300k/h nếu ngày hôm sau villa ko có khách .
+-  Villa báo giá dựa trên số khách đăng ký. Phát sinh thêm người phụ thu 150.000đ/người (Vui lòng báo trước để villa chuẩn bị thêm chăn ga).
+-  Quý khách vui lòng dọn dẹp, rửa bát đĩa sau khi nấu nướng. Phí hỗ trợ dọn dẹp từ 300.000-500.000đ tùy hiện trạng nếu không tự dọn.
+-  Karaoke được hát tới 22h  ( quy định của toàn bộ nhà phố và villa Vũng Tàu)
+-  Không bỏ đồ ăn xuống hồ bơi, phụ thu 1tr-3tr tuỳ hiện trạng.
+-  Không sử dụng, tàng trữ chất cấm, cờ bạc, mại dâm theo quy định pháp luật.
+-  Villa không nhận dàn loa công suất lớn và DJ
+
+♻️ Khách hàng hủy đặt phòng sẽ không được hoàn lại tiền cọc.
+
+Cám ơn quý khách 🌸`;
+
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
 
   const formatMoney = (amount: number) => {
     if (amount === 0) return '';
@@ -166,7 +203,7 @@ const BookingDetailPage = () => {
   const handleMoneyChange = (field: 'total_amount' | 'deposit_amount', e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const value = input.value;
-    
+
     // Đếm số chữ số trước con trỏ
     const cursorPosition = input.selectionStart || 0;
     const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
@@ -189,7 +226,7 @@ const BookingDetailPage = () => {
         if (/\d/.test(formatted[i])) digitsFound++;
         newPos = i + 1;
       }
-      
+
       const targetInput = field === 'total_amount' ? totalAmountRef : depositAmountRef;
       if (targetInput.current) {
         targetInput.current.setSelectionRange(newPos, newPos);
@@ -303,9 +340,9 @@ const BookingDetailPage = () => {
                     <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 md:flex-none bg-blue-600 text-white px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-blue-700 active:scale-95">Check-out</button>
                   )}
                   {booking.status !== 'completed' && booking.status !== 'cancelled' && (
-                    <button 
-                      onClick={() => { if(confirm('Bạn có chắc chắn muốn HỦY đơn đặt này không?')) updateStatus('cancelled') }} 
-                      disabled={updating} 
+                    <button
+                      onClick={() => { if (confirm('Bạn có chắc chắn muốn HỦY đơn đặt này không?')) updateStatus('cancelled') }}
+                      disabled={updating}
                       className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
                     >
                       Hủy đơn

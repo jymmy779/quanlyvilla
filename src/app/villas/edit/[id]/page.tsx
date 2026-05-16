@@ -23,14 +23,15 @@ const VillaEditPage = () => {
   const [mapLink, setMapLink] = useState('');
   const [previews, setPreviews] = useState<{ url: string; file?: File }[]>([]);
   const [coverIndex, setCoverIndex] = useState(0);
-  
+
   const [newAmenity, setNewAmenity] = useState('');
   const [newDetailLabel, setNewDetailLabel] = useState('');
   const [newDetailValue, setNewDetailValue] = useState('');
-  
+
   const [bedrooms, setBedrooms] = useState(5);
   const [bathrooms, setBathrooms] = useState(6);
   const [capacity, setCapacity] = useState({ adults: 15, children: 5 });
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,12 +58,12 @@ const VillaEditPage = () => {
         setAmenities(data.amenities || []);
         setVillaDetails(data.villa_details || []);
         setMapLink(data.map_link || '');
-        
+
         // LỌC BỎ các link blob: cũ đã hỏng nếu có
         const initialImages = (data.images || [])
-          .filter((url: string) => !url.startsWith('blob:')) 
+          .filter((url: string) => !url.startsWith('blob:'))
           .map((url: string) => ({ url }));
-          
+
         setPreviews(initialImages);
         setBedrooms(data.bedrooms || 5);
         setBathrooms(data.bathrooms || 6);
@@ -80,7 +81,7 @@ const VillaEditPage = () => {
 
   const uploadImages = async () => {
     const uploadedUrls: string[] = [];
-    
+
     for (const item of previews) {
       if (item.file) {
         const fileExt = item.file.name.split('.').pop();
@@ -99,14 +100,14 @@ const VillaEditPage = () => {
         const { data: { publicUrl } } = supabase.storage
           .from('villas')
           .getPublicUrl(filePath);
-          
+
         uploadedUrls.push(publicUrl);
       } else if (!item.url.startsWith('blob:')) {
         // Chỉ giữ lại những ảnh có URL thật (không phải blob)
         uploadedUrls.push(item.url);
       }
     }
-    
+
     return uploadedUrls;
   };
 
@@ -132,8 +133,8 @@ const VillaEditPage = () => {
         bedrooms,
         bathrooms,
         capacity,
-        price: 5000000, 
-        monthly_prices: [] 
+        price: 5000000,
+        monthly_prices: []
       };
 
       let result;
@@ -149,7 +150,7 @@ const VillaEditPage = () => {
       }
 
       if (result.error) throw result.error;
-      
+
       alert(isEdit ? 'Đã cập nhật thành công!' : 'Đã thêm Villa mới thành công!');
       router.push('/villas');
     } catch (error) {
@@ -230,7 +231,7 @@ const VillaEditPage = () => {
           <button onClick={() => router.back()} className="px-4 py-2 rounded-xl font-black text-xs text-slate-600 hover:bg-slate-100 transition-all">
             Hủy
           </button>
-          <button 
+          <button
             onClick={handleSave}
             disabled={saving || !name}
             className="bg-slate-900 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
@@ -244,10 +245,10 @@ const VillaEditPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         <div className="lg:col-span-8 space-y-6 md:space-y-8">
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-             <div className="flex items-center border-l-4 border-indigo-500 pl-4">
+            <div className="flex items-center border-l-4 border-indigo-500 pl-4">
               <h2 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">Trạng thái vận hành</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <button onClick={() => setStatus('active')} className={`p-4 rounded-xl md:rounded-2xl border-2 transition-all text-left space-y-2 ${status === 'active' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${status === 'active' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'}`}><Power size={20} /></div>
@@ -266,7 +267,7 @@ const VillaEditPage = () => {
 
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
             <h2 className="text-base md:text-lg font-black text-slate-900 border-l-4 border-orange-500 pl-4 uppercase tracking-tight">Thông tin giới thiệu</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên Villa</label>
@@ -306,18 +307,32 @@ const VillaEditPage = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               {previews.map((item, idx) => (
-                <div key={idx} className={`relative aspect-video rounded-xl md:rounded-2xl overflow-hidden group border-2 transition-all shadow-sm ${coverIndex === idx ? 'border-orange-500 shadow-md ring-4 ring-orange-50' : 'border-slate-100 hover:border-blue-500'}`}>
-                  <img src={item.url} alt="Preview" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                    <button onClick={() => setCoverIndex(idx)} className={`p-1.5 rounded-lg transition-all ${coverIndex === idx ? 'bg-orange-500 text-white' : 'bg-white text-slate-600 hover:text-orange-500'}`}><Star size={14} fill={coverIndex === idx ? 'currentColor' : 'none'} /></button>
-                    <button onClick={() => removeImage(idx)} className="p-1.5 bg-white text-slate-600 hover:text-red-500 rounded-lg transition-all"><Trash2 size={14} /></button>
+                <div key={idx} className={`relative aspect-[4/3] rounded-2xl overflow-hidden group border-2 transition-all shadow-sm ${coverIndex === idx ? 'border-orange-500 ring-4 ring-orange-50' : 'border-slate-100 hover:border-slate-300'}`}>
+                  <img
+                    src={item.url}
+                    alt="Preview"
+                    onClick={() => setZoomedImage(item.url)}
+                    className="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 hover:scale-105"
+                  />
+
+                  <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+                    <button
+                      onClick={() => setCoverIndex(idx)}
+                      className={`p-2 rounded-xl shadow-lg backdrop-blur-md transition-all ${coverIndex === idx ? 'bg-orange-500 text-white' : 'bg-white/80 text-slate-600 hover:bg-white hover:text-orange-500'}`}
+                    >
+                      <Star size={14} fill={coverIndex === idx ? 'currentColor' : 'none'} />
+                    </button>
+                    <button
+                      onClick={() => removeImage(idx)}
+                      className="p-2 bg-white/80 backdrop-blur-md text-slate-600 hover:bg-white hover:text-red-500 rounded-xl shadow-lg transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
-                  {coverIndex === idx && (
-                    <div className="absolute top-2 left-2 bg-orange-500 text-white text-[7px] font-black uppercase px-1.5 py-0.5 rounded shadow-lg">Ảnh bìa</div>
-                  )}
                 </div>
               ))}
-              <button onClick={() => fileInputRef.current?.click()} className="aspect-video rounded-xl md:rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 transition-all bg-slate-50/50">
+
+              <button onClick={() => fileInputRef.current?.click()} className="aspect-[4/3] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-300 transition-all bg-slate-50/50">
                 <Plus size={24} />
                 <span className="text-[9px] font-black uppercase mt-1">Thêm ảnh</span>
               </button>
@@ -331,7 +346,7 @@ const VillaEditPage = () => {
               <div className="w-1.5 h-6 md:h-7 bg-emerald-500 rounded-full"></div>
               Tiện ích
             </h2>
-            
+
             <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
               {amenities.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-emerald-200 transition-all">
@@ -339,16 +354,16 @@ const VillaEditPage = () => {
                     <CheckCircle2 size={16} className="text-emerald-500" />
                     <span className="font-bold text-xs md:text-sm text-slate-700">{item}</span>
                   </div>
-                  <button onClick={() => setAmenities(amenities.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><X size={16} /></button>
+                  <button onClick={() => setAmenities(amenities.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
                 </div>
               ))}
             </div>
 
             <div className="pt-4 border-t border-slate-100">
-               <div className="flex gap-2">
-                  <input type="text" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()} placeholder="Thêm tiện ích..." className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold" />
-                  <button onClick={handleAddAmenity} className="bg-slate-900 text-white p-2.5 rounded-lg hover:bg-emerald-600 transition-all"><Plus size={16} /></button>
-               </div>
+              <div className="flex gap-2">
+                <input type="text" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddAmenity()} placeholder="Thêm tiện ích..." className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold" />
+                <button onClick={handleAddAmenity} className="bg-slate-900 text-white p-2.5 rounded-lg hover:bg-emerald-600 transition-all"><Plus size={16} /></button>
+              </div>
             </div>
           </div>
 
@@ -357,7 +372,7 @@ const VillaEditPage = () => {
               <div className="w-1.5 h-6 md:h-7 bg-blue-500 rounded-full"></div>
               Chi tiết căn
             </h2>
-            
+
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {villaDetails.map((detail, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-blue-200 transition-all">
@@ -365,22 +380,40 @@ const VillaEditPage = () => {
                     <span className="text-slate-400 font-bold text-[10px] uppercase tracking-tighter">{detail.label}</span>
                     <span className="font-black text-xs md:text-sm text-slate-900">{detail.value}</span>
                   </div>
-                  <button onClick={() => setVillaDetails(villaDetails.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><X size={16} /></button>
+                  <button onClick={() => setVillaDetails(villaDetails.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
                 </div>
               ))}
             </div>
 
             <div className="pt-4 border-t border-slate-100 space-y-2">
-               <div className="flex gap-2">
-                  <input type="text" value={newDetailLabel} onChange={(e) => setNewDetailLabel(e.target.value)} placeholder="Tên nhãn" className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold w-2/3" />
-                  <input type="text" value={newDetailValue} onChange={(e) => setNewDetailValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()} placeholder="SL" className="w-1/3 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold text-center" />
-               </div>
-               <button onClick={handleAddDetail} className="w-full bg-slate-100 hover:bg-blue-500 hover:text-white text-slate-600 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all">+ Thêm thông tin</button>
+              <div className="flex gap-2">
+                <input type="text" value={newDetailLabel} onChange={(e) => setNewDetailLabel(e.target.value)} placeholder="Tên nhãn" className="flex-1 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold w-2/3" />
+                <input type="text" value={newDetailValue} onChange={(e) => setNewDetailValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()} placeholder="SL" className="w-1/3 bg-slate-50 border-none rounded-lg p-2.5 text-xs font-bold text-center" />
+              </div>
+              <button onClick={handleAddDetail} className="w-full bg-slate-100 hover:bg-blue-500 hover:text-white text-slate-600 py-2.5 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all">+ Thêm thông tin</button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+            <X size={32} />
+          </button>
+          <img
+            src={zoomedImage}
+            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in duration-300"
+            alt="Zoomed"
+          />
+        </div>
+      )}
     </div>
+
   );
 };
 

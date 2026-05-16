@@ -19,10 +19,10 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${inter.className} antialiased`}>
-        <div className="flex flex-col md:flex-row">
+        <div className="flex flex-col xl:flex-row">
           <Sidebar />
           <MobileNav />
-          <main className="flex-1 md:ml-64 min-h-screen p-4 md:p-8 pb-24 md:pb-8 bg-[#f8fafc] text-gray-900 overflow-y-auto">
+          <main className="flex-1 xl:ml-64 min-h-screen p-4 md:p-8 pb-24 xl:pb-8 bg-[#f8fafc] text-gray-900 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto">
               {children}
             </div>

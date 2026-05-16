@@ -16,7 +16,7 @@ const MobileNav = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+    <nav className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-6 py-3 flex justify-between items-center shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       {menuItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
         return (
