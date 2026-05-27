@@ -8,8 +8,8 @@ import AppLayout from "@/components/AppLayout";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VillaManager - Hệ thống Quản lý Villa Cao cấp",
-  description: "Quản lý lịch đặt, giá thuê và cọc chuyên nghiệp",
+  title: "Rentify - Hệ thống Quản lý Lưu trú & Cho thuê chuyên nghiệp",
+  description: "Quản lý homestay, villa, căn hộ, lịch đặt, giá thuê và cọc trơn tru nhất",
 };
 
 export default function RootLayout({

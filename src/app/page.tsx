@@ -108,7 +108,7 @@ const DashboardPage = () => {
     { label: 'Thực thu (Tiền mặt)', value: formatCompactNumber(actualRevenue), fullValue: actualRevenue.toLocaleString() + 'đ', icon: Wallet, color: 'bg-emerald-600' },
     { label: 'Dự kiến (Tổng đơn)', value: formatCompactNumber(totalExpectedRevenue), fullValue: totalExpectedRevenue.toLocaleString() + 'đ', icon: DollarSign, color: 'bg-blue-600' },
     { label: 'Lấp đầy tháng này', value: `${occupancyRate}%`, fullValue: `${occupancyRate}%`, icon: TrendingUp, color: 'bg-orange-600' },
-    { label: 'Tổng Villa', value: villas.length.toString(), fullValue: villas.length.toString(), icon: Users, color: 'bg-indigo-600' },
+    { label: 'Tổng số căn', value: villas.length.toString(), fullValue: villas.length.toString(), icon: Users, color: 'bg-indigo-600' },
   ];
 
   if (loading) {
@@ -172,7 +172,7 @@ const DashboardPage = () => {
 
         <div className="bg-white border border-slate-200 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 shadow-sm flex flex-col">
           <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-6 md:mb-8 flex items-center gap-2.5">
-            <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div> Villa hệ thống
+            <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div> Hệ thống căn
           </h2>
           <div className="space-y-3 md:space-y-4">
             {villas.slice(0, 5).map((villa) => (
@@ -212,7 +212,7 @@ const DashboardPage = () => {
             <thead>
               <tr className="text-slate-400 text-xs border-b border-slate-100 font-semibold">
                 <th className="pb-4 pl-2">Khách hàng</th>
-                <th className="pb-4">Villa</th>
+                <th className="pb-4">Tên căn</th>
                 <th className="pb-4">Ngày</th>
                 <th className="pb-4">Trạng thái</th>
                 <th className="pb-4 text-right pr-2">Tổng tiền</th>

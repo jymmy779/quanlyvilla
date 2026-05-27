@@ -16,7 +16,7 @@ const Sidebar = () => {
   const handleLogoutClick = () => {
     confirm({
       title: 'Đăng xuất tài khoản?',
-      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý VillaManager không?',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý Rentify không?',
       onConfirm: () => logout(),
       confirmText: 'Đăng xuất',
       cancelText: 'Hủy'
@@ -28,7 +28,7 @@ const Sidebar = () => {
     { name: 'Tổng quan', href: '/', icon: LayoutDashboard },
     { name: 'Lịch đặt', href: '/calendar', icon: Calendar },
     { name: 'Quản lý giá', href: '/pricing', icon: DollarSign },
-    { name: 'Villa của tôi', href: '/villas', icon: Hotel },
+    { name: 'Quản lý căn', href: '/villas', icon: Hotel },
   ];
 
   const getInitials = (name: string) => {
@@ -47,7 +47,7 @@ const Sidebar = () => {
           <Home className="text-white" size={24} />
         </div>
         <span className="text-xl font-bold tracking-wide text-slate-900">
-          VillaManager
+          Rentify
         </span>
       </div>
 

@@ -28,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-slate-900 font-extrabold text-lg flex items-center gap-2 justify-center">
-              VILLAMANAGER <Sparkles size={16} className="text-orange-500 animate-bounce" />
+              Rentify <Sparkles size={16} className="text-orange-500 animate-bounce" />
             </h2>
             <p className="text-slate-400 text-xs font-medium">Đang tải dữ liệu...</p>
           </div>

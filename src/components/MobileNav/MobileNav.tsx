@@ -17,7 +17,7 @@ const MobileNav = () => {
   const handleLogoutClick = () => {
     confirm({
       title: 'Đăng xuất tài khoản?',
-      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý VillaManager không?',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý Rentify không?',
       onConfirm: () => logout(),
       confirmText: 'Đăng xuất',
       cancelText: 'Hủy'
@@ -29,7 +29,7 @@ const MobileNav = () => {
     { name: 'Tổng quan', href: '/', icon: LayoutDashboard },
     { name: 'Lịch', href: '/calendar', icon: Calendar },
     { name: 'Giá', href: '/pricing', icon: DollarSign },
-    { name: 'Villa', href: '/villas', icon: Hotel },
+    { name: 'Quản lý căn', href: '/villas', icon: Hotel },
   ];
 
   const moreItems = [

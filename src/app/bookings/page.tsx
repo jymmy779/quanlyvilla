@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
-import { Search, Filter, Calendar, Loader2 } from 'lucide-react';
+import { Search, Filter, Calendar, Loader2, ArrowLeft } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 
 const BookingsListPage = () => {
@@ -122,10 +122,15 @@ const BookingsListPage = () => {
 
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-10 md:pb-16">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách Đơn đặt</h1>
-          <p className="text-slate-500 text-xs md:text-sm font-medium">Theo dõi và quản lý toàn bộ luồng khách hàng từ Supabase.</p>
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 mb-6">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách Đơn đặt</h1>
+            <p className="text-slate-500 text-xs md:text-sm font-medium">Theo dõi và quản lý toàn bộ luồng khách hàng từ Supabase.</p>
+          </div>
         </div>
       </header>
 
@@ -165,7 +170,7 @@ const BookingsListPage = () => {
               <thead>
                 <tr className="bg-slate-50/50 text-slate-400 text-sm border-b border-slate-100 font-medium">
                   <th className="py-3 md:py-4 pl-4 md:pl-6">Khách hàng</th>
-                  <th className="py-3 md:py-4">Villa</th>
+                  <th className="py-3 md:py-4">Tên căn</th>
                   <th className="py-3 md:py-4">Thời gian</th>
                   <th className="py-3 md:py-4">Trạng thái</th>
                   <th className="py-3 md:py-4 pr-4 md:pr-6 text-right">Tổng cộng</th>

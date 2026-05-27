@@ -323,7 +323,7 @@ const CreateBookingPageContent = () => {
           </button>
           <div>
             <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Tạo Phiếu mới</h1>
-            <p className="text-slate-500 font-medium text-sm mt-0.5">Villa: {villa?.name}</p>
+            <p className="text-slate-500 font-medium text-sm mt-0.5">Tên căn: {villa?.name}</p>
           </div>
         </div>
         <button

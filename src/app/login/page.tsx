@@ -108,19 +108,19 @@ export default function LoginPage() {
             <div className="bg-orange-600 p-2.5 rounded-xl shadow-lg shadow-orange-500/20">
               <Home className="text-white" size={24} />
             </div>
-            <span className="text-xl font-bold">VillaManager</span>
+            <span className="text-xl font-bold">Rentify</span>
           </div>
 
           <div className="my-auto space-y-4 max-w-sm relative z-10 pt-12 pb-12">
             <span className="text-orange-500 text-xs font-bold uppercase bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 w-fit block">Hệ thống Nội bộ</span>
-            <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">Vận hành Villa theo tiêu chuẩn 5 sao 🌟</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">Vận hành lưu trú theo tiêu chuẩn 5 sao 🌟</h2>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Giải pháp tối ưu lịch đặt phòng, quản lý dòng tiền cọc và tối đa hóa doanh thu cho chuỗi biệt thự cao cấp.
+              Giải pháp tối ưu lịch đặt phòng, quản lý dòng tiền cọc và tối đa hóa doanh thu cho chuỗi lưu trú cao cấp.
             </p>
           </div>
 
           <div className="text-xs text-slate-500 relative z-10 flex justify-between">
-            <span>© 2026 VillaManager Corp.</span>
+            <span>© 2026 Rentify Corp.</span>
             <span>Bảo mật hệ thống v2.0</span>
           </div>
         </div>

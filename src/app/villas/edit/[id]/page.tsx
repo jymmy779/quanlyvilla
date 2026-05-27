@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Save, Plus, X, Upload, Image as ImageIcon, Trash2, CheckCircle2, Star, Info, AlertCircle, Power, MapPin, Loader2, ListTree, Camera, Eraser } from 'lucide-react';
 import { VillaStatus, Villa, VillaDetailItem } from '@/types';
 import { useNotification } from '@/context/NotificationContext';
+import { getOptimizedImageUrl } from '@/lib/utils';
 
 const VillaEditPage = () => {
   const { id } = useParams();
@@ -231,7 +232,7 @@ const VillaEditPage = () => {
           </button>
           <div>
             <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
-              {isEdit ? `Chỉnh sửa Villa` : 'Thêm Villa mới'}
+              {isEdit ? `Chỉnh sửa căn` : 'Thêm căn mới'}
             </h1>
             <p className="text-slate-500 font-medium text-sm mt-0.5">Cập nhật dữ liệu hệ thống</p>
           </div>
@@ -246,7 +247,7 @@ const VillaEditPage = () => {
             className="bg-slate-900 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
           >
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-            {saving ? 'Đang lưu...' : (isEdit ? 'Lưu thay đổi' : 'Tạo Villa')}
+            {saving ? 'Đang lưu...' : (isEdit ? 'Lưu thay đổi' : 'Tạo căn')}
           </button>
         </div>
       </header>
@@ -279,7 +280,7 @@ const VillaEditPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-400 ml-1">Tên Villa</label>
+                <label className="text-sm font-medium text-slate-400 ml-1">Tên căn</label>
                 <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Villa Blue Ocean Luxury" className="w-full bg-slate-50 border-none rounded-xl p-3 md:p-4 focus:ring-2 focus:ring-orange-500 transition-all font-medium text-sm md:text-base" />
               </div>
               <div className="space-y-2">
@@ -302,7 +303,7 @@ const VillaEditPage = () => {
           <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-blue-500 pl-4">
               <div>
-                <h2 className="text-base md:text-lg font-semibold text-slate-900">Hình ảnh Villa</h2>
+                <h2 className="text-base md:text-lg font-semibold text-slate-900">Hình ảnh căn</h2>
                 <p className="text-slate-400 text-sm font-medium mt-0.5">Ảnh bìa là ảnh đầu tiên</p>
               </div>
               <div className="flex items-center gap-2">
@@ -318,7 +319,7 @@ const VillaEditPage = () => {
               {previews.map((item, idx) => (
                 <div key={idx} className={`relative aspect-[4/3] rounded-2xl overflow-hidden group border-2 transition-all shadow-sm ${coverIndex === idx ? 'border-orange-500 ring-4 ring-orange-50' : 'border-slate-100 hover:border-slate-300'}`}>
                   <img
-                    src={item.url}
+                    src={getOptimizedImageUrl(item.url, 400)}
                     alt="Preview"
                     onClick={() => setZoomedImage(item.url)}
                     className="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 hover:scale-105"
@@ -415,7 +416,7 @@ const VillaEditPage = () => {
             <X size={32} />
           </button>
           <img
-            src={zoomedImage}
+            src={getOptimizedImageUrl(zoomedImage, 1600)}
             className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-in zoom-in duration-300"
             alt="Zoomed"
           />

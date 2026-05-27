@@ -498,7 +498,7 @@ Cám ơn quý khách 🌸`;
                 <div className="flex items-start gap-3 md:gap-4">
                   <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl md:rounded-2xl flex-shrink-0"><MapPin size={20} /></div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-400 mb-0.5">Villa lưu trú</p>
+                    <p className="text-sm font-medium text-slate-400 mb-0.5">Căn lưu trú</p>
                     <p className="text-base md:text-lg font-semibold text-slate-900 truncate">{villa?.name}</p>
                     <p className="text-slate-500 font-medium text-sm mt-0.5 truncate">{villa?.address}</p>
                   </div>

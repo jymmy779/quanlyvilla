@@ -42,7 +42,7 @@ const VillaListPage = () => {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4">
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Villa hệ thống</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách căn</h1>
           <p className="text-slate-500 mt-0.5 text-xs md:text-sm font-medium">Quản lý và cập nhật trạng thái vận hành cho các căn.</p>
         </div>
         {isAdmin && (
