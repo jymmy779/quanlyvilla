@@ -31,6 +31,7 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   role: UserRole | null;
+  startupName: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
@@ -49,6 +50,7 @@ interface AuthContextType {
   changePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
+  refreshStartup: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,6 +58,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [startupName, setStartupName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const lastSessionUserIdRef = useRef<string | null>(null);
   
@@ -143,12 +146,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const fetchStartupName = async (tenantId: string, controller?: AbortController) => {
+    try {
+      const signal = controller?.signal;
+      const tenantQuery = supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', tenantId)
+        .single();
+
+      if (signal) {
+        (tenantQuery as any).abortSignal(signal);
+      }
+
+      const { data, error } = await promiseTimeout<any>(
+        tenantQuery as any,
+        15000,
+        'Tải tên startup quá lâu. Vui lòng thử lại.',
+        () => controller?.abort()
+      );
+
+      if (error) {
+        console.error('[AuthContext] ❌ Lỗi khi fetch tenant:', error);
+        return null;
+      }
+
+      return data?.name || null;
+    } catch (err) {
+      console.error('[AuthContext] 💥 Lỗi bắt ngoại lệ fetch tenant:', err);
+      return null;
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) {
       const controller = new AbortController();
       const prof = await fetchProfile(user.id, user.email || '', controller);
       setProfile(prof);
+
+      if (prof?.tenant_id) {
+        const name = await fetchStartupName(prof.tenant_id, controller);
+        setStartupName(name);
+      } else {
+        setStartupName(null);
+      }
     }
+  };
+
+  const refreshStartup = async () => {
+    if (!profile?.tenant_id) {
+      setStartupName(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const name = await fetchStartupName(profile.tenant_id, controller);
+    setStartupName(name);
   };
 
   const autoApproveStartupIfConfirmed = async (currentProfile: UserProfile) => {
@@ -201,6 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastSessionUserIdRef.current = null;
         setUser(null);
         setProfile(null);
+        setStartupName(null);
         setLoading(false);
       }
     });
@@ -220,6 +274,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const prof = await fetchProfile(user.id, user.email || '', controller);
         setProfile(prof);
+
+        if (prof?.tenant_id) {
+          const name = await fetchStartupName(prof.tenant_id, controller);
+          setStartupName(name);
+        } else {
+          setStartupName(null);
+        }
 
         if (prof) {
           await autoApproveStartupIfConfirmed(prof);
@@ -437,6 +498,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         profile,
         role: profile ? profile.role : null,
+        startupName,
         loading,
         login,
         loginWithGoogle,
@@ -447,6 +509,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         changePassword,
         sendPasswordReset,
         refreshProfile,
+        refreshStartup,
       }}
     >
       {children}

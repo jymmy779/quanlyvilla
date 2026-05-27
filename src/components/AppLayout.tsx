@@ -5,10 +5,10 @@ import Sidebar from '@/components/Sidebar/Sidebar';
 import MobileNav from '@/components/MobileNav/MobileNav';
 import { useAuth } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
-import { Loader2, LogOut, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
+import { Building2, Loader2, LogOut, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, role, loading, logout } = useAuth();
+  const { user, profile, role, loading, logout, startupName } = useAuth();
   const pathname = usePathname();
 
   const isPublicPage = ['/login', '/register', '/register-startup'].includes(pathname);
@@ -58,6 +58,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="space-y-3">
             <span className="text-[10px] tracking-widest font-extrabold text-orange-600 uppercase bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 w-fit mx-auto block">Giai đoạn phê duyệt</span>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">Khởi tạo Startup! 🚀</h1>
+            <p className="text-sm font-semibold text-orange-700 truncate">{startupName || 'Startup của bạn'}</p>
             <p className="text-slate-500 text-xs md:text-sm leading-relaxed px-1">
               Hệ thống đang thiết lập chuỗi lưu trú và phê duyệt giấy phép Startup của bạn. Quá trình này thường diễn ra rất nhanh.
             </p>
@@ -117,6 +118,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="space-y-3">
             <h1 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Đăng ký thành công!</h1>
             <p className="text-orange-700 font-semibold text-sm">Tài khoản của bạn đang chờ phê duyệt</p>
+            <p className="text-slate-500 text-xs font-semibold truncate">{startupName || 'Startup của bạn'}</p>
             <p className="text-slate-500 text-xs leading-relaxed px-2">
               Để bảo mật thông tin nội bộ của công ty, tài khoản mới đăng ký cần được Quản trị viên (Admin) duyệt quyền truy cập trước khi sử dụng.
             </p>
@@ -164,6 +166,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <MobileNav />
       <main className="flex-1 xl:ml-64 min-h-screen p-4 md:p-8 pb-24 xl:pb-8 bg-[#f8fafc] text-gray-900 overflow-y-auto">
+        <div className="max-w-400 mx-auto sticky top-0 z-30 mb-4 rounded-2xl border border-slate-200 bg-white/85 backdrop-blur px-4 py-3 shadow-sm flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-orange-50 text-orange-600">
+            <Building2 size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm md:text-base font-extrabold text-slate-900 truncate">{startupName || 'Rentify'}</p>
+          </div>
+        </div>
         <div className="max-w-400 mx-auto">
           {children}
         </div>

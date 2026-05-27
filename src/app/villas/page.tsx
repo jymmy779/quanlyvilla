@@ -17,6 +17,22 @@ const VillaListPage = () => {
   const [villas, setVillas] = useState<Villa[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper: find a detail value from villa.villa_details by matching label keywords
+  const findDetailValue = (villa: Villa, keywords: string[]) => {
+    const details = villa.villa_details || [];
+    if (!details || details.length === 0) return null;
+    const normalize = (s: string) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    for (const d of details) {
+      const label = normalize(d.label || '');
+      for (const k of keywords) {
+        if (label.includes(normalize(k))) return d.value;
+      }
+    }
+    return null;
+  };
+
+  // Normalize text helper (strip diacritics + lowercase)
+  const normalizeText = (s: string | null | undefined) => (s || '').normalize?.('NFD')?.replace(/[\u0300-\u036f]/g, '').toLowerCase() || (s || '').toLowerCase();
   useEffect(() => {
     if (profile?.tenant_id) {
       fetchVillas();
@@ -101,20 +117,38 @@ const VillaListPage = () => {
                   {villa.address}
                 </div>
                 <h2 className={`text-lg md:text-xl font-semibold mb-3 ${villa.status === 'maintenance' ? 'text-slate-400' : 'text-slate-900'}`}>{villa.name}</h2>
-                
+
                 <div className="flex items-center gap-4 mb-4 md:mb-6 text-slate-500 text-sm font-medium">
                   <div className="flex items-center gap-1.5">
                     <Users size={16} className="text-slate-400" />
-                    {(villa.capacity?.adults || 0) + (villa.capacity?.children || 0)} khách
+                    {(() => {
+                      // Preferred: read from villa_details (labels like 'Sức chứa')
+                      const capacityFromDetails = findDetailValue(villa, ['suc chua', 'Sức chứa', 'suc', 'capacity', 'succhua']);
+                      if (capacityFromDetails) {
+                        const norm = normalizeText(capacityFromDetails);
+                        // if the value already mentions 'khach' or 'guest' or 'nguoi', don't append
+                        if (norm.includes('khach') || norm.includes('guest') || norm.includes('nguoi')) return capacityFromDetails;
+                        return `${capacityFromDetails} khách`;
+                      }
+
+                      const adults = villa.capacity?.adults ?? null;
+                      const children = villa.capacity?.children ?? null;
+                      const total = (adults ?? 0) + (children ?? 0);
+                      return (adults === null && children === null) ? 'Chưa cập nhật' : `${total} khách`;
+                    })()}
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Bed size={16} className="text-slate-400" />
-                    {villa.bedrooms} PN
+                    {(() => {
+                      const bedsFromDetails = findDetailValue(villa, ['phong ngu', 'phòng ngủ', 'phong', 'pn', 'bed', 'beds']);
+                      if (bedsFromDetails) return `${bedsFromDetails} PN`;
+                      return villa.bedrooms ? `${villa.bedrooms} PN` : 'Chưa cập nhật';
+                    })()}
                   </div>
                 </div>
- 
+
                 <div className="flex items-center gap-2 md:gap-3 pt-4 md:pt-5 border-t border-slate-100">
-                  <Link 
+                  <Link
                     href={`/villas/${villa.id}`}
                     className="flex-1 bg-slate-50 hover:bg-orange-50 text-slate-600 hover:text-orange-600 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold text-sm text-center transition-all flex items-center justify-center gap-2"
                   >
@@ -122,7 +156,7 @@ const VillaListPage = () => {
                     Chi tiết
                   </Link>
                   {canManage && (
-                    <Link 
+                    <Link
                       href={`/villas/edit/${villa.id}`}
                       className="p-2 md:p-2.5 bg-slate-50 hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors group/btn cursor-pointer"
                     >

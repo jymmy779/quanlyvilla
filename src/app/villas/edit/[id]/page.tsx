@@ -22,8 +22,15 @@ const VillaEditPage = () => {
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<VillaStatus>('active');
-  const [amenities, setAmenities] = useState<string[]>([]);
-  const [villaDetails, setVillaDetails] = useState<VillaDetailItem[]>([]);
+  const [amenities, setAmenities] = useState<string[]>(
+    isEdit ? [] : ['Hồ bơi', 'Karaoke', 'Bida']
+  );
+  const [villaDetails, setVillaDetails] = useState<VillaDetailItem[]>(
+    isEdit ? [] : [
+      { label: 'Sức chứa', value: '15-25' },
+      { label: 'Phòng ngủ', value: '5' }
+    ]
+  );
   const [mapLink, setMapLink] = useState('');
   const [previews, setPreviews] = useState<{ url: string; file?: File }[]>([]);
   const [coverIndex, setCoverIndex] = useState(0);
@@ -368,11 +375,20 @@ const VillaEditPage = () => {
             <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
               {amenities.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-emerald-200 transition-all">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 size={16} className="text-emerald-500" />
-                    <span className="font-semibold text-sm text-slate-700">{item}</span>
+                  <div className="flex items-center gap-3 flex-1">
+                    <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => {
+                        const updated = [...amenities];
+                        updated[idx] = e.target.value;
+                        setAmenities(updated);
+                      }}
+                      className="font-semibold text-sm text-slate-700 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full cursor-text"
+                    />
                   </div>
-                  <button onClick={() => setAmenities(amenities.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
+                  <button onClick={() => setAmenities(amenities.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100 flex-shrink-0 ml-2"><X size={16} /></button>
                 </div>
               ))}
             </div>
@@ -394,11 +410,29 @@ const VillaEditPage = () => {
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {villaDetails.map((detail, idx) => (
                 <div key={idx} className="flex items-center justify-between bg-slate-50 p-3 md:p-3.5 pl-4 rounded-xl group border border-transparent hover:border-blue-200 transition-all">
-                  <div className="flex items-center justify-between w-full pr-2">
-                    <span className="text-slate-400 font-medium text-xs">{detail.label}</span>
-                    <span className="font-semibold text-sm text-slate-900">{detail.value}</span>
+                  <div className="flex items-center justify-between w-full pr-2 gap-3">
+                    <input
+                      type="text"
+                      value={detail.label}
+                      onChange={(e) => {
+                        const updated = [...villaDetails];
+                        updated[idx] = { ...updated[idx], label: e.target.value };
+                        setVillaDetails(updated);
+                      }}
+                      className="text-slate-400 font-medium text-xs bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-1/2 cursor-text"
+                    />
+                    <input
+                      type="text"
+                      value={detail.value}
+                      onChange={(e) => {
+                        const updated = [...villaDetails];
+                        updated[idx] = { ...updated[idx], value: e.target.value };
+                        setVillaDetails(updated);
+                      }}
+                      className="font-semibold text-sm text-slate-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-1/2 text-right cursor-text font-mono md:font-sans"
+                    />
                   </div>
-                  <button onClick={() => setVillaDetails(villaDetails.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100"><X size={16} /></button>
+                  <button onClick={() => setVillaDetails(villaDetails.filter((_, i) => i !== idx))} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-100 flex-shrink-0"><X size={16} /></button>
                 </div>
               ))}
             </div>

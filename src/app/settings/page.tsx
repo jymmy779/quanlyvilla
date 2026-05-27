@@ -445,7 +445,7 @@ const StartupManagementSection = () => {
 const SettingsPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { profile, role, updateProfile, changePassword } = useAuth();
+  const { profile, role, updateProfile, changePassword, refreshStartup } = useAuth();
   const { showToast, confirm: showConfirmModal } = useNotification();
 
   // State Tab - đọc từ URL params để giữ nguyên khi Back
@@ -615,6 +615,7 @@ const SettingsPageContent = () => {
 
       setTemplate(currentTemplate);
       setSaved(true);
+      void refreshStartup();
       showToast('Đã lưu cấu hình tin nhắn cọc thành công!');
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {

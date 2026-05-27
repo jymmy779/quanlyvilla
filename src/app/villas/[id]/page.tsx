@@ -19,6 +19,8 @@ const VillaDetailPage = () => {
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showAllImages, setShowAllImages] = useState(false);
 
   useEffect(() => {
     fetchVillaDetail();
@@ -133,9 +135,29 @@ const VillaDetailPage = () => {
               <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
               Giới thiệu chung
             </h2>
-            <p className="text-slate-600 leading-relaxed text-sm md:text-base font-medium whitespace-pre-line">
-              {villa.description || 'Chưa có mô tả cho căn Villa này.'}
-            </p>
+            <div className="text-slate-600 leading-relaxed text-sm md:text-base font-medium whitespace-pre-line">
+              <div className="relative">
+                <p className={`transition-all ${showFullDescription ? '' : 'max-h-[12rem] overflow-hidden'}`}>
+                  {villa.description || 'Chưa có mô tả cho căn Villa này.'}
+                </p>
+
+                {/* Gradient overlay only inside the text container so it does not cover the button */}
+                {!showFullDescription && (villa.description || '').length > 600 && (
+                  <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent" />
+                )}
+              </div>
+
+              {(villa.description || '').length > 600 && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => setShowFullDescription((s) => !s)}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:underline"
+                  >
+                    {showFullDescription ? 'Thu gọn' : 'Xem thêm'}
+                  </button>
+                </div>
+              )}
+            </div>
           </section>
 
           <section>
@@ -197,12 +219,23 @@ const VillaDetailPage = () => {
               </span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-              {villa.images?.map((img, idx) => (
+              {(villa.images || []).slice(0, showAllImages ? villa.images.length : 6).map((img, idx) => (
                 <div key={idx} onClick={() => setZoomedImage(img)} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-zoom-in group">
                   <img src={getOptimizedImageUrl(img, 600)} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale' : ''}`} />
                 </div>
               ))}
             </div>
+            
+            {(villa.images || []).length > 6 && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={() => setShowAllImages((s) => !s)}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50"
+                >
+                  {showAllImages ? 'Thu gọn ảnh' : `Xem thêm ảnh (${villa.images.length - 6} còn lại)`}
+                </button>
+              </div>
+            )}
           </section>
 
           <section className="pt-6 md:pt-8 border-t border-slate-100">

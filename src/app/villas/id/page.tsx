@@ -21,6 +21,8 @@ const VillaDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showAllImages, setShowAllImages] = useState(false);
 
   useEffect(() => {
     if (profile?.tenant_id) {
@@ -148,9 +150,25 @@ const VillaDetailPage = () => {
               <div className="w-2 h-10 bg-orange-500 rounded-full"></div>
               Giới thiệu chung
             </h2>
-            <p className="text-slate-600 leading-relaxed text-xl font-medium whitespace-pre-line">
-              {villa.description || 'Chưa có mô tả cho căn Villa này.'}
-            </p>
+            <div className="text-slate-600 leading-relaxed text-xl font-medium whitespace-pre-line">
+              <p className={`transition-all ${showFullDescription ? '' : 'max-h-[8rem] overflow-hidden relative'}`}>
+                {villa.description || 'Chưa có mô tả cho căn Villa này.'}
+              </p>
+              {!showFullDescription && (villa.description || '').length > 300 && (
+                <div className="relative -mt-6 pointer-events-none">
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
+                </div>
+              )}
+
+              {(villa.description || '').length > 300 && (
+                <button
+                  onClick={() => setShowFullDescription((s) => !s)}
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:underline"
+                >
+                  {showFullDescription ? 'Thu gọn' : 'Xem thêm'}
+                </button>
+              )}
+            </div>
           </section>
 
           <section>
@@ -180,7 +198,7 @@ const VillaDetailPage = () => {
               </span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {villa.images?.map((img, idx) => (
+              {(villa.images || []).slice(0, showAllImages ? villa.images.length : 6).map((img, idx) => (
                 <div key={idx} onClick={() => setZoomedImage(img)} className="h-64 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-zoom-in group relative">
                   <img 
                     src={getOptimizedImageUrl(img, 800)} 
@@ -190,6 +208,16 @@ const VillaDetailPage = () => {
                 </div>
               ))}
             </div>
+            {(villa.images || []).length > 6 && (
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={() => setShowAllImages((s) => !s)}
+                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50"
+                >
+                  {showAllImages ? 'Thu gọn ảnh' : `Xem thêm ảnh (${villa.images.length - 6} còn lại)`}
+                </button>
+              </div>
+            )}
           </section>
 
           <section className="pt-12 border-t border-slate-100">
