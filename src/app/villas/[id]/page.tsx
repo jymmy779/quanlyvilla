@@ -56,11 +56,11 @@ const VillaDetailPage = () => {
 
   if (!villa) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-500 px-6 text-center">
-        <AlertCircle size={40} className="text-slate-200 mb-4" />
-        <p className="text-lg font-semibold text-slate-900">Không tìm thấy Villa</p>
-        <p className="text-sm text-slate-400 font-medium">Villa có thể đã bị xóa hoặc đường dẫn sai.</p>
-        <button onClick={() => router.push('/villas')} className="mt-6 bg-slate-900 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg">Quay lại</button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-slate-500 dark:text-slate-400 px-6 text-center">
+        <AlertCircle size={40} className="text-slate-200 dark:text-slate-700 mb-4" />
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">Không tìm thấy Villa</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Villa có thể đã bị xóa hoặc đường dẫn sai.</p>
+        <button onClick={() => router.push('/villas')} className="mt-6 bg-slate-900 dark:bg-slate-800 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-slate-200/40 dark:shadow-slate-950/50">Quay lại</button>
       </div>
     );
   }
@@ -79,7 +79,7 @@ const VillaDetailPage = () => {
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 font-medium transition-colors p-1 text-sm"
+          className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors p-1 text-sm"
         >
           <ArrowLeft size={18} />
           Quay lại
@@ -89,7 +89,7 @@ const VillaDetailPage = () => {
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push(`/villas/edit/${id}`)}
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm transition-all hover:bg-emerald-600 shadow-lg shadow-slate-100 cursor-pointer"
+              className="flex items-center gap-2 bg-slate-900 dark:bg-slate-800 hover:bg-emerald-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-slate-100 dark:shadow-slate-950/40 cursor-pointer"
             >
               <Edit size={16} />
               <span className="hidden md:inline">Chỉnh sửa</span>
@@ -100,11 +100,11 @@ const VillaDetailPage = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="relative h-[280px] md:h-[450px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl bg-slate-100">
+      <div className="relative h-[280px] md:h-[450px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl bg-slate-100 dark:bg-slate-800">
         {villa.images && villa.images.length > 0 ? (
           <img src={getOptimizedImageUrl(villa.images[0], 1200)} alt={villa.name} className={`w-full h-full object-cover ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-300">
+          <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
             <ImageIcon size={48} />
           </div>
         )}
@@ -130,12 +130,12 @@ const VillaDetailPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-10">
         <div className="lg:col-span-2 space-y-8 md:space-y-12">
-          <section className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 shadow-sm">
-            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <section className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-slate-950/30">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
               Giới thiệu chung
             </h2>
-            <div className="text-slate-600 leading-relaxed text-sm md:text-base font-medium whitespace-pre-line">
+            <div className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm md:text-base font-medium whitespace-pre-line">
               <div className="relative">
                 <p className={`transition-all ${showFullDescription ? '' : 'max-h-[12rem] overflow-hidden'}`}>
                   {villa.description || 'Chưa có mô tả cho căn Villa này.'}
@@ -143,7 +143,7 @@ const VillaDetailPage = () => {
 
                 {/* Gradient overlay only inside the text container so it does not cover the button */}
                 {!showFullDescription && (villa.description || '').length > 600 && (
-                  <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent" />
+                  <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-slate-900 to-transparent" />
                 )}
               </div>
 
@@ -161,50 +161,50 @@ const VillaDetailPage = () => {
           </section>
 
           <section>
-            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-4 md:mb-6">Tiện ích đặc sắc</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white mb-4 md:mb-6">Tiện ích đặc sắc</h2>
             <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
               {villa.amenities?.length > 0 ? villa.amenities.map((amenity, idx) => (
-                <div key={idx} className="flex items-center gap-2.5 bg-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
+                <div key={idx} className="flex items-center gap-2.5 bg-white dark:bg-slate-900 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-slate-950/30">
                   <CheckCircle2 className="text-emerald-500" size={18} />
-                  <span className="font-medium text-slate-700 text-sm">{amenity}</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">{amenity}</span>
                 </div>
               )) : (
-                <p className="text-slate-400 text-xs italic">Chưa có tiện ích nào được liệt kê.</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs italic">Chưa có tiện ích nào được liệt kê.</p>
               )}
             </div>
           </section>
 
-          <section className="bg-white border border-slate-100 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm">
-            <h3 className="text-base md:text-lg font-semibold mb-6 flex items-center gap-3 text-slate-900">
+          <section className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm dark:shadow-slate-950/30">
+            <h3 className="text-base md:text-lg font-semibold mb-6 flex items-center gap-3 text-slate-900 dark:text-white">
               <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
               Thông tin chi tiết căn
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {villa.villa_details && villa.villa_details.length > 0 ? (
                 villa.villa_details.map((detail, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3.5 md:p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:border-orange-200 transition-all">
-                    <div className="flex items-center gap-2 text-slate-400">
+                  <div key={idx} className="flex items-center justify-between p-3.5 md:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 group hover:border-orange-200 dark:hover:border-orange-500/50 transition-all">
+                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                       <CheckCircle2 size={14} className="text-orange-500" />
                       <span className="font-medium text-xs">{detail.label}</span>
                     </div>
-                    <span className="font-semibold text-sm text-slate-900">{detail.value}</span>
+                    <span className="font-semibold text-sm text-slate-900 dark:text-white">{detail.value}</span>
                   </div>
                 ))
               ) : (
                 <>
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                       <Users size={16} />
                       <span className="font-medium text-sm">Sức chứa</span>
                     </div>
-                    <span className="font-semibold text-sm text-slate-900">{(villa.capacity?.adults || 0) + (villa.capacity?.children || 0)} khách</span>
+                    <span className="font-semibold text-sm text-slate-900 dark:text-white">{(villa.capacity?.adults || 0) + (villa.capacity?.children || 0)} khách</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="flex items-center gap-2 text-slate-400">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
                       <Bed size={16} />
                       <span className="font-medium text-sm">Phòng ngủ</span>
                     </div>
-                    <span className="font-semibold text-sm text-slate-900">{villa.bedrooms} PN</span>
+                    <span className="font-semibold text-sm text-slate-900 dark:text-white">{villa.bedrooms} PN</span>
                   </div>
                 </>
               )}
@@ -213,14 +213,14 @@ const VillaDetailPage = () => {
 
           <section>
             <div className="flex items-center gap-3 mb-4 md:mb-6">
-              <h2 className="text-lg md:text-xl font-semibold text-slate-900">Hình ảnh thực tế</h2>
-              <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md text-xs font-semibold">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">Hình ảnh thực tế</h2>
+              <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-xs font-semibold">
                 {villa.images?.length || 0} ẢNH
               </span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {(villa.images || []).slice(0, showAllImages ? villa.images.length : 6).map((img, idx) => (
-                <div key={idx} onClick={() => setZoomedImage(img)} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-zoom-in group">
+                <div key={idx} onClick={() => setZoomedImage(img)} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm dark:shadow-slate-950/30 hover:shadow-xl dark:hover:shadow-slate-950/60 transition-all cursor-zoom-in group">
                   <img src={getOptimizedImageUrl(img, 600)} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale' : ''}`} />
                 </div>
               ))}
@@ -230,7 +230,7 @@ const VillaDetailPage = () => {
               <div className="mt-3 flex justify-center">
                 <button
                   onClick={() => setShowAllImages((s) => !s)}
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50"
+                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
                   {showAllImages ? 'Thu gọn ảnh' : `Xem thêm ảnh (${villa.images.length - 6} còn lại)`}
                 </button>
@@ -238,9 +238,9 @@ const VillaDetailPage = () => {
             )}
           </section>
 
-          <section className="pt-6 md:pt-8 border-t border-slate-100">
+          <section className="pt-6 md:pt-8 border-t border-slate-100 dark:border-slate-800">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg md:text-xl font-semibold text-slate-900 flex items-center gap-2.5">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2.5">
                 <MapPin className="text-red-500" size={24} />
                 Vị trí & Chỉ đường
               </h2>
@@ -249,14 +249,14 @@ const VillaDetailPage = () => {
                   href={villa.map_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-slate-100 text-slate-900 px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-600 hover:text-white transition-all"
+                  className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 px-4 md:px-6 py-2 md:py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-600 dark:hover:bg-orange-600 hover:text-white transition-all"
                 >
                   <Navigation size={16} /> Mở Bản đồ
                 </a>
               )}
             </div>
             {villa.map_embed_url ? (
-              <div className="w-full h-[300px] md:h-[400px] rounded-2xl md:rounded-[2.5rem] overflow-hidden border-4 border-white shadow-lg relative group">
+              <div className="w-full h-[300px] md:h-[400px] rounded-2xl md:rounded-[2.5rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-lg dark:shadow-slate-950/30 relative group">
                 <iframe
                   src={villa.map_embed_url}
                   className={`w-full h-full border-0 ${villa.status === 'maintenance' ? 'grayscale' : ''}`}
@@ -266,21 +266,21 @@ const VillaDetailPage = () => {
                 ></iframe>
               </div>
             ) : (
-              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-slate-400 font-medium text-sm italic">Bản đồ chưa được tích hợp.</p>
+              <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <p className="text-slate-400 dark:text-slate-500 font-medium text-sm italic">Bản đồ chưa được tích hợp.</p>
               </div>
             )}
           </section>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm md:sticky md:top-8">
-            <h3 className="text-sm font-semibold text-slate-400 mb-6 text-center">Tác vụ quản trị</h3>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 md:sticky md:top-8">
+            <h3 className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-6 text-center">Tác vụ quản trị</h3>
 
             <div className="space-y-3">
               <button
               onClick={() => router.push(`/pricing?villaId=${id}`)}
-                className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 text-sm"
+                className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 dark:shadow-orange-950/40 text-sm"
               >
                 <DollarSign size={18} />
                 Cài đặt bảng giá
@@ -289,7 +289,7 @@ const VillaDetailPage = () => {
               {canManage && (
                 <button
                   onClick={() => router.push(`/villas/edit/${id}`)}
-                  className="w-full bg-slate-100 text-slate-600 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
+                  className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
                 >
                   <Edit size={18} />
                   Chỉnh sửa thông tin
@@ -298,12 +298,12 @@ const VillaDetailPage = () => {
 
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-100">
-              <div className="flex items-center gap-3 text-slate-400 mb-4">
+            <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500 mb-4">
                 <Info size={16} />
                 <span className="text-sm font-medium">Lưu ý quản trị</span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed italic">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed italic">
                 Mọi thay đổi về thông tin căn sẽ ảnh hưởng trực tiếp đến dữ liệu hiển thị trên các phiếu đặt và lịch gối đầu.
               </p>
             </div>

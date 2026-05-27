@@ -290,17 +290,17 @@ const PricingPageContent = () => {
         {/* Left: Title + Year picker */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Cấu hình giá</h1>
-            <p className="text-slate-500 font-medium text-xs sm:text-sm mt-0.5">Quản lý giá theo loại ngày (Thường/Cuối tuần).</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">Cấu hình giá</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm mt-0.5">Quản lý giá theo loại ngày (Thường/Cuối tuần).</p>
           </div>
 
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm self-start">
-            <button onClick={() => setSelectedYear(selectedYear - 1)} className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-lg"><ChevronLeft size={16} /></button>
+          <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-sm dark:shadow-slate-950/25 self-start transition-all duration-300">
+            <button onClick={() => setSelectedYear(selectedYear - 1)} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-350 transition-all rounded-lg"><ChevronLeft size={16} /></button>
             <div className="px-4 py-1 flex flex-col items-center min-w-15">
               <span className="text-[10px] font-semibold text-orange-500 leading-none mb-0.5 uppercase tracking-wider">Năm</span>
-              <span className="text-base font-bold text-slate-900 leading-none">{selectedYear}</span>
+              <span className="text-base font-bold text-slate-900 dark:text-white leading-none">{selectedYear}</span>
             </div>
-            <button onClick={() => setSelectedYear(selectedYear + 1)} className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-lg"><ChevronRight size={16} /></button>
+            <button onClick={() => setSelectedYear(selectedYear + 1)} className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-350 transition-all rounded-lg"><ChevronRight size={16} /></button>
           </div>
         </div>
 
@@ -309,13 +309,13 @@ const PricingPageContent = () => {
           <button
             onClick={handleSave}
             disabled={saving || !selectedVillaId}
-            className="bg-slate-900 text-white hover:bg-emerald-600 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer w-full sm:w-auto"
+            className="bg-slate-900 dark:bg-slate-800 border dark:border-slate-700/55 text-white hover:bg-emerald-600 dark:hover:bg-emerald-600 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md dark:shadow-slate-950/30 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 cursor-pointer w-full sm:w-auto"
           >
             {saving ? <Loader2 className="animate-spin" size={15} /> : <Save size={15} />}
             Lưu bảng giá {selectedYear}
           </button>
         ) : (
-          <div className="bg-orange-50 border border-orange-100 text-orange-700 px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold self-start">
+          <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/40 text-orange-700 dark:text-orange-400 px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold self-start">
             <AlertCircle size={13} className="text-orange-500 shrink-0" />
             Chế độ Chỉ xem (Read-only)
           </div>
@@ -324,15 +324,15 @@ const PricingPageContent = () => {
 
       {/* ── VILLA TABS ── */}
       {villas.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 -mx-0.5 px-0.5">
+        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800/80 -mx-0.5 px-0.5">
           {villas.map((villa) => (
             <button
               key={villa.id}
               onClick={() => setSelectedVillaId(villa.id)}
               className={`shrink-0 px-4 py-2 rounded-t-xl font-semibold text-sm transition-all border-b-2 ${
                 selectedVillaId === villa.id
-                  ? 'border-orange-500 bg-orange-50/30 text-orange-600'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
+                  ? 'border-orange-500 bg-orange-50/30 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400'
+                  : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350'
               }`}
             >
               {villa.name}
@@ -343,8 +343,8 @@ const PricingPageContent = () => {
 
       {/* ── EMPTY STATE ── */}
       {villas.length === 0 && (
-        <div className="py-20 text-center bg-white border border-slate-200 rounded-[2.5rem]">
-          <p className="text-slate-400 font-semibold text-xs">Chưa có Villa nào để cấu hình giá</p>
+        <div className="py-20 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-sm dark:shadow-slate-950/30 transition-all">
+          <p className="text-slate-400 dark:text-slate-500 font-semibold text-xs">Chưa có Villa nào để cấu hình giá</p>
         </div>
       )}
 
@@ -353,19 +353,19 @@ const PricingPageContent = () => {
           {/* ══════════════════════════════════════
               DESKTOP TABLE  (md trở lên)
           ══════════════════════════════════════ */}
-          <div className="hidden md:block bg-white border border-slate-200 rounded-3xl p-8 shadow-sm overflow-hidden w-full">
+          <div className="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm dark:shadow-slate-950/30 overflow-hidden w-full transition-all duration-300">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-slate-400 text-sm border-b border-slate-100 font-semibold">
-                  <th className="pb-4 pl-2">Tháng</th>
-                  <th className="pb-4 hidden lg:table-cell">Mùa vụ</th>
-                  <th className="pb-4 text-center">Thứ 2 – 5</th>
-                  <th className="pb-4 text-center">Thứ 6</th>
-                  <th className="pb-4 text-center">Thứ 7</th>
-                  <th className="pb-4 text-center">Chủ Nhật</th>
+                <tr className="bg-slate-50/40 dark:bg-slate-800/40 text-slate-500 dark:text-slate-350 text-xs font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                  <th className="py-3 pl-2">Tháng</th>
+                  <th className="py-3 hidden lg:table-cell">Mùa vụ</th>
+                  <th className="py-3 text-center">Thứ 2 – 5</th>
+                  <th className="py-3 text-center">Thứ 6</th>
+                  <th className="py-3 text-center">Thứ 7</th>
+                  <th className="py-3 text-center">Chủ Nhật</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
                 {months.map((month) => {
                   const seasonal = getPriceForMonth(month);
                   const isPeak = [6, 7, 8].includes(month);
@@ -388,24 +388,24 @@ const PricingPageContent = () => {
                     : (isPast ? '' : '5.000.000');
 
                   return (
-                    <tr key={month} className={`group ${isPast ? 'opacity-40' : ''} hover:bg-slate-50 transition-colors`}>
+                    <tr key={month} className={`group ${isPast ? 'opacity-40 dark:opacity-30' : ''} hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-all duration-200`}>
                       <td className="py-4 pl-2">
-                        <span className="font-semibold text-slate-900 text-base leading-tight">T{month}</span>
-                        <p className="text-xs text-slate-400 font-medium">{selectedYear}</p>
+                        <span className="font-semibold text-slate-900 dark:text-slate-200 text-base leading-tight">T{month}</span>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">{selectedYear}</p>
                       </td>
                       <td className="py-4 hidden lg:table-cell">
                         {isPeak ? (
-                          <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-xs font-semibold border border-red-100">🔥 Cao điểm</span>
+                          <span className="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded text-xs font-semibold border border-red-100 dark:border-red-900/40">🔥 Cao điểm</span>
                         ) : (
-                          <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-xs font-semibold border border-slate-100">Thường</span>
+                          <span className="bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 px-2 py-0.5 rounded text-xs font-semibold border border-slate-100 dark:border-slate-800">Thường</span>
                         )}
                       </td>
                       {/* T2–T5 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
-                          <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 cursor-not-allowed' : 'bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                          <span className="pl-1.5 text-slate-300 dark:text-slate-600 font-semibold text-xs">đ</span>
                           <input type="text" disabled={isPast || !canManage}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                             value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
                             onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
                             onBlur={() => setEditingValue(null)}
@@ -415,10 +415,10 @@ const PricingPageContent = () => {
                       </td>
                       {/* Thứ 6 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
-                          <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 cursor-not-allowed' : 'bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                          <span className="pl-1.5 text-slate-300 dark:text-slate-600 font-semibold text-xs">đ</span>
                           <input type="text" disabled={isPast || !canManage}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                             value={editingValue?.key === `${month}-friday` ? editingValue.val : displayFriday}
                             onFocus={() => setEditingValue({ key: `${month}-friday`, val: displayFriday })}
                             onBlur={() => setEditingValue(null)}
@@ -428,10 +428,10 @@ const PricingPageContent = () => {
                       </td>
                       {/* Thứ 7 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-indigo-50/50 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-500'}`}>
-                          <span className="pl-1.5 text-indigo-300 font-semibold text-xs">đ</span>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 cursor-not-allowed' : 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/40 focus-within:ring-2 focus-within:ring-indigo-500'}`}>
+                          <span className="pl-1.5 text-indigo-300 dark:text-indigo-500 font-semibold text-xs">đ</span>
                           <input type="text" disabled={isPast || !canManage}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-indigo-650 dark:text-indigo-400'}`}
                             value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                             onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                             onBlur={() => setEditingValue(null)}
@@ -441,10 +441,10 @@ const PricingPageContent = () => {
                       </td>
                       {/* Chủ Nhật */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
-                          <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 cursor-not-allowed' : 'bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                          <span className="pl-1.5 text-slate-300 dark:text-slate-600 font-semibold text-xs">đ</span>
                           <input type="text" disabled={isPast || !canManage}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                             value={editingValue?.key === `${month}-sunday` ? editingValue.val : displaySunday}
                             onFocus={() => setEditingValue({ key: `${month}-sunday`, val: displaySunday })}
                             onBlur={() => setEditingValue(null)}
@@ -488,18 +488,18 @@ const PricingPageContent = () => {
               return (
                 <div
                   key={month}
-                  className={`bg-white border border-slate-200 rounded-2xl p-4 shadow-sm transition-opacity ${isPast ? 'opacity-40' : ''}`}
+                  className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm transition-all duration-300 ${isPast ? 'opacity-40 dark:opacity-30' : ''}`}
                 >
                   {/* Card header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-base font-bold text-slate-900">Tháng {month}</span>
-                      <span className="text-xs text-slate-400 font-medium">{selectedYear}</span>
+                      <span className="text-base font-bold text-slate-900 dark:text-white">Tháng {month}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{selectedYear}</span>
                     </div>
                     {isPeak ? (
-                      <span className="bg-red-50 text-red-600 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-red-100">🔥 Cao điểm</span>
+                      <span className="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-red-100 dark:border-red-900/40">🔥 Cao điểm</span>
                     ) : (
-                      <span className="bg-slate-50 text-slate-400 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-100">Thường</span>
+                      <span className="bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-550 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-slate-100 dark:border-slate-800">Thường</span>
                     )}
                   </div>
 
@@ -507,14 +507,14 @@ const PricingPageContent = () => {
                   <div className="grid grid-cols-2 gap-2.5">
                     {/* T2–T5 */}
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Thứ 2 – 5</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
-                        <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Thứ 2 – 5</p>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                        <span className="text-slate-300 dark:text-slate-600 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
                           disabled={isPast || !canManage}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                           value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
                           onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
                           onBlur={() => setEditingValue(null)}
@@ -525,14 +525,14 @@ const PricingPageContent = () => {
 
                     {/* Thứ 6 */}
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Thứ 6</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
-                        <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Thứ 6</p>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                        <span className="text-slate-300 dark:text-slate-600 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
                           disabled={isPast || !canManage}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                           value={editingValue?.key === `${month}-friday` ? editingValue.val : displayFriday}
                           onFocus={() => setEditingValue({ key: `${month}-friday`, val: displayFriday })}
                           onBlur={() => setEditingValue(null)}
@@ -543,14 +543,14 @@ const PricingPageContent = () => {
 
                     {/* Thứ 7 */}
                     <div>
-                      <p className="text-[10px] font-bold text-indigo-400 mb-1.5 uppercase tracking-wider">Thứ 7</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-indigo-50/60 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-400 focus-within:border-indigo-300'}`}>
-                        <span className="text-indigo-300 font-bold text-xs shrink-0">đ</span>
+                      <p className="text-[10px] font-bold text-indigo-400 dark:text-indigo-500 mb-1.5 uppercase tracking-wider">Thứ 7</p>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800' : 'bg-indigo-50/60 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/40 focus-within:ring-2 focus-within:ring-indigo-400 focus-within:border-indigo-300'}`}>
+                        <span className="text-indigo-300 dark:text-indigo-500 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
                           disabled={isPast || !canManage}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 dark:text-slate-550 cursor-not-allowed' : 'text-indigo-650 dark:text-indigo-400'}`}
                           value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                           onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                           onBlur={() => setEditingValue(null)}
@@ -561,14 +561,14 @@ const PricingPageContent = () => {
 
                     {/* Chủ Nhật */}
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Chủ Nhật</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
-                        <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">Chủ Nhật</p>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                        <span className="text-slate-300 dark:text-slate-600 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
                           disabled={isPast || !canManage}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'text-slate-900 dark:text-slate-100'}`}
                           value={editingValue?.key === `${month}-sunday` ? editingValue.val : displaySunday}
                           onFocus={() => setEditingValue({ key: `${month}-sunday`, val: displaySunday })}
                           onBlur={() => setEditingValue(null)}

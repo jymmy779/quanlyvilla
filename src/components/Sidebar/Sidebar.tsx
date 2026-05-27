@@ -59,14 +59,14 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 z-50 flex-col p-6 shadow-sm">
+    <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 flex-col p-6 shadow-sm dark:shadow-slate-950/20 transition-all duration-300">
       
       {/* Brand logo */}
       <div className="flex items-center gap-3 mb-8 px-2">
         <div className="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-500/20">
           <Home className="text-white" size={24} />
         </div>
-        <span className="text-xl font-bold tracking-wide text-slate-900">
+        <span className="text-xl font-bold tracking-wide text-slate-900 dark:text-white">
           Rentify
         </span>
       </div>
@@ -86,11 +86,11 @@ const Sidebar = () => {
               onClick={(event) => navigateTo(event, item.href)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                 isActive
-                  ? 'bg-orange-50 text-orange-600 font-semibold'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-orange-50 dark:bg-orange-950/45 text-orange-600 dark:text-orange-400 font-semibold'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              <item.icon size={20} className={isActive ? 'text-orange-600' : 'group-hover:scale-110 transition-transform'} />
+              <item.icon size={20} className={isActive ? 'text-orange-600 dark:text-orange-400' : 'group-hover:scale-110 transition-transform'} />
               <span>{item.name}</span>
             </Link>
           );
@@ -98,11 +98,11 @@ const Sidebar = () => {
       </nav>
 
       {/* Bottom block: Profile & Actions */}
-      <div className="mt-auto pt-4 border-t border-slate-100 space-y-3">
+      <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
         
         {/* User profile section */}
         {profile && (
-          <div className="flex items-center gap-3 p-2 bg-slate-50/50 border border-slate-100 rounded-2xl mb-1">
+          <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-2xl mb-1">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-inner text-white ${
               role === 'owner'
                 ? 'bg-linear-to-tr from-violet-600 to-fuchsia-400'
@@ -113,7 +113,7 @@ const Sidebar = () => {
               {getInitials(profile.full_name || '')}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-xs text-slate-900 truncate leading-tight">
+              <p className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate leading-tight">
                 {profile.full_name || 'Chưa cập nhật'}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
@@ -140,17 +140,17 @@ const Sidebar = () => {
             onClick={(event) => navigateTo(event, '/settings')}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
               pathname.startsWith('/settings')
-                ? 'bg-orange-50 text-orange-600 font-semibold'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-orange-50 dark:bg-orange-950/45 text-orange-600 dark:text-orange-400 font-semibold'
+                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            <Settings size={20} className={pathname.startsWith('/settings') ? 'text-orange-600' : 'group-hover:rotate-45 transition-transform duration-500'} />
+            <Settings size={20} className={pathname.startsWith('/settings') ? 'text-orange-600 dark:text-orange-400' : 'group-hover:rotate-45 transition-transform duration-500'} />
             <span className="font-medium">Cài đặt</span>
           </Link>
           
           <button 
             onClick={handleLogoutClick}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all font-semibold cursor-pointer active:scale-95"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all font-semibold cursor-pointer active:scale-95"
           >
             <LogOut size={20} />
             <span className="font-medium">Đăng xuất</span>

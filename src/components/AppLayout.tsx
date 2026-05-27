@@ -165,13 +165,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col xl:flex-row min-h-screen">
       <Sidebar />
       <MobileNav />
-      <main className="flex-1 xl:ml-64 min-h-screen p-4 md:p-8 pb-24 xl:pb-8 bg-[#f8fafc] text-gray-900 overflow-y-auto">
-        <div className="max-w-400 mx-auto sticky top-0 z-30 mb-4 rounded-2xl border border-slate-200 bg-white/85 backdrop-blur px-4 py-3 shadow-sm flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-orange-50 text-orange-600">
+      <main className="flex-1 xl:ml-64 min-h-screen p-4 md:p-8 pb-24 xl:pb-8 bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 overflow-y-auto transition-all duration-300">
+        <div className="max-w-400 mx-auto sticky top-0 z-30 mb-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur px-4 py-3 shadow-sm dark:shadow-slate-950/20 flex items-center gap-3 transition-all duration-300">
+          <div className="p-2 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400">
             <Building2 size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm md:text-base font-extrabold text-slate-900 truncate">{startupName || 'Rentify'}</p>
+            <p className="text-sm md:text-base font-extrabold text-slate-900 dark:text-white truncate">{startupName || 'Rentify'}</p>
           </div>
         </div>
         <div className="max-w-400 mx-auto">

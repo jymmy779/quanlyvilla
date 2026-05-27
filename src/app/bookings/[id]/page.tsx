@@ -376,60 +376,64 @@ const BookingDetailPage = () => {
   if (loading) return <div className="min-h-[80vh] flex items-center justify-center"><Loader2 className="text-orange-500 animate-spin" size={48} /></div>;
   if (!booking) return null;
 
+  // ✨ Premium Dark Mode Status Badge Colors with Neon Glow
   const statusMap = {
-    'deposited': { label: 'Đã đặt cọc', color: 'bg-emerald-500', icon: ShieldCheck, text: 'text-emerald-600', bg: 'bg-emerald-50' },
-    'checked_in': { label: 'Đang lưu trú', color: 'bg-indigo-600', icon: Clock, text: 'text-indigo-600', bg: 'bg-indigo-50' },
-    'completed': { label: 'Đã hoàn thành', color: 'bg-blue-600', icon: CheckCircle2, text: 'text-blue-600', bg: 'bg-blue-50' },
-    'cancelled': { label: 'Đã hủy đơn', color: 'bg-red-500', icon: Ban, text: 'text-red-600', bg: 'bg-red-50' }
+    'deposited': { label: 'Đã đặt cọc', color: 'bg-emerald-500', icon: ShieldCheck, text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-100 dark:border-emerald-900/40' },
+    'checked_in': { label: 'Đang lưu trú', color: 'bg-indigo-600', icon: Clock, text: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-950/30', border: 'border-indigo-100 dark:border-indigo-900/40' },
+    'completed': { label: 'Đã hoàn thành', color: 'bg-blue-600', icon: CheckCircle2, text: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-100 dark:border-blue-900/40' },
+    'cancelled': { label: 'Đã hủy đơn', color: 'bg-red-500', icon: Ban, text: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-100 dark:border-red-900/40' }
   };
 
-  const currentStatus = statusMap[booking.status as keyof typeof statusMap] || { label: 'Chờ xử lý', icon: Clock, text: 'text-slate-600' };
+  const currentStatus = statusMap[booking.status as keyof typeof statusMap] || { label: 'Chờ xử lý', icon: Clock, text: 'text-slate-600 dark:text-slate-400' };
 
   // Logic kiểm tra ngày để khóa nút Check-in
   const isCheckInDisabled = booking.check_in > todayStr;
 
   return (
     <div className="max-w-[1100px] mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-16 md:pb-24 mt-6 md:mt-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 mb-6">
+      {/* ═══ STICKY HEADER ═══ */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 dark:border-slate-800/80 mb-6 dark:shadow-slate-950/20">
         <div className="flex items-center gap-3 md:gap-4">
-          <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+          <button onClick={() => router.back()} className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm dark:shadow-slate-950/20">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Chi tiết Phiếu đặt</h1>
-            <p className="text-slate-500 font-medium text-sm mt-0.5">Mã đơn: #{booking.id.slice(0, 8).toUpperCase()}</p>
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-white">Chi tiết Phiếu đặt</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-0.5">Mã đơn: #{booking.id.slice(0, 8).toUpperCase()}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleOpenTemplate} className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all border bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50">
+          <button onClick={handleOpenTemplate} className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all border bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/40 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 shadow-sm dark:shadow-slate-950/20">
             <MessageSquare size={14} /> Mẫu xác nhận
           </button>
           {!isEditing ? (
-            <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-orange-600 transition-all shadow-md">
+            <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-orange-600 dark:hover:bg-orange-600 transition-all shadow-md dark:shadow-slate-950/30">
               <Edit3 size={14} /> Sửa
             </button>
           ) : (
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsEditing(false)} className="p-2 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-slate-900"><X size={18} /></button>
-              <button onClick={handleUpdate} disabled={updating || !!conflictError} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2 rounded-xl font-semibold text-sm shadow-lg disabled:opacity-50"><Save size={14} /> Lưu</button>
+              <button onClick={() => setIsEditing(false)} className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 rounded-xl hover:text-slate-900 dark:hover:text-white transition-all"><X size={18} /></button>
+              <button onClick={handleUpdate} disabled={updating || !!conflictError} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2 rounded-xl font-semibold text-sm shadow-lg dark:shadow-slate-950/30 disabled:opacity-50 transition-all active:scale-95"><Save size={14} /> Lưu</button>
             </div>
           )}
         </div>
       </header>
 
       {isEditing && isCheckInDisabled && (
-        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-3 text-indigo-600 mb-4">
+        <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 rounded-2xl flex items-center gap-3 text-indigo-600 dark:text-indigo-400 mb-4">
           <Info size={20} />
           <p className="text-sm font-bold italic">* Lưu ý: Để "Check-in sớm", bạn cần sửa ngày nhận phòng thành hôm nay ({todayStr}) rồi nhấn Lưu.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        {/* ═══ LEFT COLUMN: Customer Info + Services ═══ */}
         <div className="lg:col-span-8 space-y-6 md:space-y-8">
-          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6 md:space-y-8">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6 md:space-y-8 transition-all duration-300">
+            {/* Status + Action Buttons */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <p className="text-sm font-medium text-slate-400">Trạng thái</p>
+                <p className="text-sm font-medium text-slate-400 dark:text-slate-500">Trạng thái</p>
                 <div className={`flex items-center gap-2 md:gap-3 ${currentStatus.text}`}>
                   <currentStatus.icon size={20} className="md:w-6 md:h-6" />
                   <span className="text-lg md:text-xl font-semibold">{currentStatus.label}</span>
@@ -442,14 +446,14 @@ const BookingDetailPage = () => {
                       <button
                         onClick={() => updateStatus('checked_in')}
                         disabled={updating || isCheckInDisabled}
-                        className={`w-full md:w-auto bg-indigo-600 text-white px-5 md:px-6 text-nowrap py-2 md:py-2.5 rounded-xl font-semibold text-sm shadow-md transition-all ${isCheckInDisabled ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:bg-indigo-700 active:scale-95'}`}
+                        className={`w-full md:w-auto bg-indigo-600 text-white px-5 md:px-6 text-nowrap py-2 md:py-2.5 rounded-xl font-semibold text-sm shadow-md dark:shadow-slate-950/30 transition-all ${isCheckInDisabled ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:bg-indigo-700 active:scale-95'}`}
                       >
                         {isCheckInDisabled ? 'Chưa tới ngày' : 'Check-in ngay'}
                       </button>
                     </div>
                   )}
                   {booking.status === 'checked_in' && (
-                    <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 md:flex-none bg-blue-600 text-white px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm shadow-md hover:bg-blue-700 active:scale-95">Check-out</button>
+                    <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 md:flex-none bg-blue-600 text-white px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm shadow-md dark:shadow-slate-950/30 hover:bg-blue-700 active:scale-95">Check-out</button>
                   )}
                   {booking.status !== 'completed' && booking.status !== 'cancelled' && (
                     <button
@@ -461,7 +465,7 @@ const BookingDetailPage = () => {
                         })
                       }}
                       disabled={updating}
-                      className="flex-1 md:flex-none bg-red-50 text-red-500 border border-red-100 px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm hover:bg-red-500 hover:text-white transition-all"
+                      className="flex-1 md:flex-none bg-red-50 dark:bg-red-950/30 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/40 px-5 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm hover:bg-red-500 dark:hover:bg-red-600 hover:text-white transition-all"
                     >
                       Hủy đơn
                     </button>
@@ -470,96 +474,102 @@ const BookingDetailPage = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 py-6 md:py-8 border-y border-slate-50">
+            {/* Customer Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 py-6 md:py-8 border-y border-slate-50 dark:border-slate-800">
               <div className="space-y-6 md:space-y-8">
+                {/* Customer Name & Phone */}
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl md:rounded-2xl flex-shrink-0"><User size={20} /></div>
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-xl md:rounded-2xl flex-shrink-0"><User size={20} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-400 mb-0.5">Khách hàng</p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mb-0.5">Khách hàng</p>
                     {isEditing ? (
                       <div className="space-y-2">
-                        <input type="text" className="w-full bg-slate-50 p-2.5 rounded-xl font-medium border border-slate-100 text-sm" value={editForm.customer_name} onChange={e => setEditForm({ ...editForm, customer_name: e.target.value })} />
-                        <input type="text" className="w-full bg-slate-50 p-2.5 rounded-xl font-medium border border-slate-100 text-sm" value={editForm.customer_phone} onChange={e => setEditForm({ ...editForm, customer_phone: e.target.value })} />
+                        <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2.5 rounded-xl font-medium border border-slate-100 dark:border-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400/30" value={editForm.customer_name} onChange={e => setEditForm({ ...editForm, customer_name: e.target.value })} />
+                        <input type="text" className="w-full bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2.5 rounded-xl font-medium border border-slate-100 dark:border-slate-800 text-sm outline-none focus:ring-2 focus:ring-indigo-400/30" value={editForm.customer_phone} onChange={e => setEditForm({ ...editForm, customer_phone: e.target.value })} />
                       </div>
                     ) : (
                       <>
-                        <p className="text-base md:text-lg font-semibold text-slate-900 truncate">{booking.customer_name}</p>
-                        <div className="flex items-center gap-1.5 text-slate-500 font-medium mt-0.5 text-sm"><Phone size={12} /> {booking.customer_phone}</div>
+                        <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white truncate">{booking.customer_name}</p>
+                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium mt-0.5 text-sm"><Phone size={12} /> {booking.customer_phone}</div>
                       </>
                     )}
                   </div>
                 </div>
+                {/* Villa Info */}
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl md:rounded-2xl flex-shrink-0"><MapPin size={20} /></div>
+                  <div className="p-2.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-xl md:rounded-2xl flex-shrink-0"><MapPin size={20} /></div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-400 mb-0.5">Căn lưu trú</p>
-                    <p className="text-base md:text-lg font-semibold text-slate-900 truncate">{villa?.name}</p>
-                    <p className="text-slate-500 font-medium text-sm mt-0.5 truncate">{villa?.address}</p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mb-0.5">Căn lưu trú</p>
+                    <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white truncate">{villa?.name}</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-0.5 truncate">{villa?.address}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6 md:space-y-8">
+                {/* Dates */}
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl md:rounded-2xl flex-shrink-0"><Calendar size={20} /></div>
+                  <div className="p-2.5 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 rounded-xl md:rounded-2xl flex-shrink-0"><Calendar size={20} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-400 mb-0.5">Thời gian nghỉ</p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mb-0.5">Thời gian nghỉ</p>
                     {isEditing ? (
                       <div className="grid grid-cols-2 gap-2">
-                        <input type="date" className="bg-slate-50 p-2 rounded-lg text-sm font-medium outline-none border border-slate-100" value={editForm.check_in} onChange={e => setEditForm({ ...editForm, check_in: e.target.value })} />
-                        <input type="date" className="bg-slate-50 p-2 rounded-lg text-sm font-medium outline-none border border-slate-100" value={editForm.check_out} onChange={e => setEditForm({ ...editForm, check_out: e.target.value })} />
+                        <input type="date" className="bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2 rounded-lg text-sm font-medium outline-none border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-indigo-400/30" value={editForm.check_in} onChange={e => setEditForm({ ...editForm, check_in: e.target.value })} />
+                        <input type="date" className="bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2 rounded-lg text-sm font-medium outline-none border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-indigo-400/30" value={editForm.check_out} onChange={e => setEditForm({ ...editForm, check_out: e.target.value })} />
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-slate-900 font-semibold mt-1">
-                        <span className="bg-slate-900 text-white px-2 py-1 rounded-lg text-xs">{booking.check_in}</span>
-                        <ChevronRight size={14} className="text-slate-300" />
-                        <span className="bg-slate-900 text-white px-2 py-1 rounded-lg text-xs">{booking.check_out}</span>
+                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold mt-1">
+                        <span className="bg-slate-900 dark:bg-slate-700 text-white px-2 py-1 rounded-lg text-xs">{booking.check_in}</span>
+                        <ChevronRight size={14} className="text-slate-300 dark:text-slate-600" />
+                        <span className="bg-slate-900 dark:bg-slate-700 text-white px-2 py-1 rounded-lg text-xs">{booking.check_out}</span>
                       </div>
                     )}
                   </div>
                 </div>
+                {/* Capacity */}
                 <div className="flex items-start gap-3 md:gap-4">
-                  <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl md:rounded-2xl flex-shrink-0"><Users size={20} /></div>
+                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-xl md:rounded-2xl flex-shrink-0"><Users size={20} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-400 mb-0.5">Sức chứa</p>
+                    <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mb-0.5">Sức chứa</p>
                     {isEditing ? (
                       <div className="grid grid-cols-2 gap-2">
-                        <input type="number" className="bg-slate-50 p-2 rounded-lg font-medium outline-none text-sm" value={editForm.adults} onChange={e => setEditForm({ ...editForm, adults: Number(e.target.value) })} />
-                        <input type="number" className="bg-slate-50 p-2 rounded-lg font-medium outline-none text-sm" value={editForm.children} onChange={e => setEditForm({ ...editForm, children: Number(e.target.value) })} />
+                        <input type="number" className="bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2 rounded-lg font-medium outline-none border border-slate-100 dark:border-slate-800 text-sm focus:ring-2 focus:ring-indigo-400/30" value={editForm.adults} onChange={e => setEditForm({ ...editForm, adults: Number(e.target.value) })} />
+                        <input type="number" className="bg-slate-50 dark:bg-slate-950 dark:text-slate-100 p-2 rounded-lg font-medium outline-none border border-slate-100 dark:border-slate-800 text-sm focus:ring-2 focus:ring-indigo-400/30" value={editForm.children} onChange={e => setEditForm({ ...editForm, children: Number(e.target.value) })} />
                       </div>
                     ) : (
-                      <p className="text-base md:text-lg font-semibold text-slate-900 truncate">{booking.adults} Lớn, {booking.children} Trẻ em</p>
+                      <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white truncate">{booking.adults} Lớn, {booking.children} Trẻ em</p>
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Additional Services */}
             <div className="space-y-5 md:space-y-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 md:gap-3 text-slate-900">
+                <div className="flex items-center gap-2 md:gap-3 text-slate-900 dark:text-white">
                   <PackagePlus size={20} className="text-emerald-500 md:w-6 md:h-6" />
                   <h3 className="font-semibold text-lg md:text-xl">Dịch vụ thêm</h3>
                 </div>
                 {isEditing && (
-                  <button onClick={() => setEditForm({ ...editForm, additional_services: [...(editForm.additional_services || []), { name: '', price: 0 }] })} className="text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl">Thêm mới</button>
+                  <button onClick={() => setEditForm({ ...editForm, additional_services: [...(editForm.additional_services || []), { name: '', price: 0 }] })} className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all">Thêm mới</button>
                 )}
               </div>
               <div className="grid grid-cols-1 gap-2.5 md:gap-3">
                 {(isEditing ? editForm.additional_services : booking.additional_services)?.map((service, idx) => (
-                  <div key={idx} className="bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100">
+                  <div key={idx} className="bg-slate-50 dark:bg-slate-800/60 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-700/50 transition-all duration-300">
                     {isEditing ? (
                       <div className="flex flex-col md:flex-row md:items-center gap-3">
-                        <input type="text" placeholder="Tên dịch vụ..." className="flex-1 bg-white p-2.5 rounded-xl border border-slate-200 font-medium text-sm" value={service.name} onChange={e => { const s = [...(editForm.additional_services || [])]; s[idx].name = e.target.value; setEditForm({ ...editForm, additional_services: s }) }} />
+                        <input type="text" placeholder="Tên dịch vụ..." className="flex-1 bg-white dark:bg-slate-950 dark:text-slate-100 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-medium text-sm outline-none focus:ring-2 focus:ring-indigo-400/30" value={service.name} onChange={e => { const s = [...(editForm.additional_services || [])]; s[idx].name = e.target.value; setEditForm({ ...editForm, additional_services: s }) }} />
                         <div className="flex items-center gap-2">
-                          <input type="text" placeholder="Giá tiền..." className="flex-1 md:w-32 bg-white p-2.5 rounded-xl border border-slate-200 font-semibold text-right text-sm text-emerald-600" value={formatMoney(service.price)} onChange={e => updateService(idx, 'price', e.target.value, e)} />
-                          <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="p-2.5 text-slate-300 hover:text-red-500 transition-colors cursor-pointer"><Trash2 size={18} /></button>
+                          <input type="text" placeholder="Giá tiền..." className="flex-1 md:w-32 bg-white dark:bg-slate-950 dark:text-emerald-400 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-semibold text-right text-sm text-emerald-600 outline-none focus:ring-2 focus:ring-indigo-400/30" value={formatMoney(service.price)} onChange={e => updateService(idx, 'price', e.target.value, e)} />
+                          <button onClick={() => { const s = [...(editForm.additional_services || [])]; s.splice(idx, 1); setEditForm({ ...editForm, additional_services: s }) }} className="p-2.5 text-slate-300 dark:text-slate-500 hover:text-red-500 transition-colors cursor-pointer"><Trash2 size={18} /></button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-700 text-sm">{service.name}</span>
-                        <span className="font-semibold text-emerald-600 text-sm">{service.price.toLocaleString()}đ</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300 text-sm">{service.name}</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-sm">{service.price.toLocaleString()}đ</span>
                       </div>
                     )}
                   </div>
@@ -569,21 +579,22 @@ const BookingDetailPage = () => {
           </div>
         </div>
 
+        {/* ═══ RIGHT COLUMN: Payment ═══ */}
         <div className="lg:col-span-4 space-y-6 md:space-y-8">
-          <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-            <h2 className="text-base md:text-lg font-semibold text-slate-900 flex items-center gap-2.5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6 transition-all duration-300">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2.5">
               <div className="w-1.5 h-6 bg-emerald-500 rounded-full"></div>
               Thanh toán
             </h2>
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-slate-500 font-medium">
+              <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 font-medium">
                 <span className="text-sm flex items-center gap-1">
                   Tổng cộng
                   {isEditing && (
                     <button 
                       type="button" 
                       onClick={() => setIsManualTotal(!isManualTotal)}
-                      className={`p-1 rounded hover:bg-slate-100 transition-colors ${isManualTotal ? 'text-orange-500' : 'text-slate-400'}`}
+                      className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${isManualTotal ? 'text-orange-500' : 'text-slate-400 dark:text-slate-500'}`}
                       title={isManualTotal ? "Đang khóa giá thủ công (Zalo Flow). Click để tự động tính lại theo hệ thống." : "Hệ thống tự động tính. Click để khóa giá."}
                     >
                       {isManualTotal ? <ShieldCheck size={14} className="text-orange-500" /> : <Clock size={14} />}
@@ -595,7 +606,11 @@ const BookingDetailPage = () => {
                     <input 
                       ref={totalAmountRef} 
                       type="text" 
-                      className={`w-24 md:w-32 p-2 pr-6 rounded-xl text-right font-semibold text-sm ${isManualTotal ? 'bg-orange-50 border border-orange-200 text-orange-700' : 'bg-slate-50 border border-slate-200 text-slate-900'}`} 
+                      className={`w-24 md:w-32 p-2 pr-6 rounded-xl text-right font-semibold text-sm outline-none transition-all ${
+                        isManualTotal 
+                          ? 'bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-400' 
+                          : 'bg-slate-50 dark:bg-slate-950 dark:text-slate-100 border border-slate-200 dark:border-slate-800 text-slate-900 focus:ring-2 focus:ring-indigo-400/30'
+                      }`} 
                       value={formatMoney(editForm.total_amount || 0)} 
                       onChange={e => handleMoneyChange('total_amount', e)} 
                     />
@@ -604,41 +619,43 @@ const BookingDetailPage = () => {
                     )}
                   </div>
                 ) : (
-                  <span className="text-sm md:text-base font-semibold text-slate-900">{booking.total_amount.toLocaleString()}đ</span>
+                  <span className="text-sm md:text-base font-semibold text-slate-900 dark:text-white">{booking.total_amount.toLocaleString()}đ</span>
                 )}
               </div>
-              <div className="flex justify-between items-center text-emerald-600 font-semibold">
+              <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-semibold">
                 <span className="text-sm">Đã cọc</span>
                 {isEditing ? (
-                  <input ref={depositAmountRef} type="text" className="w-24 md:w-32 bg-emerald-50 p-2 rounded-xl text-right font-semibold text-sm" value={formatMoney(editForm.deposit_amount || 0)} onChange={e => handleMoneyChange('deposit_amount', e)} />
+                  <input ref={depositAmountRef} type="text" className="w-24 md:w-32 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 p-2 rounded-xl text-right font-semibold text-sm outline-none border border-emerald-100 dark:border-emerald-900/40 focus:ring-2 focus:ring-emerald-400/30" value={formatMoney(editForm.deposit_amount || 0)} onChange={e => handleMoneyChange('deposit_amount', e)} />
                 ) : (
                   <span className="text-sm md:text-base">{booking.deposit_amount.toLocaleString()}đ</span>
                 )}
               </div>
-              <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-400">Cần thu thêm</span>
-                <span className="text-lg md:text-xl font-semibold text-orange-600">{(Number(isEditing ? editForm.total_amount : booking.total_amount) - Number(isEditing ? editForm.deposit_amount : booking.deposit_amount)).toLocaleString()}đ</span>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <span className="text-sm font-medium text-slate-400 dark:text-slate-500">Cần thu thêm</span>
+                <span className="text-lg md:text-xl font-semibold text-orange-600 dark:text-orange-400">{(Number(isEditing ? editForm.total_amount : booking.total_amount) - Number(isEditing ? editForm.deposit_amount : booking.deposit_amount)).toLocaleString()}đ</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal Preview & Edit Template */}
+      {/* ═══════════════════════════════════════
+          PREMIUM DARK MODE TEMPLATE MODAL
+      ═══════════════════════════════════════ */}
       {showTemplateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl dark:shadow-slate-950/40 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200 dark:border-slate-800">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
                   <MessageSquare size={20} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900">Xác nhận nội dung</h3>
-                  <p className="text-xs text-slate-500 font-medium">Bạn có thể chỉnh sửa nhanh trước khi chép</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white">Xác nhận nội dung</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Bạn có thể chỉnh sửa nhanh trước khi chép</p>
                 </div>
               </div>
-              <button onClick={() => setShowTemplateModal(false)} className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-900">
+              <button onClick={() => setShowTemplateModal(false)} className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white">
                 <X size={20} />
               </button>
             </div>
@@ -647,21 +664,25 @@ const BookingDetailPage = () => {
               <textarea
                 value={templateText}
                 onChange={(e) => setTemplateText(e.target.value)}
-                className="w-full h-[450px] bg-slate-50 border-none rounded-2xl p-5 text-slate-700 font-medium text-sm leading-relaxed outline-none focus:ring-2 focus:ring-indigo-100 transition-all resize-none"
+                className="w-full h-[450px] bg-slate-50 dark:bg-slate-950 dark:text-slate-300 border-none rounded-2xl p-5 text-slate-700 font-medium text-sm leading-relaxed outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all resize-none"
               />
             </div>
 
-            <div className="p-6 border-t border-slate-50 bg-slate-50/30 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 flex items-center justify-end gap-3">
               <button 
                 onClick={() => setShowTemplateModal(false)}
-                className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-500 hover:bg-white transition-all"
+                className="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Đóng
               </button>
               <button 
                 onClick={handleCopyFinal}
                 disabled={copied}
-                className={`flex items-center gap-2 px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${copied ? 'bg-emerald-500 text-white' : 'bg-slate-900 text-white hover:bg-indigo-600'}`}
+                className={`flex items-center gap-2 px-8 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg dark:shadow-slate-950/30 active:scale-95 cursor-pointer ${
+                  copied 
+                    ? 'bg-emerald-500 text-white' 
+                    : 'bg-slate-900 dark:bg-slate-800 text-white hover:bg-indigo-600 dark:hover:bg-indigo-600'
+                }`}
               >
                 {copied ? <Check size={18} /> : <Copy size={18} />}
                 {copied ? 'Đã sao chép!' : 'Chép nội dung'}

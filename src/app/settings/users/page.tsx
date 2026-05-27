@@ -423,17 +423,17 @@ export default function UsersManagementPage() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 mb-6">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-900/85 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 dark:border-slate-800 mb-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+          <button onClick={() => router.back()} className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-950 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-950 dark:text-white flex items-center gap-3">
               <Users className="text-orange-600" />
               Quản lý tài khoản
             </h1>
-            <p className="text-slate-500 font-medium text-sm mt-0.5">Phê duyệt và phân quyền cho đội ngũ nhân viên</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-0.5">Phê duyệt và phân quyền cho đội ngũ nhân viên</p>
           </div>
         </div>
 
@@ -444,7 +444,7 @@ export default function UsersManagementPage() {
             setCreateRole('staff');
             setIsCreateModalOpen(true);
           }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition-all shadow-lg active:scale-95 cursor-pointer shadow-slate-900/10 self-start md:self-auto"
+          className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition-all shadow-lg active:scale-95 cursor-pointer shadow-slate-900/10 dark:shadow-slate-950/30 self-start md:self-auto"
         >
           <Plus size={16} /> Thêm nhân viên
         </button>
@@ -452,21 +452,21 @@ export default function UsersManagementPage() {
 
 
       {/* Main card */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-slate-950/30 space-y-6">
         
         {/* Thanh tìm kiếm */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:max-w-md group">
-            <Search className="absolute left-4 top-3 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+            <Search className="absolute left-4 top-3 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Tìm nhân viên theo tên, email hoặc SĐT..."
-              className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-sm font-semibold text-slate-800 transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
             />
           </div>
-          <div className="text-slate-400 text-xs font-bold uppercase">
+          <div className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase">
             Tổng cộng: {users.length} tài khoản
           </div>
         </div>
@@ -477,15 +477,15 @@ export default function UsersManagementPage() {
             <Loader2 className="text-orange-500 animate-spin" size={40} />
           </div>
         ) : filteredUsers.length === 0 ? (
-          <div className="py-20 text-center space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-            <Users className="mx-auto text-slate-300 animate-pulse" size={48} />
-            <p className="text-slate-400 text-sm font-semibold">Không tìm thấy thành viên nào phù hợp!</p>
+          <div className="py-20 text-center space-y-3 bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            <Users className="mx-auto text-slate-300 dark:text-slate-600 animate-pulse" size={48} />
+            <p className="text-slate-400 dark:text-slate-500 text-sm font-semibold">Không tìm thấy thành viên nào phù hợp!</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
             <table className="w-full text-left min-w-200">
               <thead>
-                <tr className="bg-slate-55 bg-slate-50/80 border-b border-slate-100 text-slate-400 text-xs font-bold uppercase">
+                <tr className="bg-slate-55 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-xs font-bold uppercase">
                   <th className="py-4 pl-6">Nhân viên</th>
                   <th className="py-4">Liên hệ</th>
                   <th className="py-4">Quyền truy cập</th>
@@ -493,11 +493,11 @@ export default function UsersManagementPage() {
                   <th className="py-4 text-center pr-6">Hành động</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-sans">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
                 {filteredUsers.map((u) => {
                   const isSelf = u.id === currentAdminProfile?.id;
                   return (
-                    <tr key={u.id} className="group hover:bg-slate-50/50 transition-colors">
+                    <tr key={u.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                       {/* Cột Tên & Avatar */}
                       <td className="py-4 pl-6">
                         <div className="flex items-center gap-3.5">
@@ -509,13 +509,13 @@ export default function UsersManagementPage() {
                             {getInitials(u.full_name || '')}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-900 text-sm flex items-center gap-1.5 leading-tight">
+                            <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5 leading-tight">
                               {u.full_name || 'Chưa cập nhật'}
                               {isSelf && (
-                                <span className="bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded text-[9px]  border border-slate-200">Bạn</span>
+                                <span className="bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold px-1.5 py-0.5 rounded text-[9px] border border-slate-200 dark:border-slate-600">Bạn</span>
                               )}
                             </p>
-                            <p className="text-slate-400 text-xs font-medium mt-0.5">{u.email}</p>
+                            <p className="text-slate-400 dark:text-slate-500 text-xs font-medium mt-0.5">{u.email}</p>
                           </div>
                         </div>
                       </td>
@@ -523,12 +523,12 @@ export default function UsersManagementPage() {
                       {/* Cột Liên hệ */}
                       <td className="py-4">
                         <div className="space-y-1">
-                          <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                            <Phone size={12} className="text-slate-400" />
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Phone size={12} className="text-slate-400 dark:text-slate-500" />
                             {u.phone || 'Chưa có SĐT'}
                           </p>
-                          <p className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
-                            <Mail size={12} className="text-slate-400" />
+                          <p className="text-xs font-medium text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                            <Mail size={12} className="text-slate-400 dark:text-slate-500" />
                             {u.email}
                           </p>
                         </div>
@@ -545,17 +545,17 @@ export default function UsersManagementPage() {
                             <select
                               value={u.role}
                               onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                              className={`appearance-none bg-white font-bold text-xs px-3.5 py-1.5 rounded-xl border outline-none cursor-pointer pr-8 hover:shadow-sm transition-all ${
+                              className={`appearance-none bg-white dark:bg-slate-800 font-bold text-xs px-3.5 py-1.5 rounded-xl border outline-none cursor-pointer pr-8 hover:shadow-sm transition-all ${
                                 getRoleBadgeClass(u.role)
                               }`}
                             >
                               {getAssignableRoles(currentAdminProfile?.role, u.role, isSelf).map(roleOption => (
-                                <option key={roleOption} value={roleOption} className="text-slate-700 bg-white">
+                                <option key={roleOption} value={roleOption} className="text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800">
                                   {getRoleLabel(roleOption)}
                                 </option>
                               ))}
                             </select>
-                            <div className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400">
+                            <div className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400 dark:text-slate-500">
                               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                             </div>
                           </div>
@@ -563,9 +563,9 @@ export default function UsersManagementPage() {
                       </td>
 
                       {/* Cột Ngày tham gia */}
-                      <td className="py-4 text-xs font-semibold text-slate-500">
+                      <td className="py-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         <div className="flex items-center gap-1.5">
-                          <Calendar size={13} className="text-slate-400" />
+                          <Calendar size={13} className="text-slate-400 dark:text-slate-500" />
                           {new Date(u.created_at).toLocaleDateString('vi-VN')}
                         </div>
                       </td>
@@ -580,7 +580,7 @@ export default function UsersManagementPage() {
                                 setSelectedUser(u);
                                 setIsResetModalOpen(true);
                               }}
-                              className="p-2 hover:bg-orange-50 text-slate-400 hover:text-orange-600 rounded-xl transition-all"
+                              className="p-2 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-slate-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 rounded-xl transition-all"
                               title="Đặt lại mật khẩu"
                             >
                               <KeyRound size={16} />
@@ -591,7 +591,7 @@ export default function UsersManagementPage() {
                           {canDeleteUser(currentAdminProfile?.role, u.role, isSelf) && (
                             <button
                               onClick={() => handleDeleteUser(u)}
-                              className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all"
+                              className="p-2 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 rounded-xl transition-all"
                               title="Xóa tài khoản nhân viên"
                             >
                               <Trash2 size={16} />
@@ -601,7 +601,7 @@ export default function UsersManagementPage() {
                           {canEditUserProfile(currentAdminProfile?.role, u.role, isSelf) && (
                             <button
                               onClick={() => openEditUserModal(u)}
-                              className="p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                              className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-xl transition-all"
                               title="Sửa thông tin"
                             >
                               <Search size={16} className="rotate-90" />
@@ -621,15 +621,15 @@ export default function UsersManagementPage() {
       {/* MODAL RESET MẬT KHẨU */}
       {isResetModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-300">
+          <div className="bg-white dark:bg-slate-900 max-w-md w-full rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
                   <Lock className="text-orange-600" size={20} />
                   Reset mật khẩu nhân viên
                 </h2>
-                <p className="text-slate-400 text-xs font-semibold mt-1">
-                  Đang đặt mật khẩu mới cho: <span className="text-slate-700">{selectedUser.full_name || selectedUser.email}</span>
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">
+                  Đang đặt mật khẩu mới cho: <span className="text-slate-700 dark:text-slate-300">{selectedUser.full_name || selectedUser.email}</span>
                 </p>
               </div>
               <button
@@ -638,7 +638,7 @@ export default function UsersManagementPage() {
                   setSelectedUser(null);
                   setNewPassword('');
                 }}
-                className="p-1.5 hover:bg-slate-50 border border-slate-100 text-slate-400 hover:text-slate-600 rounded-xl transition-colors"
+                className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-xl transition-colors"
               >
                 <X size={16} />
               </button>
@@ -646,27 +646,27 @@ export default function UsersManagementPage() {
 
             <form onSubmit={handleResetPasswordSubmit} className="space-y-4 pt-2" noValidate>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Mật khẩu mới</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Mật khẩu mới</label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                  <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Mật khẩu tạm tối thiểu 6 ký tự"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-3 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-3 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all"
                     disabled={resetLoading}
                     autoFocus
                   />
                 </div>
               </div>
 
-              <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-3.5 flex gap-2.5 text-xs text-orange-700 leading-relaxed font-semibold">
+              <div className="bg-orange-50/50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-3.5 flex gap-2.5 text-xs text-orange-700 dark:text-orange-300 leading-relaxed font-semibold">
                 <ShieldAlert size={16} className="text-orange-500 shrink-0 mt-0.5" />
                 Hãy đảm bảo gửi lại mật khẩu mới này cho nhân viên sau khi bạn đặt lại thành công.
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex gap-3">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -674,7 +674,7 @@ export default function UsersManagementPage() {
                     setSelectedUser(null);
                     setNewPassword('');
                   }}
-                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 font-bold transition-all text-xs active:scale-95"
+                  className="flex-1 py-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 font-bold transition-all text-xs active:scale-95"
                   disabled={resetLoading}
                 >
                   Hủy bỏ
@@ -701,14 +701,14 @@ export default function UsersManagementPage() {
       {/* MODAL THÊM TÀI KHOẢN MỚI */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
+          <div className="bg-white dark:bg-slate-900 max-w-lg w-full rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
                   <Plus className="text-orange-600" size={20} />
                   Thêm nhân viên mới
                 </h2>
-                <p className="text-slate-400 text-xs font-semibold mt-1">
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">
                   Tài khoản nhân viên được kích hoạt và gán quyền ngay lập tức
                 </p>
               </div>
@@ -717,7 +717,7 @@ export default function UsersManagementPage() {
                   setIsCreateModalOpen(false);
                   resetCreateForm();
                 }}
-                className="p-1.5 hover:bg-slate-50 border border-slate-100 text-slate-400 hover:text-slate-600 rounded-xl transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-xl transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -726,16 +726,16 @@ export default function UsersManagementPage() {
             <form onSubmit={handleCreateUserSubmit} className="space-y-4 pt-2" noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Họ và Tên</label>
                   <div className="relative group">
-                    <User className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                    <User className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                     <input
                       type="text"
                       value={createFullName}
                       onChange={(e) => setCreateFullName(e.target.value)}
                       placeholder="Nguyễn Văn A"
-                      className={`w-full bg-slate-50 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                        createErrors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                      className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        createErrors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
                       }`}
                       disabled={createLoading}
                     />
@@ -749,16 +749,16 @@ export default function UsersManagementPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Số điện thoại</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Số điện thoại</label>
                   <div className="relative group">
-                    <Phone className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                    <Phone className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                     <input
                       type="text"
                       value={createPhone}
                       onChange={(e) => setCreatePhone(e.target.value)}
                       placeholder="09xxxxxxxx"
-                      className={`w-full bg-slate-50 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                        createErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                      className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        createErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
                       }`}
                       disabled={createLoading}
                     />
@@ -773,16 +773,16 @@ export default function UsersManagementPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Email liên hệ</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Email liên hệ</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                  <Mail className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                   <input
                     type="email"
                     value={createEmail}
                     onChange={(e) => setCreateEmail(e.target.value)}
                     placeholder="nhanvien@congty.com"
-                    className={`w-full bg-slate-50 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                      createErrors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                    className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                      createErrors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
                     }`}
                     disabled={createLoading}
                   />
@@ -797,16 +797,16 @@ export default function UsersManagementPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Mật khẩu ban đầu</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Mật khẩu ban đầu</label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                    <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                     <input
                       type="password"
                       value={createPassword}
                       onChange={(e) => setCreatePassword(e.target.value)}
                       placeholder="Mật khẩu tối thiểu 6 ký tự"
-                      className={`w-full bg-slate-50 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                        createErrors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                      className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        createErrors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
                       }`}
                       disabled={createLoading}
                     />
@@ -819,14 +819,13 @@ export default function UsersManagementPage() {
                   )}
                 </div>
 
-
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Vai trò truy cập</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Vai trò truy cập</label>
                   <div className="relative">
                     <select
                       value={createRole}
                       onChange={(e) => setCreateRole(e.target.value as UserRole)}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-800 cursor-pointer appearance-none"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer appearance-none"
                       disabled={createLoading}
                     >
                       <option value="staff">Nhân viên (Staff)</option>
@@ -834,21 +833,21 @@ export default function UsersManagementPage() {
                         <option value="admin">Quản trị viên (Admin)</option>
                       )}
                     </select>
-                    <div className="absolute right-4 top-3.5 pointer-events-none text-slate-400">
+                    <div className="absolute right-4 top-3.5 pointer-events-none text-slate-400 dark:text-slate-500">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex gap-3">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setIsCreateModalOpen(false);
                     resetCreateForm();
                   }}
-                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 font-bold transition-all text-xs active:scale-95 cursor-pointer"
+                  className="flex-1 py-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 font-bold transition-all text-xs active:scale-95 cursor-pointer"
                   disabled={createLoading}
                 >
                   Hủy bỏ
@@ -875,14 +874,14 @@ export default function UsersManagementPage() {
       {/* MODAL SỬA THÔNG TIN NHÂN VIÊN */}
       {isEditModalOpen && selectedEditUser && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
+          <div className="bg-white dark:bg-slate-900 max-w-lg w-full rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
                   <User className="text-orange-600" size={20} />
                   Sửa thông tin tài khoản
                 </h2>
-                <p className="text-slate-400 text-xs font-semibold mt-1">
+                <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">
                   {selectedEditUser.full_name || selectedEditUser.email}
                 </p>
               </div>
@@ -891,7 +890,7 @@ export default function UsersManagementPage() {
                   setIsEditModalOpen(false);
                   setSelectedEditUser(null);
                 }}
-                className="p-1.5 hover:bg-slate-50 border border-slate-100 text-slate-400 hover:text-slate-600 rounded-xl transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-xl transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -899,41 +898,41 @@ export default function UsersManagementPage() {
 
             <form onSubmit={handleEditUserSubmit} className="space-y-4 pt-2" noValidate>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Họ và Tên</label>
                 <input
                   type="text"
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   disabled={editLoading}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Số điện thoại</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Số điện thoại</label>
                 <input
                   type="text"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   disabled={editLoading}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Vai trò</label>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Vai trò</label>
                 {selectedEditUser.id === currentAdminProfile?.id ? (
                   <input
                     type="text"
                     value={getRoleLabel(editRole)}
                     disabled
-                    className="w-full bg-slate-100 border border-slate-200 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-500 cursor-not-allowed"
+                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed"
                   />
                 ) : (
                   <select
                     value={editRole}
                     onChange={(e) => setEditRole(e.target.value as UserRole)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-800 cursor-pointer"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
                     disabled={editLoading}
                   >
                     {getAssignableRoles(currentAdminProfile?.role, selectedEditUser.role, false).map(roleOption => (
@@ -945,14 +944,14 @@ export default function UsersManagementPage() {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex gap-3">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setSelectedEditUser(null);
                   }}
-                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 font-bold transition-all text-xs active:scale-95 cursor-pointer"
+                  className="flex-1 py-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 font-bold transition-all text-xs active:scale-95 cursor-pointer"
                   disabled={editLoading}
                 >
                   Hủy bỏ

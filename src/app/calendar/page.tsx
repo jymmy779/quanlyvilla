@@ -160,24 +160,24 @@ const CalendarPageContent = () => {
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-16 mt-6 md:mt-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Lịch điều phối</h1>
-          <p className="text-slate-500 font-medium text-xs">Dữ liệu thời gian thực từ hệ thống.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">Lịch điều phối</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-xs">Dữ liệu thời gian thực từ hệ thống.</p>
         </div>
-        <div className="flex bg-white border border-slate-200 rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-sm self-start md:self-auto">
-          <button onClick={() => handleMonthChange(-1)} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+        <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-sm dark:shadow-slate-950/20 self-start md:self-auto transition-all duration-300">
+          <button onClick={() => handleMonthChange(-1)} className="p-1.5 md:p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg md:rounded-xl text-slate-400 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
             <ChevronLeft size={18} />
           </button>
-          <div className="px-3 md:px-6 flex items-center font-semibold text-slate-900 min-w-[140px] md:min-w-[180px] justify-center text-sm">
+          <div className="px-3 md:px-6 flex items-center font-semibold text-slate-900 dark:text-white min-w-[140px] md:min-w-[180px] justify-center text-sm">
             Tháng {currentDate.getMonth() + 1}, {currentDate.getFullYear()}
           </div>
-          <button onClick={() => handleMonthChange(1)} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+          <button onClick={() => handleMonthChange(1)} className="p-1.5 md:p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg md:rounded-xl text-slate-400 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
             <ChevronRight size={18} />
           </button>
         </div>
       </header>
 
       {/* Villa Tabs Selection */}
-      <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100">
+      <div className="flex gap-2 md:gap-4 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 dark:border-slate-800/80">
         {villas.map((villa) => {
           const isSelected = selectedVillaId === villa.id;
           const isMaintenance = villa.status === 'maintenance';
@@ -187,10 +187,10 @@ const CalendarPageContent = () => {
               disabled={isMaintenance}
               onClick={() => handleVillaChange(villa.id)}
               className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-t-xl md:rounded-t-2xl font-semibold text-sm transition-all border-b-2 md:border-b-4 flex items-center gap-2 ${isSelected
-                  ? 'border-orange-500 text-slate-900 bg-orange-50/20'
+                  ? 'border-orange-500 text-slate-900 dark:text-orange-400 bg-orange-50/20 dark:bg-orange-950/20'
                   : isMaintenance
-                    ? 'border-transparent text-slate-300 cursor-not-allowed opacity-50 grayscale'
-                    : 'border-transparent text-slate-400 hover:text-slate-600'
+                    ? 'border-transparent text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-50 grayscale'
+                    : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                 }`}
             >
               {isMaintenance && <Wrench size={14} />}
@@ -201,13 +201,13 @@ const CalendarPageContent = () => {
       </div>
 
       {villas.length > 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl md:rounded-3xl overflow-hidden shadow-sm dark:shadow-slate-950/30 transition-all duration-300">
           <div className="overflow-x-auto custom-scrollbar">
             <div className="min-w-[700px]">
               {/* Header T2-CN */}
-              <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
+              <div className="grid grid-cols-7 border-b border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/40">
                 {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
-                  <div key={day} className="py-2.5 md:py-3 text-center text-xs font-semibold text-slate-400">{day}</div>
+                  <div key={day} className="py-2.5 md:py-3 text-center text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{day}</div>
                 ))}
               </div>
 
@@ -220,19 +220,36 @@ const CalendarPageContent = () => {
                   today.setHours(0, 0, 0, 0);
                   const isPast = day.date < today;
 
+                  let cellBgClass = "";
+                  let numberColorClass = "";
+
+                  if (!day.isCurrentMonth) {
+                    cellBgClass = "bg-slate-50/50 dark:bg-[#070a13] opacity-60 dark:opacity-40";
+                    numberColorClass = "text-slate-300 dark:text-slate-700";
+                  } else if (isToday) {
+                    cellBgClass = "bg-orange-50/20 dark:bg-orange-950/20 border-2 border-orange-500/20 dark:border-orange-500/30";
+                    numberColorClass = "text-orange-600 dark:text-orange-400 font-bold bg-orange-100/50 dark:bg-orange-950/50 px-1.5 py-0.5 rounded-md";
+                  } else if (isPast) {
+                    cellBgClass = "bg-slate-50/60 dark:bg-slate-950/55";
+                    numberColorClass = "text-slate-400 dark:text-slate-500";
+                  } else {
+                    cellBgClass = "bg-white dark:bg-slate-900 hover:bg-slate-50/60 dark:hover:bg-slate-800/30";
+                    numberColorClass = "text-slate-600 dark:text-slate-300";
+                  }
+
                   return (
                     <div
                       key={idx}
-                      className={`min-h-[110px] md:min-h-[140px] border-r border-b border-slate-50 p-1.5 md:p-2 transition-colors relative group ${!day.isCurrentMonth ? 'bg-slate-50/30' : isPast ? 'bg-slate-50/10' : 'hover:bg-slate-50/50'}`}
+                      className={`min-h-[110px] md:min-h-[140px] border-r border-b border-slate-50 dark:border-slate-800/50 p-1.5 md:p-2 transition-all relative group ${cellBgClass}`}
                     >
                       <div className="flex justify-between items-center h-6 md:h-8 mb-1 md:mb-2">
-                        <span className={`text-xs md:text-sm font-semibold ${!day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'}`}>
+                        <span className={`text-xs md:text-sm font-semibold ${numberColorClass}`}>
                           {day.date.getDate()}
                         </span>
                         {day.isCurrentMonth && !checkingIn && !staying && !isPast && (
                           <button
                             onClick={() => router.push(`/bookings/create?villaId=${selectedVillaId}&date=${formatDateLocal(day.date)}`)}
-                            className="p-1 bg-slate-100 text-slate-400 cursor-pointer rounded-md md:rounded-lg transition-all hover:bg-slate-900 hover:text-white"
+                            className="p-1 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-pointer rounded-md md:rounded-lg transition-all hover:bg-slate-900 dark:hover:bg-orange-500 hover:text-white dark:hover:text-white"
                           >
                             <Plus size={12} />
                           </button>
@@ -243,19 +260,19 @@ const CalendarPageContent = () => {
                         {checkingOut && (
                           <div
                             onClick={() => router.push(`/bookings/${checkingOut.id}`)}
-                            className="p-1 md:p-1.5 bg-slate-50 text-slate-500 rounded-lg md:rounded-xl cursor-pointer border border-slate-100 hover:border-red-300 hover:bg-red-50 transition-all"
+                            className="p-1 md:p-1.5 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 rounded-lg md:rounded-xl cursor-pointer border border-slate-100 dark:border-slate-800 hover:border-red-300 dark:hover:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
                           >
-                            <div className="flex items-center gap-1 text-[8px] font-semibold opacity-60 mb-0.5">
+                            <div className="flex items-center gap-1 text-[8px] font-semibold opacity-60 dark:opacity-50 mb-0.5">
                               <LogOut size={8} className="md:w-2.5 md:h-2.5" /> Trả (12h)
                             </div>
-                            <p className="font-semibold text-[10px] truncate leading-tight">{checkingOut.customer_name}</p>
+                            <p className="font-semibold text-[10px] dark:text-slate-300 truncate leading-tight">{checkingOut.customer_name}</p>
                           </div>
                         )}
 
                         {staying && (
                           <div
                             onClick={() => router.push(`/bookings/${staying.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50 dark:opacity-30' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[8px] font-semibold opacity-70 mb-0.5">
                               {staying.status === 'checked_in' ? (
@@ -271,7 +288,7 @@ const CalendarPageContent = () => {
                         {checkingIn && (
                           <div
                             onClick={() => router.push(`/bookings/${checkingIn.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50 dark:opacity-30' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[8px] font-semibold opacity-70 mb-0.5">
                               <LogIn size={8} className="md:w-2.5 md:h-2.5" /> {checkingIn.status === 'checked_in' ? 'Đang ở' : 'Nhận (14h)'}
@@ -288,8 +305,8 @@ const CalendarPageContent = () => {
           </div>
         </div>
       ) : (
-        <div className="py-20 text-center bg-white border border-slate-200 rounded-[2.5rem]">
-          <p className="text-slate-400 font-semibold text-xs">Chưa có Villa nào để hiển thị lịch</p>
+        <div className="py-20 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-sm dark:shadow-slate-950/30 transition-all">
+          <p className="text-slate-400 dark:text-slate-500 font-semibold text-xs">Chưa có Villa nào để hiển thị lịch</p>
         </div>
       )}
     </div>

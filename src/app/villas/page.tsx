@@ -63,13 +63,13 @@ const VillaListPage = () => {
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16">
       <header className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách căn</h1>
-          <p className="text-slate-500 mt-0.5 text-xs md:text-sm font-medium">Quản lý và cập nhật trạng thái vận hành cho các căn.</p>
+          <h1 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-white">Danh sách căn</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-0.5 text-xs md:text-sm font-medium">Quản lý và cập nhật trạng thái vận hành cho các căn.</p>
         </div>
         {canManage && (
           <Link 
             href="/villas/edit/new"
-            className="bg-slate-900 hover:bg-orange-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl font-semibold text-sm shadow-md flex items-center gap-2 transition-all active:scale-95 flex-shrink-0 cursor-pointer"
+            className="bg-slate-900 dark:bg-slate-800 hover:bg-orange-600 dark:hover:bg-orange-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl font-semibold text-sm shadow-md flex items-center gap-2 transition-all active:scale-95 flex-shrink-0 cursor-pointer"
           >
             <Plus size={16} />
             <span className="hidden md:inline">Thêm mới</span>
@@ -85,42 +85,42 @@ const VillaListPage = () => {
       ) : villas.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {villas.map((villa) => (
-            <div key={villa.id} className="bg-white rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 shadow-sm group hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-500 relative">
+            <div key={villa.id} className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-slate-950/30 group hover:shadow-xl hover:shadow-slate-200/40 dark:hover:shadow-slate-950/50 transition-all duration-500 relative">
               
               <div className="absolute top-4 left-4 z-10">
                 {villa.status === 'active' ? (
-                  <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-emerald-200/40">Kinh doanh</span>
+                  <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-emerald-200/40 dark:shadow-emerald-950/50">Kinh doanh</span>
                 ) : (
-                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-orange-200/40 flex items-center gap-1.5">
+                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-orange-200/40 dark:shadow-orange-950/50 flex items-center gap-1.5">
                     <AlertCircle size={10} /> Sửa chữa
                   </span>
                 )}
               </div>
 
-              <div className="relative h-48 md:h-56 overflow-hidden bg-slate-100">
+              <div className="relative h-48 md:h-56 overflow-hidden bg-slate-100 dark:bg-slate-800">
                 {villa.images && villa.images.length > 0 ? (
                   <img src={getOptimizedImageUrl(villa.images[0], 800)} alt={villa.name} className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
                     <ImageIcon size={32} />
                   </div>
                 )}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-900 shadow-sm flex items-center gap-1.5">
+                <div className="absolute top-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-900 dark:text-white shadow-sm flex items-center gap-1.5">
                   <ImageIcon size={12} />
                   {villa.images?.length || 0}
                 </div>
               </div>
               
               <div className="p-4 md:p-6">
-                <div className="flex items-center gap-1.5 text-slate-400 font-medium text-sm mb-1 line-clamp-1">
+                <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500 font-medium text-sm mb-1 line-clamp-1">
                   <MapPin size={12} className="text-orange-500" />
                   {villa.address}
                 </div>
-                <h2 className={`text-lg md:text-xl font-semibold mb-3 ${villa.status === 'maintenance' ? 'text-slate-400' : 'text-slate-900'}`}>{villa.name}</h2>
+                <h2 className={`text-lg md:text-xl font-semibold mb-3 ${villa.status === 'maintenance' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}>{villa.name}</h2>
 
-                <div className="flex items-center gap-4 mb-4 md:mb-6 text-slate-500 text-sm font-medium">
+                <div className="flex items-center gap-4 mb-4 md:mb-6 text-slate-500 dark:text-slate-400 text-sm font-medium">
                   <div className="flex items-center gap-1.5">
-                    <Users size={16} className="text-slate-400" />
+                    <Users size={16} className="text-slate-400 dark:text-slate-500" />
                     {(() => {
                       // Preferred: read from villa_details (labels like 'Sức chứa')
                       const capacityFromDetails = findDetailValue(villa, ['suc chua', 'Sức chứa', 'suc', 'capacity', 'succhua']);
@@ -138,7 +138,7 @@ const VillaListPage = () => {
                     })()}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <Bed size={16} className="text-slate-400" />
+                    <Bed size={16} className="text-slate-400 dark:text-slate-500" />
                     {(() => {
                       const bedsFromDetails = findDetailValue(villa, ['phong ngu', 'phòng ngủ', 'phong', 'pn', 'bed', 'beds']);
                       if (bedsFromDetails) return `${bedsFromDetails} PN`;
@@ -147,10 +147,10 @@ const VillaListPage = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 md:gap-3 pt-4 md:pt-5 border-t border-slate-100">
+                <div className="flex items-center gap-2 md:gap-3 pt-4 md:pt-5 border-t border-slate-100 dark:border-slate-800">
                   <Link
                     href={`/villas/${villa.id}`}
-                    className="flex-1 bg-slate-50 hover:bg-orange-50 text-slate-600 hover:text-orange-600 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold text-sm text-center transition-all flex items-center justify-center gap-2"
+                    className="flex-1 bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 py-2 md:py-2.5 rounded-lg md:rounded-xl font-semibold text-sm text-center transition-all flex items-center justify-center gap-2"
                   >
                     <Eye size={16} />
                     Chi tiết
@@ -158,9 +158,9 @@ const VillaListPage = () => {
                   {canManage && (
                     <Link
                       href={`/villas/edit/${villa.id}`}
-                      className="p-2 md:p-2.5 bg-slate-50 hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors group/btn cursor-pointer"
+                      className="p-2 md:p-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg md:rounded-xl transition-colors group/btn cursor-pointer"
                     >
-                      <Edit size={16} className="text-slate-400 group-hover/btn:text-slate-900" />
+                      <Edit size={16} className="text-slate-400 dark:text-slate-500 group-hover/btn:text-slate-900 dark:group-hover/btn:text-white" />
                     </Link>
                   )}
                 </div>
@@ -170,12 +170,12 @@ const VillaListPage = () => {
         </div>
       ) : (
         <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200">
+          <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-slate-200 dark:text-slate-600">
             <Search size={48} />
           </div>
           <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-slate-900">Chưa có Villa nào!</h2>
-            <p className="text-slate-400 font-medium">Bấm vào nút phía trên để thêm căn Villa đầu tiên của bạn.</p>
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Chưa có Villa nào!</h2>
+            <p className="text-slate-400 dark:text-slate-500 font-medium">Bấm vào nút phía trên để thêm căn Villa đầu tiên của bạn.</p>
           </div>
         </div>
       )}

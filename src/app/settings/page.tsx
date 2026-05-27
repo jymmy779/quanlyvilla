@@ -3,6 +3,7 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { useNotification } from '@/context/NotificationContext';
 import {
   Settings, Save, RotateCcw, Check,
@@ -181,6 +182,126 @@ const toggleCase = (text: string) => {
   }
 };
 
+const ThemeSwitcherSection = () => {
+  const { themeMode, setThemeMode } = useTheme();
+
+  const themes = [
+    {
+      id: 'light' as const,
+      label: 'Sáng',
+      desc: 'Giao diện sáng mặc định',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ),
+      bgColor: 'bg-amber-50 border-amber-200',
+      selectedBg: 'bg-amber-100 border-amber-400 ring-2 ring-amber-300',
+      iconColor: 'text-amber-600',
+    },
+    {
+      id: 'dark' as const,
+      label: 'Tối',
+      desc: 'Giao diện tối cao cấp',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      ),
+      bgColor: 'bg-indigo-50 border-indigo-200',
+      selectedBg: 'bg-indigo-100 border-indigo-400 ring-2 ring-indigo-300',
+      iconColor: 'text-indigo-600',
+    },
+    {
+      id: 'system' as const,
+      label: 'Hệ thống',
+      desc: 'Theo cài đặt thiết bị',
+      icon: (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      ),
+      bgColor: 'bg-slate-50 border-slate-200',
+      selectedBg: 'bg-slate-100 border-slate-400 ring-2 ring-slate-300',
+      iconColor: 'text-slate-600',
+    },
+  ];
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6 max-w-2xl mt-6">
+      <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+        <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
+          <svg className="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+          Giao diện hiển thị
+        </h2>
+        <p className="text-slate-400 dark:text-slate-500 text-xs md:text-sm mt-0.5">Tùy chỉnh chế độ hiển thị theo sở thích của bạn</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {themes.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setThemeMode(t.id)}
+            className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-300 cursor-pointer text-center ${
+              themeMode === t.id
+                ? t.selectedBg + ' shadow-md'
+                : t.bgColor + ' hover:shadow-sm dark:bg-slate-800/40 dark:border-slate-700'
+            }`}
+          >
+            <div className={`${themeMode === t.id ? t.iconColor : 'text-slate-400'} transition-colors`}>
+              {t.icon}
+            </div>
+            <div>
+              <p className={`font-bold text-sm ${themeMode === t.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                {t.label}
+              </p>
+              <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">{t.desc}</p>
+            </div>
+            {themeMode === t.id && (
+              <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.5)]"></div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700 rounded-2xl p-4">
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+          <svg className="w-4 h-4 text-orange-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          {themeMode === 'light'
+            ? 'Bạn đang sử dụng giao diện Sáng. Mọi thành phần sẽ hiển thị với màu nền sáng.'
+            : themeMode === 'dark'
+            ? 'Bạn đang sử dụng giao diện Tối cao cấp. Trải nghiệm tốt nhất trong môi trường thiếu sáng.'
+            : 'Giao diện sẽ tự động chuyển đổi theo cài đặt hệ thống của thiết bị bạn đang sử dụng.'}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 interface TenantData {
   id: string;
   name: string;
@@ -320,7 +441,7 @@ const StartupManagementSection = () => {
 
   if (loading) {
     return (
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex items-center justify-center min-h-[200px]">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-slate-950/30 flex items-center justify-center min-h-[200px]">
         <Loader2 className="animate-spin text-orange-500" size={24} />
       </div>
     );
@@ -330,35 +451,35 @@ const StartupManagementSection = () => {
     <div className="space-y-6 max-w-2xl mt-6">
       
       {/* Cấu hình Startup */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-        <div className="border-b border-slate-100 pb-4">
-          <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6">
+        <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+          <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
             <Building2 className="text-orange-600" size={20} />
             Thông tin Startup / Chuỗi của bạn
           </h2>
-          <p className="text-slate-400 text-xs md:text-sm mt-0.5">Cấu hình chuỗi kinh doanh lưu trú trên Rentify</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs md:text-sm mt-0.5">Cấu hình chuỗi kinh doanh lưu trú trên Rentify</p>
         </div>
 
         <form onSubmit={handleUpdateTenant} className="space-y-4" noValidate>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase">Tên Startup</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Tên Startup</label>
               <input
                 type="text"
                 value={startupName}
                 onChange={(e) => setStartupName(e.target.value)}
                 disabled={role !== 'owner' || saving}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase">Loại hình kinh doanh</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Loại hình kinh doanh</label>
               <select
                 value={businessType}
                 onChange={(e) => setBusinessType(e.target.value)}
                 disabled={role !== 'owner' || saving}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 <option value="homestay">Homestay / Hostel</option>
                 <option value="villa">Biệt thự / Villa</option>
@@ -370,18 +491,18 @@ const StartupManagementSection = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-400 uppercase">SĐT liên hệ chính</label>
+            <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">SĐT liên hệ chính</label>
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={role !== 'owner' || saving}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
 
           {role === 'owner' ? (
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 type="submit"
                 disabled={saving}
@@ -392,7 +513,7 @@ const StartupManagementSection = () => {
               </button>
             </div>
           ) : (
-            <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold text-slate-400 dark:text-slate-500">
               ⚠️ Chỉ có Chủ sở hữu (Owner) mới được quyền thay đổi thông tin Startup.
             </div>
           )}
@@ -401,28 +522,28 @@ const StartupManagementSection = () => {
 
       {/* Khu vực Owner Transfer - Chỉ hiển thị cho Owner chính của chuỗi */}
       {role === 'owner' && (
-        <div className="bg-white border border-red-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <div className="border-b border-red-100 pb-4">
-            <h2 className="text-lg font-bold text-red-950 flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/40 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6">
+          <div className="border-b border-red-100 dark:border-red-900/30 pb-4">
+            <h2 className="text-lg font-bold text-red-950 dark:text-red-400 flex items-center gap-2">
               <KeyRound className="text-red-600" size={20} />
               Chuyển nhượng quyền Chủ sở hữu (Owner)
             </h2>
-            <p className="text-slate-400 text-xs md:text-sm mt-0.5">
+            <p className="text-slate-400 dark:text-slate-500 text-xs md:text-sm mt-0.5">
               Ủy thác hoặc bàn giao toàn quyền kiểm soát tối cao của Startup Rentify cho một cộng sự Admin khác trong chuỗi.
             </p>
           </div>
 
           {admins.length === 0 ? (
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center text-xs font-semibold text-slate-400">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
               Chưa có Admin nào khác cùng Startup để thực hiện chuyển nhượng. Bạn có thể thêm nhân sự mới với vai trò Admin tại trang Quản lý nhân sự.
             </div>
           ) : (
             <div className="space-y-3">
               {admins.map((admin) => (
-                <div key={admin.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all">
+                <div key={admin.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 transition-all">
                   <div>
-                    <h4 className="text-xs md:text-sm font-bold text-slate-800">{admin.full_name || 'Chưa đặt tên'}</h4>
-                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">{admin.email}</p>
+                    <h4 className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{admin.full_name || 'Chưa đặt tên'}</h4>
+                    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">{admin.email}</p>
                   </div>
 
                   <button
@@ -745,17 +866,17 @@ const SettingsPageContent = () => {
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-16">
       
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-slate-900/85 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+          <button onClick={() => router.back()} className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-950 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-950 dark:text-white flex items-center gap-3">
               <Settings className="text-orange-600" />
               Thiết lập & Cài đặt
             </h1>
-            <p className="text-slate-500 font-medium text-xs md:text-sm mt-0.5">Quản lý thông tin tài khoản và cấu hình hệ thống</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-xs md:text-sm mt-0.5">Quản lý thông tin tài khoản và cấu hình hệ thống</p>
           </div>
         </div>
 
@@ -764,7 +885,7 @@ const SettingsPageContent = () => {
           {['admin', 'owner'].includes(role || '') && (
             <button
               onClick={() => router.push('/settings/users')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-600 font-bold rounded-xl text-xs transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/30 border border-slate-200 dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 font-bold rounded-xl text-xs transition-all shadow-sm cursor-pointer"
             >
               <Users size={16} />
               Quản lý nhân sự
@@ -788,13 +909,13 @@ const SettingsPageContent = () => {
       </header>
 
       {/* Tabs thanh chọn */}
-      <div className="flex border-b border-slate-200 overflow-x-auto gap-2 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto gap-2 bg-white dark:bg-slate-900 p-1 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-slate-950/20">
         <button
           onClick={() => handleTabChange('profile')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'bg-orange-50 text-orange-600'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400'
+              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <User size={16} />
@@ -804,8 +925,8 @@ const SettingsPageContent = () => {
           onClick={() => handleTabChange('security')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
             activeTab === 'security'
-              ? 'bg-orange-50 text-orange-600'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400'
+              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <Lock size={16} />
@@ -814,11 +935,11 @@ const SettingsPageContent = () => {
         {['admin', 'owner'].includes(role || '') && (
           <button
             onClick={() => handleTabChange('template')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
-              activeTab === 'template'
-                ? 'bg-orange-50 text-orange-600'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-            }`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
+            activeTab === 'template'
+              ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400'
+              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+          }`}
           >
             <MessageSquare size={16} />
             Mẫu Xác nhận Cọc
@@ -831,58 +952,58 @@ const SettingsPageContent = () => {
         
         {/* --- TAB 1: THÔNG TIN CÁ NHÂN --- */}
         {activeTab === 'profile' && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="border-b border-slate-100 pb-4">
-              <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
                 <User className="text-orange-600" size={20} />
                 Thông tin cá nhân
               </h2>
-              <p className="text-slate-400 text-xs md:text-sm mt-0.5">Cập nhật họ tên và số điện thoại liên lạc nội bộ của bạn</p>
+              <p className="text-slate-400 dark:text-slate-500 text-xs md:text-sm mt-0.5">Cập nhật họ tên và số điện thoại liên lạc nội bộ của bạn</p>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4" noValidate>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Họ và Tên</label>
                 <div className="relative group">
-                  <User className="absolute left-4 top-3 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <User className="absolute left-4 top-3 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Nguyễn Văn A"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase">Số điện thoại liên lạc</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Số điện thoại liên lạc</label>
                 <div className="relative group">
-                  <Phone className="absolute left-4 top-3 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <Phone className="absolute left-4 top-3 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="09xxxxxxxx"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase">Email liên kết (Không thể đổi)</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Email liên kết (Không thể đổi)</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-3 text-slate-300" size={18} />
+                  <Mail className="absolute left-4 top-3 text-slate-400 dark:text-slate-500" size={18} />
                   <input
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="w-full bg-slate-100/80 border border-slate-200 rounded-2xl py-2.5 pl-12 pr-4 text-xs md:text-sm font-semibold text-slate-400 outline-none select-none cursor-not-allowed"
+                    className="w-full bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pl-12 pr-4 text-xs md:text-sm font-semibold text-slate-400 dark:text-slate-500 outline-none select-none cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button
                   type="submit"
                   disabled={profileSaving}
@@ -896,6 +1017,11 @@ const SettingsPageContent = () => {
           </div>
         )}
 
+        {/* --- THEME SWITCHER --- */}
+        {activeTab === 'profile' && (
+          <ThemeSwitcherSection />
+        )}
+
         {/* --- KHU VỰC THÔNG TIN STARTUP & CHUYỂN NHƯỢNG CHO OWNER --- */}
         {activeTab === 'profile' && (role === 'owner' || role === 'admin') && (
           <StartupManagementSection />
@@ -903,45 +1029,45 @@ const SettingsPageContent = () => {
 
         {/* --- TAB 2: ĐỔI MẬT KHẨU --- */}
         {activeTab === 'security' && (
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="border-b border-slate-100 pb-4">
-              <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm dark:shadow-slate-950/30 space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h2 className="text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
                 <Lock className="text-orange-600" size={20} />
                 Đổi mật khẩu tài khoản
               </h2>
-              <p className="text-slate-400 text-xs md:text-sm mt-0.5">Đặt lại mật khẩu bảo mật mới cho tài khoản của bạn</p>
+              <p className="text-slate-400 dark:text-slate-500 text-xs md:text-sm mt-0.5">Đặt lại mật khẩu bảo mật mới cho tài khoản của bạn</p>
             </div>
 
             <form onSubmit={handleSaveSecurity} className="space-y-4" noValidate>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase">Mật khẩu mới</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Mật khẩu mới</label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Tối thiểu 6 ký tự"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-400 uppercase">Xác nhận mật khẩu mới</label>
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">Xác nhận mật khẩu mới</label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu giống hệt phía trên"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button
                   type="submit"
                   disabled={securitySaving}
@@ -960,9 +1086,9 @@ const SettingsPageContent = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Editor Side */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50 pb-4">
-                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-slate-950/30 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <MessageSquare className="text-indigo-500" size={20} />
                     Mẫu Xác nhận Tiền cọc
                   </h2>
@@ -977,7 +1103,7 @@ const SettingsPageContent = () => {
                         }
                       })
                     }}
-                    className="text-slate-400 hover:text-orange-600 transition-colors flex items-center gap-1.5 text-xs font-bold w-fit cursor-pointer"
+                    className="text-slate-400 dark:text-slate-500 hover:text-orange-600 transition-colors flex items-center gap-1.5 text-xs font-bold w-fit cursor-pointer"
                   >
                     <RotateCcw size={14} /> Khôi phục mặc định
                   </button>
@@ -989,34 +1115,34 @@ const SettingsPageContent = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-3">
-                        <div className="flex items-center gap-0.5 bg-white p-1 rounded-lg border border-slate-200 shadow-sm mr-2">
-                          <button onClick={() => transformSelection('bold')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 font-bold hover:text-indigo-600 transition-colors cursor-pointer" title="Chữ Đậm (Ctrl+B)"><Bold size={16} /></button>
-                          <button onClick={() => transformSelection('italic')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 italic hover:text-indigo-600 transition-colors cursor-pointer" title="Chữ Nghiêng (Ctrl+I)"><Italic size={16} /></button>
-                          <button onClick={() => transformSelection('underline')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors underline decoration-2 underline-offset-4 cursor-pointer" title="Gạch chân (Ctrl+U)"><UnderlineIcon size={16} /></button>
-                          <div className="w-[1px] h-4 bg-slate-100 mx-1"></div>
-                          <button onClick={() => transformSelection('uppercase')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors cursor-pointer" title="IN HOA (Ctrl+Shift+U)"><CaseSensitive size={18} /></button>
+                    <div className="flex flex-col gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                      <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 dark:border-slate-700 pb-3">
+                        <div className="flex items-center gap-0.5 bg-white dark:bg-slate-950 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm mr-2">
+                          <button onClick={() => transformSelection('bold')} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md text-slate-700 dark:text-slate-300 font-bold hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer" title="Chữ Đậm (Ctrl+B)"><Bold size={16} /></button>
+                          <button onClick={() => transformSelection('italic')} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md text-slate-700 dark:text-slate-300 italic hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer" title="Chữ Nghiêng (Ctrl+I)"><Italic size={16} /></button>
+                          <button onClick={() => transformSelection('underline')} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors underline decoration-2 underline-offset-4 cursor-pointer" title="Gạch chân (Ctrl+U)"><UnderlineIcon size={16} /></button>
+                          <div className="w-[1px] h-4 bg-slate-100 dark:bg-slate-700 mx-1"></div>
+                          <button onClick={() => transformSelection('uppercase')} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer" title="IN HOA (Ctrl+Shift+U)"><CaseSensitive size={18} /></button>
 
                           <div className="relative">
                             <button
                               onClick={() => setShowBullets(!showBullets)}
-                              className={`p-2 rounded-md transition-colors flex items-center gap-0.5 cursor-pointer ${showBullets ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-50 hover:text-indigo-600'}`}
+                              className={`p-2 rounded-md transition-colors flex items-center gap-0.5 cursor-pointer ${showBullets ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
                               title="Danh sách đầu dòng"
                             >
                               <Type size={16} />
                               <ChevronDown size={10} className={`transition-transform ${showBullets ? 'rotate-180' : ''}`} />
                             </button>
                             {showBullets && (
-                              <div className="absolute top-full left-0 mt-2 z-[110] bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 w-[160px] animate-in zoom-in-95 duration-200">
+                              <div className="absolute top-full left-0 mt-2 z-[110] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl dark:shadow-slate-950/40 p-1.5 w-[160px] animate-in zoom-in-95 duration-200">
                                 {BULLET_TYPES.map(type => (
                                   <button
                                     key={type.value}
                                     type="button"
                                     onClick={() => { transformSelection('list', type.value); setShowBullets(false); }}
-                                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+                                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
                                   >
-                                    <span className="w-5 text-center bg-slate-100 rounded text-[10px] py-0.5">{type.icon}</span>
+                                    <span className="w-5 text-center bg-slate-100 dark:bg-slate-800 rounded text-[10px] py-0.5">{type.icon}</span>
                                     {type.label}
                                   </button>
                                 ))}
@@ -1028,7 +1154,7 @@ const SettingsPageContent = () => {
                         <div className="relative">
                           <button
                             onClick={() => setShowEmoji(!showEmoji)}
-                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs font-bold cursor-pointer ${showEmoji ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs font-bold cursor-pointer ${showEmoji ? 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400' : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                           >
                             <Smile size={16} /> Icon <ChevronDown size={12} className={`transition-transform ${showEmoji ? 'rotate-180' : ''}`} />
                           </button>
@@ -1042,7 +1168,7 @@ const SettingsPageContent = () => {
                                 <EmojiPicker
                                   onEmojiClick={onEmojiClick}
                                   autoFocusSearch={true}
-                                  theme={Theme.LIGHT}
+                                  theme={Theme.DARK}
                                   searchPlaceholder="Tìm icon..."
                                   width={320}
                                   height={400}
@@ -1055,7 +1181,7 @@ const SettingsPageContent = () => {
                       </div>
 
                       <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-1.5">
                           <Sparkles size={12} className="text-indigo-400" />
                           Biến tự động
                         </span>
@@ -1071,7 +1197,7 @@ const SettingsPageContent = () => {
                           <button
                             key={p.value}
                             onClick={() => insertPlaceholder(p.value, p.label)}
-                            className="px-2.5 py-1.5 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-lg text-[11px] font-bold border border-slate-200 hover:border-indigo-200 transition-all shadow-sm active:scale-95 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-white dark:bg-slate-950 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all shadow-sm active:scale-95 cursor-pointer"
                           >
                             {p.label}
                           </button>
@@ -1102,7 +1228,7 @@ const SettingsPageContent = () => {
                         }}
                         onFocus={() => setShowEmoji(false)}
                         onKeyDown={handleKeyDown}
-                        className="w-full h-[550px] bg-white border-2 border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl p-8 text-slate-700 font-semibold text-xs md:text-sm leading-relaxed outline-none transition-all overflow-y-auto shadow-sm smart-editor"
+                        className="w-full h-[550px] bg-white dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl p-8 text-slate-700 dark:text-slate-300 font-semibold text-xs md:text-sm leading-relaxed outline-none transition-all overflow-y-auto shadow-sm smart-editor"
                       />
                       <style jsx global>{`
                         .smart-editor .variable-badge {
@@ -1139,7 +1265,7 @@ const SettingsPageContent = () => {
                           color: #334155;
                         }
                       `}</style>
-                      <div className="absolute bottom-4 right-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest pointer-events-none">
+                      <div className="absolute bottom-4 right-4 text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest pointer-events-none">
                         Smart Template Editor
                       </div>
                     </div>
@@ -1150,14 +1276,14 @@ const SettingsPageContent = () => {
 
             {/* Preview Side */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 sticky top-28">
-                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-slate-950/30 space-y-6 sticky top-28">
+                <div className="flex items-center gap-2 border-b border-slate-50 dark:border-slate-800 pb-4">
                   <Sparkles className="text-orange-500" size={20} />
-                  <h2 className="text-lg font-bold text-slate-900">Xem trước (Preview)</h2>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Xem trước (Preview)</h2>
                 </div>
 
-                <div className="bg-orange-55 bg-orange-50/20 rounded-2xl p-6 border border-orange-100/50">
-                  <div className="whitespace-pre-wrap text-xs md:text-sm text-slate-700 font-semibold leading-relaxed font-sans">
+                <div className="bg-orange-50/20 dark:bg-orange-950/10 rounded-2xl p-6 border border-orange-100/50 dark:border-orange-900/20">
+                  <div className="whitespace-pre-wrap text-xs md:text-sm text-slate-700 dark:text-slate-300 font-semibold leading-relaxed font-sans">
                     {renderPreview()}
                   </div>
                 </div>
