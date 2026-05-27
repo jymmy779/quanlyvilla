@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
 import { ArrowLeft, Users, Bed, Bath, CheckCircle2, MapPin, Edit, ImageIcon, DollarSign, Navigation, AlertCircle, Loader2, Info, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getOptimizedImageUrl } from '@/lib/utils';
 
 
 const VillaDetailPage = () => {
@@ -66,7 +67,7 @@ const VillaDetailPage = () => {
           <button className="absolute top-6 right-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20">
             <X size={24} />
           </button>
-          <img src={zoomedImage} className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
+          <img src={getOptimizedImageUrl(zoomedImage, 1600)} className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl" />
         </div>
       )}
 
@@ -96,7 +97,7 @@ const VillaDetailPage = () => {
       {/* Hero Section */}
       <div className="relative h-[280px] md:h-[450px] rounded-2xl md:rounded-3xl overflow-hidden shadow-xl bg-slate-100">
         {villa.images && villa.images.length > 0 ? (
-          <img src={villa.images[0]} alt={villa.name} className={`w-full h-full object-cover ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
+          <img src={getOptimizedImageUrl(villa.images[0], 1200)} alt={villa.name} className={`w-full h-full object-cover ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300">
             <ImageIcon size={48} />
@@ -195,7 +196,7 @@ const VillaDetailPage = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {villa.images?.map((img, idx) => (
                 <div key={idx} onClick={() => setZoomedImage(img)} className="h-40 md:h-56 rounded-xl md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-zoom-in group">
-                  <img src={img} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale' : ''}`} />
+                  <img src={getOptimizedImageUrl(img, 600)} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${villa.status === 'maintenance' ? 'grayscale' : ''}`} />
                 </div>
               ))}
             </div>

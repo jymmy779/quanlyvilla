@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
 import { Plus, MapPin, Users, Bed, Eye, Edit, ImageIcon, AlertCircle, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getOptimizedImageUrl } from '@/lib/utils';
 
 const VillaListPage = () => {
   const router = useRouter();
@@ -77,7 +78,7 @@ const VillaListPage = () => {
 
               <div className="relative h-48 md:h-56 overflow-hidden bg-slate-100">
                 {villa.images && villa.images.length > 0 ? (
-                  <img src={villa.images[0]} alt={villa.name} className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
+                  <img src={getOptimizedImageUrl(villa.images[0], 800)} alt={villa.name} className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ${villa.status === 'maintenance' ? 'grayscale opacity-70' : ''}`} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
                     <ImageIcon size={32} />
