@@ -56,3 +56,14 @@ export interface Booking {
   additional_services?: AdditionalService[];
   created_at?: string;
 }
+
+export type UserRole = 'admin' | 'staff' | 'pending';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  phone: string;
+  role: UserRole;
+  created_at: string;
+}

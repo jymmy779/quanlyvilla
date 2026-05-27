@@ -47,18 +47,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       {/* Global Toasts */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300] flex flex-col gap-3 items-center">
+      <div className="fixed top-8 right-4 md:right-8 z-[300] flex flex-col gap-3 items-end max-w-sm pointer-events-none">
         {toasts.map((toast) => (
           <div 
             key={toast.id}
-            className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border animate-in slide-in-from-bottom-8 duration-300 ${
-              toast.type === 'success' ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-red-500 border-red-400 text-white'
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border pointer-events-auto relative overflow-hidden animate-in fade-in slide-in-from-top-4 slide-in-from-right-4 duration-300 ${
+              toast.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
             }`}
           >
-            {toast.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
-            <span className="font-bold text-sm">{toast.message}</span>
+            {toast.type === 'success' ? <Check size={16} className="flex-shrink-0 animate-bounce" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+            <span className="font-bold text-xs md:text-sm">{toast.message}</span>
+            {/* Thanh đếm ngược chạy ngang ở dưới đáy Toast */}
+            <div className="absolute bottom-0 left-0 h-1 bg-white/30 animate-toast-progress"></div>
           </div>
         ))}
+        <style jsx global>{`
+          @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          .animate-toast-progress {
+            animation: shrink 3s linear forwards;
+          }
+        `}</style>
       </div>
 
       {/* Global Confirm Modal */}

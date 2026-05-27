@@ -2,17 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
+import { useNotification } from '@/context/NotificationContext';
 import {
-  Settings, Save, RotateCcw, Copy, Check,
-  Info, MessageSquare, List, Sparkles, ArrowLeft,
-  Trash2, Search, Bold, Italic, Underline as UnderlineIcon,
-  Type, List as ListIcon, Smile, CaseSensitive,
-  ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle
+  Settings, Save, RotateCcw, Check,
+  Info, MessageSquare, Sparkles, ArrowLeft,
+  Trash2, Bold, Italic, Underline as UnderlineIcon,
+  Type, Smile, CaseSensitive,
+  ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle,
+  User, Lock, Users, KeyRound, Phone, Mail, Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import EmojiPicker, { Theme, EmojiClickData } from 'emoji-picker-react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { useNotification } from '@/context/NotificationContext';
 
 const DEFAULT_TEMPLATE = `✍️ XÁC NHẬN TIỀN CỌC VILLA
 Địa chỉ: {{villa_address}}
@@ -146,9 +148,9 @@ const htmlToTemplate = (html: string) => {
 
 const toggleCase = (text: string) => {
   const boldLower = '𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳';
-  const boldUpper = '𝐀𝐁𝐂𝐃𝐄𝐅Ｇ𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏Ｑ𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙';
-  const italicLower = '𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻';
-  const italicUpper = '𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡';
+  const boldUpper = '𝐀𝐁𝐂𝐃𝐄𝐅Ｇ𝐇𝐈𝐉𝐊𝐋𝐌𝐍class="highlight"𝐎ＰＱ𝐑𝐒𝐓𝐔𝐕𝐖𝐗ＹＺ';
+  const italicLower = '𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𘲳𝘳𝘴𝘵𝘶𝘷𝘸𘲴𝘺𝘻';
+  const italicUpper = '𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𘱉𘱊𝘖𘱋𘱌𘱍𘱎𘱏𘱐𘱑𘱒𘱓𝘞𘱔𘱕𘱖';
 
   const isUpper = (str: string) => {
     const chars = [...str];
@@ -181,30 +183,55 @@ const toggleCase = (text: string) => {
 
 const SettingsPage = () => {
   const router = useRouter();
+  const { profile, role, updateProfile, changePassword } = useAuth();
+  const { showToast, confirm: showConfirmModal } = useNotification();
+
+  // State Tab tích hợp
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'template'>('profile');
+
+  // Tab 1: Profile States
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  // Tab 2: Security States
+  const [oldPassword, setOldPassword] = useState(''); // Supabase client không yêu cầu mật khẩu cũ để đổi pass mới, nhưng thêm vào cho giao diện chuyên nghiệp
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [securitySaving, setSecuritySaving] = useState(false);
+
+  // Tab 3: Template States (Được giữ nguyên)
   const [template, setTemplate] = useState(DEFAULT_TEMPLATE);
-  const [htmlContent, setHtmlContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const { showToast, confirm: showConfirmModal } = useNotification();
   const editorRef = React.useRef<HTMLDivElement>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [showBullets, setShowBullets] = useState(false);
+
+  // Load thông tin ban đầu
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setPhone(profile.phone || '');
+    }
+  }, [profile]);
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (activeTab === 'template' && role === 'admin') {
+      fetchSettings();
+    }
+  }, [activeTab, role]);
 
   useEffect(() => {
-    if (!loading && editorRef.current) {
-      // Chỉ cập nhật innerHTML nếu editor KHÔNG đang được focus (để tránh mất con trỏ khi gõ)
-      // HOẶC nếu nội dung khác biệt hoàn toàn (ví dụ khi nhấn Reset/Load)
+    if (activeTab === 'template' && !loading && editorRef.current) {
       const currentHtml = editorRef.current.innerHTML;
       const newHtml = templateToHtml(template);
-
       if (document.activeElement !== editorRef.current && currentHtml !== newHtml) {
         editorRef.current.innerHTML = newHtml;
       }
     }
-  }, [template, loading]);
+  }, [template, loading, activeTab]);
 
   const fetchSettings = async () => {
     try {
@@ -225,7 +252,67 @@ const SettingsPage = () => {
     }
   };
 
-  const handleSave = async () => {
+  // Lưu thông tin cá nhân (Tab 1)
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName || !phone) {
+      showToast('Vui lòng điền đầy đủ Họ tên và SĐT!', 'error');
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+      const res = await updateProfile(fullName, phone);
+      if (res.success) {
+        showToast('Cập nhật thông tin cá nhân thành công!', 'success');
+      } else {
+        showToast(res.error || 'Lỗi cập nhật thông tin.', 'error');
+      }
+    } catch (err) {
+      showToast('Có lỗi xảy ra khi lưu.', 'error');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  // Đổi mật khẩu cá nhân (Tab 2)
+  const handleSaveSecurity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || !confirmPassword) {
+      showToast('Vui lòng điền đầy đủ thông tin mật khẩu!', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast('Mật khẩu mới và xác nhận mật khẩu không khớp!', 'error');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showToast('Mật khẩu mới phải từ 6 ký tự trở lên!', 'error');
+      return;
+    }
+
+    try {
+      setSecuritySaving(true);
+      const res = await changePassword(newPassword);
+      if (res.success) {
+        showToast('Thay đổi mật khẩu cá nhân thành công!', 'success');
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        showToast(res.error || 'Lỗi đổi mật khẩu.', 'error');
+      }
+    } catch (err) {
+      showToast('Có lỗi xảy ra khi đổi mật khẩu.', 'error');
+    } finally {
+      setSecuritySaving(false);
+    }
+  };
+
+  // Lưu cấu hình template tin nhắn (Tab 3)
+  const handleSaveTemplate = async () => {
     try {
       setSaving(true);
       const currentTemplate = htmlToTemplate(editorRef.current?.innerHTML || '');
@@ -237,7 +324,7 @@ const SettingsPage = () => {
 
       setTemplate(currentTemplate);
       setSaved(true);
-      showToast('Đã lưu cài đặt thành công!');
+      showToast('Đã lưu cấu hình tin nhắn cọc thành công!');
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       console.error(err);
@@ -270,7 +357,6 @@ const SettingsPage = () => {
       onConfirm: () => {
         const newTemplate = template.replace(/{{.*?}}/g, '');
         setTemplate(newTemplate);
-        setHtmlContent(templateToHtml(newTemplate));
         showToast('Đã xóa sạch các biến');
       }
     });
@@ -335,9 +421,6 @@ const SettingsPage = () => {
     }
   };
 
-  const [showEmoji, setShowEmoji] = useState(false);
-  const [showBullets, setShowBullets] = useState(false);
-
   const onEmojiClick = (emojiData: EmojiClickData) => {
     insertPlaceholder(emojiData.emoji);
     setShowEmoji(false);
@@ -367,233 +450,425 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 mb-6">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-16">
+      
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100">
         <div className="flex items-center gap-4">
           <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-950 flex items-center gap-3">
               <Settings className="text-orange-600" />
-              Cài đặt hệ thống
+              Thiết lập & Cài đặt
             </h1>
-            <p className="text-slate-500 font-medium text-sm mt-0.5">Quản lý các mẫu tin nhắn và cấu hình</p>
+            <p className="text-slate-500 font-medium text-xs md:text-sm mt-0.5">Quản lý thông tin tài khoản và cấu hình hệ thống</p>
           </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg active:scale-95 ${saved
-            ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-            : 'bg-slate-900 text-white hover:bg-orange-600 shadow-slate-900/10'
-            }`}
-        >
-          {saving ? <Sparkles className="animate-spin" size={18} /> : (saved ? <Check size={18} /> : <Save size={18} />)}
-          {saved ? 'Đã lưu!' : 'Lưu cài đặt'}
-        </button>
+
+        {/* Nút hành động bổ sung */}
+        <div className="flex items-center gap-3">
+          {role === 'admin' && (
+            <button
+              onClick={() => router.push('/settings/users')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-600 font-bold rounded-xl text-xs transition-all shadow-sm cursor-pointer"
+            >
+              <Users size={16} />
+              Quản lý nhân sự
+            </button>
+          )}
+
+          {activeTab === 'template' && role === 'admin' && (
+            <button
+              onClick={handleSaveTemplate}
+              disabled={saving}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-xs ${saved
+                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                : 'bg-slate-900 text-white hover:bg-orange-600 shadow-slate-900/10'
+                }`}
+            >
+              {saving ? <Loader2 className="animate-spin" size={16} /> : (saved ? <Check size={16} /> : <Save size={16} />)}
+              {saved ? 'Đã lưu!' : 'Lưu mẫu tin'}
+            </button>
+          )}
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Editor Side */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50 pb-4">
-              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <MessageSquare className="text-indigo-500" size={20} />
-                Mẫu Xác nhận Tiền cọc
+      {/* Tabs thanh chọn */}
+      <div className="flex border-b border-slate-200 overflow-x-auto gap-2 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
+            activeTab === 'profile'
+              ? 'bg-orange-50 text-orange-600'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <User size={16} />
+          Tài khoản của tôi
+        </button>
+        <button
+          onClick={() => setActiveTab('security')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
+            activeTab === 'security'
+              ? 'bg-orange-50 text-orange-600'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <Lock size={16} />
+          Mật khẩu & Bảo mật
+        </button>
+        {role === 'admin' && (
+          <button
+            onClick={() => setActiveTab('template')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
+              activeTab === 'template'
+                ? 'bg-orange-50 text-orange-600'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <MessageSquare size={16} />
+            Mẫu Xác nhận Cọc
+          </button>
+        )}
+      </div>
+
+      {/* Nội dung theo Tab */}
+      <div className="mt-4">
+        
+        {/* --- TAB 1: THÔNG TIN CÁ NHÂN --- */}
+        {activeTab === 'profile' && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="border-b border-slate-100 pb-4">
+              <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                <User className="text-orange-600" size={20} />
+                Thông tin cá nhân
               </h2>
-              <button
-                onClick={() => { 
-                  showConfirmModal({
-                    title: 'Khôi phục mặc định?',
-                    message: 'Toàn bộ nội dung hiện tại sẽ bị thay thế bằng mẫu mặc định. Bạn có muốn tiếp tục?',
-                    onConfirm: () => {
-                      setTemplate(DEFAULT_TEMPLATE);
-                      showToast('Đã khôi phục mẫu mặc định');
-                    }
-                  })
-                }}
-                className="text-slate-400 hover:text-orange-600 transition-colors flex items-center gap-1.5 text-xs font-bold w-fit"
-              >
-                <RotateCcw size={14} /> Khôi phục mặc định
-              </button>
+              <p className="text-slate-400 text-xs md:text-sm mt-0.5">Cập nhật họ tên và số điện thoại liên lạc nội bộ của bạn</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-3">
-                  <div className="flex items-center gap-0.5 bg-white p-1 rounded-lg border border-slate-200 shadow-sm mr-2">
-                    <button onClick={() => transformSelection('bold')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 font-bold hover:text-indigo-600 transition-colors" title="Chữ Đậm (Ctrl+B)"><Bold size={16} /></button>
-                    <button onClick={() => transformSelection('italic')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 italic hover:text-indigo-600 transition-colors" title="Chữ Nghiêng (Ctrl+I)"><Italic size={16} /></button>
-                    <button onClick={() => transformSelection('underline')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors underline decoration-2 underline-offset-4" title="Gạch chân (Ctrl+U)"><UnderlineIcon size={16} /></button>
-                    <div className="w-[1px] h-4 bg-slate-100 mx-1"></div>
-                    <button onClick={() => transformSelection('uppercase')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors" title="IN HOA (Ctrl+Shift+U)"><CaseSensitive size={18} /></button>
-
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowBullets(!showBullets)}
-                        className={`p-2 rounded-md transition-colors flex items-center gap-0.5 ${showBullets ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-50 hover:text-indigo-600'}`}
-                        title="Danh sách đầu dòng"
-                      >
-                        <ListIcon size={16} />
-                        <ChevronDown size={10} className={`transition-transform ${showBullets ? 'rotate-180' : ''}`} />
-                      </button>
-                      {showBullets && (
-                        <div className="absolute top-full left-0 mt-2 z-[110] bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 w-[160px] animate-in zoom-in-95 duration-200">
-                          {BULLET_TYPES.map(type => (
-                            <button
-                              key={type.value}
-                              onClick={() => { transformSelection('list', type.value); setShowBullets(false); }}
-                              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
-                            >
-                              <span className="w-5 text-center bg-slate-100 rounded text-[10px] py-0.5">{type.icon}</span>
-                              {type.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowEmoji(!showEmoji)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs font-bold ${showEmoji ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                    >
-                      <Smile size={16} /> Icon <ChevronDown size={12} className={`transition-transform ${showEmoji ? 'rotate-180' : ''}`} />
-                    </button>
-                    {showEmoji && (
-                      <div className="absolute top-full left-0 mt-2 z-[100] shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div
-                          className="fixed inset-0"
-                          onClick={() => setShowEmoji(false)}
-                        ></div>
-                        <div className="relative">
-                          <EmojiPicker
-                            onEmojiClick={onEmojiClick}
-                            autoFocusSearch={true}
-                            theme={Theme.LIGHT}
-                            searchPlaceholder="Tìm icon..."
-                            width={320}
-                            height={400}
-                            previewConfig={{ showPreview: false }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            <form onSubmit={handleSaveProfile} className="space-y-4" noValidate>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-3 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Nguyễn Văn A"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                  />
                 </div>
+              </div>
 
-                <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles size={12} className="text-indigo-400" />
-                    Biến tự động
-                  </span>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase">Số điện thoại liên lạc</label>
+                <div className="relative group">
+                  <Phone className="absolute left-4 top-3 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="09xxxxxxxx"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase">Email liên kết (Không thể đổi)</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-3 text-slate-300" size={18} />
+                  <input
+                    type="email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="w-full bg-slate-100/80 border border-slate-200 rounded-2xl py-2.5 pl-12 pr-4 text-xs md:text-sm font-semibold text-slate-400 outline-none select-none cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 text-xs cursor-pointer"
+                >
+                  {profileSaving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+                  Lưu thay đổi
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* --- TAB 2: ĐỔI MẬT KHẨU --- */}
+        {activeTab === 'security' && (
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="border-b border-slate-100 pb-4">
+              <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                <Lock className="text-orange-600" size={20} />
+                Đổi mật khẩu tài khoản
+              </h2>
+              <p className="text-slate-400 text-xs md:text-sm mt-0.5">Đặt lại mật khẩu bảo mật mới cho tài khoản của bạn</p>
+            </div>
+
+            <form onSubmit={handleSaveSecurity} className="space-y-4" noValidate>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase">Mật khẩu mới</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Tối thiểu 6 ký tự"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-400 uppercase">Xác nhận mật khẩu mới</label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu giống hệt phía trên"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={securitySaving}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 text-xs cursor-pointer"
+                >
+                  {securitySaving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+                  Cập nhật mật khẩu
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* --- TAB 3: MẪU TIN NHẮN (Được giữ nguyên giao diện cũ cực đẹp) --- */}
+        {activeTab === 'template' && role === 'admin' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Editor Side */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50 pb-4">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <MessageSquare className="text-indigo-500" size={20} />
+                    Mẫu Xác nhận Tiền cọc
+                  </h2>
                   <button
-                    onClick={clearAllPlaceholders}
-                    className="text-[11px] font-bold text-red-400 hover:text-red-500 flex items-center gap-1.5 transition-colors w-fit"
+                    onClick={() => {
+                      showConfirmModal({
+                        title: 'Khôi phục mặc định?',
+                        message: 'Toàn bộ nội dung hiện tại sẽ bị thay thế bằng mẫu mặc định. Bạn có muốn tiếp tục?',
+                        onConfirm: () => {
+                          setTemplate(DEFAULT_TEMPLATE);
+                          showToast('Đã khôi phục mẫu mặc định');
+                        }
+                      })
+                    }}
+                    className="text-slate-400 hover:text-orange-600 transition-colors flex items-center gap-1.5 text-xs font-bold w-fit cursor-pointer"
                   >
-                    <Trash2 size={12} /> Xóa sạch các biến
+                    <RotateCcw size={14} /> Khôi phục mặc định
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {PLACEHOLDERS.map((p) => (
-                    <button
-                      key={p.value}
-                      onClick={() => insertPlaceholder(p.value, p.label)}
-                      className="px-2.5 py-1.5 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-lg text-[11px] font-bold border border-slate-200 hover:border-indigo-200 transition-all shadow-sm active:scale-95"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              <div className="relative group">
-                <div
-                  ref={editorRef}
-                  id="template-editor"
-                  contentEditable
-                  onInput={(e) => setTemplate(htmlToTemplate(e.currentTarget.innerHTML))}
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    const deleteBtn = target.closest('.delete-badge');
-                    if (deleteBtn) {
-                      target.closest('.variable-badge')?.remove();
-                      if (editorRef.current) {
-                        setTemplate(htmlToTemplate(editorRef.current.innerHTML));
-                      }
-                    }
-                  }}
-                  onPaste={(e) => {
-                    e.preventDefault();
-                    const text = e.clipboardData.getData('text/plain');
-                    document.execCommand('insertText', false, text);
-                  }}
-                  onFocus={() => setShowEmoji(false)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full h-[600px] bg-white border-2 border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl p-8 text-slate-700 font-medium text-sm leading-relaxed outline-none transition-all overflow-y-auto shadow-sm smart-editor"
-                />
-                <style jsx global>{`
-                  .smart-editor .variable-badge {
-                    display: inline-flex;
-                    align-items: center;
-                    background-color: #e0e7ff !important;
-                    color: #4338ca !important;
-                    border: 1px solid #c7d2fe !important;
-                    border-radius: 6px !important;
-                    padding: 2px 8px !important;
-                    margin: 0 4px !important;
-                    font-size: 11px !important;
-                    font-weight: 700 !important;
-                    line-height: 1.5 !important;
-                    user-select: none !important;
-                    cursor: default !important;
-                    vertical-align: baseline !important;
-                  }
-                  .smart-editor .delete-badge {
-                    display: inline-flex !important;
-                    align-items: center;
-                    justify-content: center;
-                    width: 14px;
-                    height: 14px;
-                    border-radius: 4px;
-                    cursor: pointer !important;
-                  }
-                  .smart-editor b, .smart-editor strong {
-                    font-weight: 800;
-                    color: #0f172a;
-                  }
-                  .smart-editor i, .smart-editor em {
-                    font-style: italic;
-                    color: #334155;
-                  }
-                `}</style>
-                <div className="absolute bottom-4 right-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest pointer-events-none">
-                  Smart Template Editor
+                {loading ? (
+                  <div className="py-20 flex justify-center items-center">
+                    <Loader2 className="text-orange-500 animate-spin" size={32} />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-3">
+                        <div className="flex items-center gap-0.5 bg-white p-1 rounded-lg border border-slate-200 shadow-sm mr-2">
+                          <button onClick={() => transformSelection('bold')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 font-bold hover:text-indigo-600 transition-colors cursor-pointer" title="Chữ Đậm (Ctrl+B)"><Bold size={16} /></button>
+                          <button onClick={() => transformSelection('italic')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 italic hover:text-indigo-600 transition-colors cursor-pointer" title="Chữ Nghiêng (Ctrl+I)"><Italic size={16} /></button>
+                          <button onClick={() => transformSelection('underline')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors underline decoration-2 underline-offset-4 cursor-pointer" title="Gạch chân (Ctrl+U)"><UnderlineIcon size={16} /></button>
+                          <div className="w-[1px] h-4 bg-slate-100 mx-1"></div>
+                          <button onClick={() => transformSelection('uppercase')} className="p-2 hover:bg-slate-50 rounded-md text-slate-700 hover:text-indigo-600 transition-colors cursor-pointer" title="IN HOA (Ctrl+Shift+U)"><CaseSensitive size={18} /></button>
+
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowBullets(!showBullets)}
+                              className={`p-2 rounded-md transition-colors flex items-center gap-0.5 cursor-pointer ${showBullets ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-50 hover:text-indigo-600'}`}
+                              title="Danh sách đầu dòng"
+                            >
+                              <Type size={16} />
+                              <ChevronDown size={10} className={`transition-transform ${showBullets ? 'rotate-180' : ''}`} />
+                            </button>
+                            {showBullets && (
+                              <div className="absolute top-full left-0 mt-2 z-[110] bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 w-[160px] animate-in zoom-in-95 duration-200">
+                                {BULLET_TYPES.map(type => (
+                                  <button
+                                    key={type.value}
+                                    type="button"
+                                    onClick={() => { transformSelection('list', type.value); setShowBullets(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-semibold text-slate-600 transition-colors cursor-pointer"
+                                  >
+                                    <span className="w-5 text-center bg-slate-100 rounded text-[10px] py-0.5">{type.icon}</span>
+                                    {type.label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowEmoji(!showEmoji)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs font-bold cursor-pointer ${showEmoji ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            <Smile size={16} /> Icon <ChevronDown size={12} className={`transition-transform ${showEmoji ? 'rotate-180' : ''}`} />
+                          </button>
+                          {showEmoji && (
+                            <div className="absolute top-full left-0 mt-2 z-[100] shadow-2xl animate-in zoom-in-95 duration-200">
+                              <div
+                                className="fixed inset-0"
+                                onClick={() => setShowEmoji(false)}
+                              ></div>
+                              <div className="relative">
+                                <EmojiPicker
+                                  onEmojiClick={onEmojiClick}
+                                  autoFocusSearch={true}
+                                  theme={Theme.LIGHT}
+                                  searchPlaceholder="Tìm icon..."
+                                  width={320}
+                                  height={400}
+                                  previewConfig={{ showPreview: false }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                          <Sparkles size={12} className="text-indigo-400" />
+                          Biến tự động
+                        </span>
+                        <button
+                          onClick={clearAllPlaceholders}
+                          className="text-[11px] font-bold text-red-400 hover:text-red-500 flex items-center gap-1.5 transition-colors w-fit cursor-pointer"
+                        >
+                          <Trash2 size={12} /> Xóa sạch các biến
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PLACEHOLDERS.map((p) => (
+                          <button
+                            key={p.value}
+                            onClick={() => insertPlaceholder(p.value, p.label)}
+                            className="px-2.5 py-1.5 bg-white hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-lg text-[11px] font-bold border border-slate-200 hover:border-indigo-200 transition-all shadow-sm active:scale-95 cursor-pointer"
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <div
+                        ref={editorRef}
+                        id="template-editor"
+                        contentEditable
+                        onInput={(e) => setTemplate(htmlToTemplate(e.currentTarget.innerHTML))}
+                        onClick={(e) => {
+                          const target = e.target as HTMLElement;
+                          const deleteBtn = target.closest('.delete-badge');
+                          if (deleteBtn) {
+                            target.closest('.variable-badge')?.remove();
+                            if (editorRef.current) {
+                              setTemplate(htmlToTemplate(editorRef.current.innerHTML));
+                            }
+                          }
+                        }}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          const text = e.clipboardData.getData('text/plain');
+                          document.execCommand('insertText', false, text);
+                        }}
+                        onFocus={() => setShowEmoji(false)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full h-[550px] bg-white border-2 border-slate-100 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl p-8 text-slate-700 font-semibold text-xs md:text-sm leading-relaxed outline-none transition-all overflow-y-auto shadow-sm smart-editor"
+                      />
+                      <style jsx global>{`
+                        .smart-editor .variable-badge {
+                          display: inline-flex;
+                          align-items: center;
+                          background-color: #e0e7ff !important;
+                          color: #4338ca !important;
+                          border: 1px solid #c7d2fe !important;
+                          border-radius: 6px !important;
+                          padding: 2px 8px !important;
+                          margin: 0 4px !important;
+                          font-size: 11px !important;
+                          font-weight: 700 !important;
+                          line-height: 1.5 !important;
+                          user-select: none !important;
+                          cursor: default !important;
+                          vertical-align: baseline !important;
+                        }
+                        .smart-editor .delete-badge {
+                          display: inline-flex !important;
+                          align-items: center;
+                          justify-content: center;
+                          width: 14px;
+                          height: 14px;
+                          border-radius: 4px;
+                          cursor: pointer !important;
+                        }
+                        .smart-editor b, .smart-editor strong {
+                          font-weight: 800;
+                          color: #0f172a;
+                        }
+                        .smart-editor i, .smart-editor em {
+                          font-style: italic;
+                          color: #334155;
+                        }
+                      `}</style>
+                      <div className="absolute bottom-4 right-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest pointer-events-none">
+                        Smart Template Editor
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Preview Side */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 sticky top-28">
+                <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
+                  <Sparkles className="text-orange-500" size={20} />
+                  <h2 className="text-lg font-bold text-slate-900">Xem trước (Preview)</h2>
+                </div>
+
+                <div className="bg-orange-55 bg-orange-50/20 rounded-2xl p-6 border border-orange-100/50">
+                  <div className="whitespace-pre-wrap text-xs md:text-sm text-slate-700 font-semibold leading-relaxed font-sans">
+                    {renderPreview()}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Preview Side */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6 sticky top-28">
-            <div className="flex items-center gap-2 border-b border-slate-50 pb-4">
-              <Sparkles className="text-orange-500" size={20} />
-              <h2 className="text-lg font-semibold text-slate-900">Xem trước (Preview)</h2>
-            </div>
-
-            <div className="bg-orange-50/30 rounded-2xl p-6 border border-orange-100/50">
-              <div className="whitespace-pre-wrap text-sm text-slate-700 font-medium leading-relaxed font-sans">
-                {renderPreview()}
-              </div>
-            </div>
-
-          </div>
-        </div>
       </div>
     </div>
   );

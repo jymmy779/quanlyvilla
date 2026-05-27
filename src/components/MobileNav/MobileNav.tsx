@@ -3,11 +3,27 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, DollarSign, Hotel, Settings, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, DollarSign, Hotel, Settings, LogOut, Menu, X, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useNotification } from '@/context/NotificationContext';
+
 
 const MobileNav = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { profile, role, logout } = useAuth();
+  const { confirm } = useNotification();
+
+  const handleLogoutClick = () => {
+    confirm({
+      title: 'Đăng xuất tài khoản?',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản lý VillaManager không?',
+      onConfirm: () => logout(),
+      confirmText: 'Đăng xuất',
+      cancelText: 'Hủy'
+    });
+  };
+
 
   const mainItems = [
     { name: 'Tổng quan', href: '/', icon: LayoutDashboard },
@@ -21,6 +37,13 @@ const MobileNav = () => {
     { name: 'Đăng xuất', icon: LogOut, isAction: true },
   ];
 
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
   return (
     <>
       {/* Overlay Menu */}
@@ -30,42 +53,66 @@ const MobileNav = () => {
           onClick={() => setIsOpen(false)}
         >
           <div 
-            className="absolute bottom-24 right-4 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-2 min-w-[180px] overflow-hidden"
+            className="absolute bottom-24 right-4 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-3 min-w-[210px] overflow-hidden space-y-2 animate-in slide-in-from-bottom-2 duration-250"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-3 py-2 border-b border-slate-50 mb-1">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tài khoản</span>
+            {/* User Profile Widget */}
+            {profile && (
+              <div className="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-100 rounded-xl mb-1">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white ${
+                  role === 'admin' 
+                    ? 'bg-gradient-to-tr from-red-500 to-rose-400' 
+                    : 'bg-gradient-to-tr from-orange-500 to-amber-400'
+                }`}>
+                  {getInitials(profile.full_name || '')}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-[11px] text-slate-900 truncate leading-tight">
+                    {profile.full_name || 'Chưa cập nhật'}
+                  </p>
+                  <span className={`text-[8px] font-bold uppercase block mt-0.5 ${
+                    role === 'admin' ? 'text-red-500' : 'text-orange-500'
+                  }`}>
+                    {role === 'admin' ? 'Quản trị' : 'Nhân viên'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="px-1 py-1 border-b border-slate-50">
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Tài khoản</span>
             </div>
+            
             {moreItems.map((item) => (
               item.isAction ? (
                 <button
                   key={item.name}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors group"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer font-semibold text-xs active:scale-95"
                   onClick={() => {
-                    // Handle logout logic here
                     setIsOpen(false);
+                    handleLogoutClick();
                   }}
                 >
-                  <div className="bg-red-50 p-2 rounded-lg group-hover:bg-red-100 transition-colors">
-                    <item.icon size={18} />
+                  <div className="bg-red-50 p-1.5 rounded-lg text-red-500">
+                    <item.icon size={16} />
                   </div>
-                  <span className="font-semibold text-sm">{item.name}</span>
+                  <span>{item.name}</span>
                 </button>
               ) : (
                 <Link
                   key={item.href}
                   href={item.href!}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors group ${
-                    pathname === item.href ? 'bg-orange-50 text-orange-600' : 'text-slate-600 hover:bg-slate-50'
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-xs ${
+                    pathname.startsWith(item.href!) ? 'bg-orange-50 text-orange-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
-                  <div className={`p-2 rounded-lg transition-colors ${
-                    pathname === item.href ? 'bg-orange-100' : 'bg-slate-50 group-hover:bg-slate-100'
+                  <div className={`p-1.5 rounded-lg transition-colors ${
+                    pathname.startsWith(item.href!) ? 'bg-orange-100' : 'bg-slate-50'
                   }`}>
-                    <item.icon size={18} />
+                    <item.icon size={16} />
                   </div>
-                  <span className="font-semibold text-sm">{item.name}</span>
+                  <span>{item.name}</span>
                 </Link>
               )
             ))}

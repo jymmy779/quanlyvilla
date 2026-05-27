@@ -141,7 +141,7 @@ const VillaDetailPage = () => {
               <div className="w-2 h-10 bg-orange-500 rounded-full"></div>
               Giới thiệu chung
             </h2>
-            <p className="text-slate-600 leading-relaxed text-xl font-medium">
+            <p className="text-slate-600 leading-relaxed text-xl font-medium whitespace-pre-line">
               {villa.description || 'Chưa có mô tả cho căn Villa này.'}
             </p>
           </section>

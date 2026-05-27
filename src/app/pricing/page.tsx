@@ -5,8 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
 import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 
 const PricingPage = () => {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
   const [villas, setVillas] = useState<Villa[]>([]);
   const [selectedVillaId, setSelectedVillaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +24,7 @@ const PricingPage = () => {
   }, []);
 
   const fetchVillas = async () => {
+    console.log('[PricingPage] 🚀 Bắt đầu fetchVillas...');
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -28,15 +32,21 @@ const PricingPage = () => {
         .select('*')
         .neq('status', 'inactive');
 
-      if (error) throw error;
+      if (error) {
+        console.error('[PricingPage] ❌ Lỗi khi tải danh sách Villa:', error);
+        throw error;
+      }
+      
+      console.log('[PricingPage] 🎉 Tải danh sách Villa thành công, số lượng:', data?.length);
       if (data && data.length > 0) {
         setVillas(data);
         setSelectedVillaId(data[0].id);
         setMonthlyPrices(data[0].monthly_prices || []);
       }
     } catch (error) {
-      console.error(error);
+      console.error('[PricingPage] 💥 Lỗi bắt ngoại lệ fetchVillas:', error);
     } finally {
+      console.log('[PricingPage] 🏁 Hoàn thành fetchVillas (finally block)');
       setLoading(false);
     }
   };
@@ -148,14 +158,21 @@ const PricingPage = () => {
           </div>
         </div>
 
-        <button 
-          onClick={handleSave}
-          disabled={saving || !selectedVillaId}
-          className="bg-slate-900 text-white hover:bg-emerald-600 px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-semibold text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-          Lưu bảng giá {selectedYear}
-        </button>
+        {isAdmin ? (
+          <button 
+            onClick={handleSave}
+            disabled={saving || !selectedVillaId}
+            className="bg-slate-900 text-white hover:bg-emerald-600 px-6 md:px-8 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-semibold text-sm shadow-lg flex items-center justify-center gap-2.5 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            Lưu bảng giá {selectedYear}
+          </button>
+        ) : (
+          <div className="bg-orange-50 border border-orange-100 text-orange-700 px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold">
+            <AlertCircle size={14} className="text-orange-500" />
+            Chế độ Chỉ xem (Read-only)
+          </div>
+        )}
       </header>
 
       {/* Villa Tabs */}
@@ -213,12 +230,18 @@ const PricingPage = () => {
                       )}
                     </td>
                     <td className="py-4 px-2 md:px-4">
-                      <div className="flex items-center justify-center gap-1.5 md:gap-2 bg-white border border-slate-100 rounded-lg md:rounded-2xl p-0.5 md:p-1 focus-within:ring-2 focus-within:ring-orange-500 transition-all">
+                      <div className={`flex items-center justify-center gap-1.5 md:gap-2 border rounded-lg md:rounded-2xl p-0.5 md:p-1 transition-all ${
+                        !isAdmin 
+                          ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
+                          : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'
+                      }`}>
                         <span className="pl-1.5 md:pl-3 text-slate-300 font-semibold text-sm">đ</span>
                         <input 
                           type="text" 
-                          disabled={isPast}
-                          className="bg-transparent border-none py-2 md:py-3 text-right font-semibold text-slate-900 w-full outline-none text-sm"
+                          disabled={isPast || !isAdmin}
+                          className={`bg-transparent border-none py-2 md:py-3 text-right font-semibold w-full outline-none text-sm ${
+                            !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'
+                          }`}
                           value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
                           onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
                           onBlur={() => setEditingValue(null)}
@@ -227,12 +250,18 @@ const PricingPage = () => {
                       </div>
                     </td>
                     <td className="py-4 px-2 md:px-4">
-                      <div className="flex items-center justify-center gap-1.5 md:gap-2 bg-indigo-50/50 border border-indigo-100 rounded-lg md:rounded-2xl p-0.5 md:p-1 focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
+                      <div className={`flex items-center justify-center gap-1.5 md:gap-2 border rounded-lg md:rounded-2xl p-0.5 md:p-1 transition-all ${
+                        !isAdmin 
+                          ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
+                          : 'bg-indigo-50/50 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-500'
+                      }`}>
                         <span className="pl-1.5 md:pl-3 text-indigo-300 font-semibold text-sm">đ</span>
                         <input 
                           type="text" 
-                          disabled={isPast}
-                          className="bg-transparent border-none py-2 md:py-3 text-right font-semibold text-indigo-600 w-full outline-none text-sm"
+                          disabled={isPast || !isAdmin}
+                          className={`bg-transparent border-none py-2 md:py-3 text-right font-semibold w-full outline-none text-sm ${
+                            !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'
+                          }`}
                           value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                           onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                           onBlur={() => setEditingValue(null)}
