@@ -149,17 +149,17 @@ const MobileNav = () => {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-xs ${
                     pathname.startsWith(item.href!) 
                       ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400' 
-                      : 'text-slate-650 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <div className={`p-1.5 rounded-lg transition-colors ${
                     pathname.startsWith(item.href!) 
                       ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400' 
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300'
                   }`}>
                     <item.icon size={16} />
                   </div>
-                  <span>{item.name}</span>
+                  <span className="text-slate-500 dark:text-slate-300">{item.name}</span>
                 </Link>
               )
             ))}

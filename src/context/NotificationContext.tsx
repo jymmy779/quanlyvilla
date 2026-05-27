@@ -91,17 +91,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       {/* Global Confirm Modal */}
       {confirmModal && (
         <div className="fixed inset-0 z-200 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
-          <div className="relative bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100">
-            <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">
-              <HelpCircle className="text-orange-600" size={32} />
+          <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
+          <div className="relative bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl dark:shadow-slate-950/40 animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800 transition-all duration-300">
+            <div className="w-16 h-16 bg-orange-50 dark:bg-orange-950/40 rounded-2xl flex items-center justify-center mb-6">
+              <HelpCircle className="text-orange-600 dark:text-orange-400" size={32} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">{confirmModal.title}</h3>
-            <p className="text-slate-500 text-sm leading-relaxed mb-8">{confirmModal.message}</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{confirmModal.title}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-8">{confirmModal.message}</p>
             <div className="flex gap-3">
               <button 
                 onClick={() => setConfirmModal(null)}
-                className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {confirmModal.cancelText || 'Hủy bỏ'}
               </button>

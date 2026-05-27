@@ -11,7 +11,7 @@ import {
   Trash2, Bold, Italic, Underline as UnderlineIcon,
   Type, Smile, CaseSensitive,
   ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle,
-  User, Lock, Users, KeyRound, Phone, Mail, Loader2, Building2
+  User, Lock, Users, KeyRound, Phone, Mail, Loader2, Building2, Eye, EyeOff
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import EmojiPicker, { Theme, EmojiClickData } from 'emoji-picker-react';
@@ -272,7 +272,7 @@ const ThemeSwitcherSection = () => {
               {t.icon}
             </div>
             <div>
-              <p className={`font-bold text-sm ${themeMode === t.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+              <p className={`font-bold text-sm ${themeMode === t.id ? 'text-slate-900' : 'text-slate-600 dark:text-slate-300'}`}>
                 {t.label}
               </p>
               <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">{t.desc}</p>
@@ -597,6 +597,8 @@ const SettingsPageContent = () => {
   const [oldPassword, setOldPassword] = useState(''); // Supabase client không yêu cầu mật khẩu cũ để đổi pass mới, nhưng thêm vào cho giao diện chuyên nghiệp
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [securitySaving, setSecuritySaving] = useState(false);
 
   // Tab 3: Template States (Được giữ nguyên)
@@ -1044,12 +1046,20 @@ const SettingsPageContent = () => {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
-                    type="password"
+                    type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Tối thiểu 6 ký tự"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-12 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-3 text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 
@@ -1058,12 +1068,20 @@ const SettingsPageContent = () => {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                   <input
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Nhập lại mật khẩu giống hệt phía trên"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-4 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-12 pr-12 outline-none text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-3 text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 

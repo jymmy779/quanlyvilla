@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
 import {
   Users, KeyRound, Trash2, ShieldAlert,
-  ArrowLeft, Search, Loader2, Calendar, Mail, Phone, UserCheck, ShieldAlert as AlertIcon, Lock, Check, X, Plus, User
+  ArrowLeft, Search, Loader2, Calendar, Mail, Phone, UserCheck, ShieldAlert as AlertIcon, Lock, Check, X, Plus, User, Eye, EyeOff
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { UserProfile, UserRole } from '@/types';
@@ -37,6 +37,7 @@ export default function UsersManagementPage() {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
   // States cho modal sửa thông tin nhân viên
@@ -650,14 +651,22 @@ export default function UsersManagementPage() {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
                   <input
-                    type="password"
+                    type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Mật khẩu tạm tối thiểu 6 ký tự"
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-3 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-3 pl-11 pr-12 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all"
                     disabled={resetLoading}
                     autoFocus
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-3.5 text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 
@@ -800,16 +809,16 @@ export default function UsersManagementPage() {
                   <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Mật khẩu ban đầu</label>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors" size={16} />
-                    <input
-                      type="password"
-                      value={createPassword}
-                      onChange={(e) => setCreatePassword(e.target.value)}
-                      placeholder="Mật khẩu tối thiểu 6 ký tự"
-                      className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-4 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
-                        createErrors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
-                      }`}
-                      disabled={createLoading}
-                    />
+                  <input
+                    type="password"
+                    value={createPassword}
+                    onChange={(e) => setCreatePassword(e.target.value)}
+                    placeholder="Mật khẩu tối thiểu 6 ký tự"
+                    className={`w-full bg-slate-50 dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 pl-11 pr-11 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                      createErrors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-800 focus:border-orange-500 dark:focus:border-orange-500'
+                    }`}
+                    disabled={createLoading}
+                  />
                   </div>
                   {createErrors.password && (
                     <p className="text-red-500 text-[10px] font-bold mt-1 animate-in fade-in duration-200 flex items-center gap-1">

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useNotification } from '@/context/NotificationContext';
-import { Home, Mail, Lock, User, Phone, Sparkles, Loader2, ArrowLeft, Building2, CheckCircle2 } from 'lucide-react';
+import { Home, Mail, Lock, User, Phone, Sparkles, Loader2, ArrowLeft, Building2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RegisterStartupPage() {
@@ -20,6 +20,7 @@ export default function RegisterStartupPage() {
   const [startupName, setStartupName] = useState('');
   const [businessType, setBusinessType] = useState('homestay');
   const [activationCode, setActivationCode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -70,13 +71,13 @@ export default function RegisterStartupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-sans text-slate-800 dark:text-slate-200 transition-all duration-300">
       {/* Background blobs đồng bộ 100% với trang đăng nhập */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-orange-200/40 rounded-full blur-[100px]"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-100/40 rounded-full blur-[100px]"></div>
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-orange-200/40 dark:bg-orange-500/10 rounded-full blur-[100px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-100/40 dark:bg-red-500/10 rounded-full blur-[100px]"></div>
 
       {/* Main card đồng bộ với trang đăng nhập */}
-      <div className="max-w-5xl w-full bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-slate-200 shadow-2xl flex flex-col md:flex-row overflow-hidden min-h-[650px] animate-in fade-in zoom-in-95 duration-500 relative z-10">
+      <div className="max-w-5xl w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 flex flex-col md:flex-row overflow-hidden min-h-[650px] animate-in fade-in zoom-in-95 duration-500 relative z-10">
         
         {/* Banner trái - Đồng bộ 100% với trang Đăng Nhập */}
         <div className="md:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-orange-950 p-8 md:p-12 flex flex-col justify-between text-white relative">
@@ -122,7 +123,7 @@ export default function RegisterStartupPage() {
         </div>
 
         {/* Form phải - Đồng bộ với input field và form style của website */}
-        <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center bg-white relative max-h-[85vh] md:max-h-none overflow-y-auto">
+        <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center bg-white dark:bg-slate-900 relative max-h-[85vh] md:max-h-none overflow-y-auto">
           <div className="space-y-5 w-full max-w-md mx-auto animate-in slide-in-from-right-4 duration-300">
             
             <div className="space-y-1">
@@ -132,38 +133,38 @@ export default function RegisterStartupPage() {
               >
                 <ArrowLeft size={12} /> Quay lại đăng nhập
               </Link>
-              <h1 className="text-2xl font-bold text-slate-950">Đăng ký chuỗi mới ✨</h1>
-              <p className="text-slate-500 text-xs font-semibold">Bắt đầu kinh doanh lưu trú chuyên nghiệp</p>
+              <h1 className="text-2xl font-bold text-slate-950 dark:text-white">Đăng ký chuỗi mới ✨</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold">Bắt đầu kinh doanh lưu trú chuyên nghiệp</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
               
               {/* Cụm 1: Thông tin Chuỗi */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1 border-b border-slate-200/50 pb-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-1 border-b border-slate-200/50 dark:border-slate-700 pb-1.5">
                   <Building2 size={12} className="text-orange-600" /> Startup / Chuỗi Kinh Doanh
                 </span>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Tên chuỗi kinh doanh</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Tên chuỗi kinh doanh</label>
                   <input
                     type="text"
                     value={startupName}
                     onChange={(e) => setStartupName(e.target.value)}
                     placeholder="Ví dụ: Homestay Dalat Hill"
-                    className={`w-full bg-white border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                      errors.startupName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                    className={`w-full bg-white dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                      errors.startupName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-500'
                     }`}
                     disabled={loading}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Loại hình lưu trú</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Loại hình lưu trú</label>
                   <select
                     value={businessType}
                     onChange={(e) => setBusinessType(e.target.value)}
-                    className="w-full bg-white border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-700 transition-all cursor-pointer"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
                     disabled={loading}
                   >
                     <option value="homestay">Homestay / Hostel</option>
@@ -176,35 +177,35 @@ export default function RegisterStartupPage() {
               </div>
 
               {/* Cụm 2: Tài khoản Chủ sở hữu */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1 border-b border-slate-200/50 pb-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-1 border-b border-slate-200/50 dark:border-slate-700 pb-1.5">
                   <User size={12} className="text-orange-600" /> Tài khoản Chủ chuỗi (Owner)
                 </span>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Họ và Tên</label>
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Họ Tên của bạn"
-                      className={`w-full bg-white border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                        errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                      className={`w-full bg-white dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-500'
                       }`}
                       disabled={loading}
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">SĐT liên hệ</label>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">SĐT liên hệ</label>
                     <input
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="0326xxxxxx"
-                      className={`w-full bg-white border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                        errors.phone ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                      className={`w-full bg-white dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        errors.phone ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-500'
                       }`}
                       disabled={loading}
                     />
@@ -212,14 +213,14 @@ export default function RegisterStartupPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Email đăng nhập</label>
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Email đăng nhập</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="email-cua-ban@gmail.com"
-                    className={`w-full bg-white border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                      errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
+                    className={`w-full bg-white dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                      errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-500'
                     }`}
                     disabled={loading}
                   />
@@ -227,24 +228,34 @@ export default function RegisterStartupPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Mật khẩu mới</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Tối thiểu 6 ký tự"
-                    className={`w-full bg-white border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 transition-all ${
-                      errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-orange-500'
-                    }`}
-                    disabled={loading}
-                  />
+                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Mật khẩu mới</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Tối thiểu 6 ký tự"
+                      className={`w-full bg-white dark:bg-slate-950 border focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 pr-10 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all ${
+                        errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 dark:focus:border-orange-500'
+                      }`}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                   {errors.password && <p className="text-red-500 text-[10px] font-bold mt-1">{errors.password}</p>}
                 </div>
               </div>
 
               {/* Cụm 3: Mã kích hoạt nhanh */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1 border-b border-slate-200/50 pb-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-700 rounded-2xl p-4 space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase flex items-center gap-1 border-b border-slate-200/50 dark:border-slate-700 pb-1.5">
                   <Sparkles size={12} className="text-orange-600" /> Mã kích hoạt Premium (Nếu có)
                 </span>
                 <input
@@ -252,7 +263,7 @@ export default function RegisterStartupPage() {
                   value={activationCode}
                   onChange={(e) => setActivationCode(e.target.value)}
                   placeholder="Để trống nếu cần duyệt thủ công"
-                  className="w-full bg-white border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 transition-all placeholder:text-slate-300"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-xl py-2 px-3.5 outline-none text-xs font-semibold text-slate-800 dark:text-slate-200 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
                   disabled={loading}
                 />
               </div>

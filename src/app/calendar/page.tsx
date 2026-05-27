@@ -150,7 +150,7 @@ const CalendarPageContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] transition-all duration-300">
         <Loader2 className="text-orange-500 animate-spin" size={48} />
       </div>
     );
@@ -317,7 +317,7 @@ const CalendarPage = () => {
   return (
     <Suspense
       fallback={(
-        <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] transition-all duration-300">
           <Loader2 className="text-orange-500 animate-spin" size={48} />
         </div>
       )}

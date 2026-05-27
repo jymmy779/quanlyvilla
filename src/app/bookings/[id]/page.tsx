@@ -373,7 +373,7 @@ const BookingDetailPage = () => {
   };
 
   if (authLoading) return null;
-  if (loading) return <div className="min-h-[80vh] flex items-center justify-center"><Loader2 className="text-orange-500 animate-spin" size={48} /></div>;
+  if (loading) return <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] transition-all duration-300"><Loader2 className="text-orange-500 animate-spin" size={48} /></div>;
   if (!booking) return null;
 
   // ✨ Premium Dark Mode Status Badge Colors with Neon Glow
