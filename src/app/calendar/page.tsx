@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Villa, Booking } from '@/types';
 import { ChevronLeft, ChevronRight, Plus, Wrench, LogOut, LogIn, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
-const CalendarPage = () => {
+const CalendarPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
@@ -293,6 +293,20 @@ const CalendarPage = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const CalendarPage = () => {
+  return (
+    <Suspense
+      fallback={(
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <Loader2 className="text-orange-500 animate-spin" size={48} />
+        </div>
+      )}
+    >
+      <CalendarPageContent />
+    </Suspense>
   );
 };
 

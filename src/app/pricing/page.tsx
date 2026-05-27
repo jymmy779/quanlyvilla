@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
 import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon, Hotel } from 'lucide-react';
@@ -28,7 +28,7 @@ const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, erro
   });
 };
 
-const PricingPage = () => {
+const PricingPageContent = () => {
   const { role, logout, profile, loading: authLoading } = useAuth();
   const canManage = canManageVillas(role);
   const searchParams = useSearchParams();
@@ -584,6 +584,20 @@ const PricingPage = () => {
         </>
       )}
     </div>
+  );
+};
+
+const PricingPage = () => {
+  return (
+    <Suspense
+      fallback={(
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <Loader2 className="text-orange-500 animate-spin" size={48} />
+        </div>
+      )}
+    >
+      <PricingPageContent />
+    </Suspense>
   );
 };
 

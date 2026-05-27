@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
@@ -443,7 +443,7 @@ const StartupManagementSection = () => {
   );
 };
 
-const SettingsPage = () => {
+const SettingsPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { profile, role, updateProfile, changePassword } = useAuth();
@@ -1168,6 +1168,20 @@ const SettingsPage = () => {
 
       </div>
     </div>
+  );
+};
+
+const SettingsPage = () => {
+  return (
+    <Suspense
+      fallback={(
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <Loader2 className="text-orange-500 animate-spin" size={48} />
+        </div>
+      )}
+    >
+      <SettingsPageContent />
+    </Suspense>
   );
 };
 

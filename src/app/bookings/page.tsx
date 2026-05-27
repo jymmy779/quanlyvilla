@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
@@ -8,7 +8,7 @@ import { Search, Filter, Calendar, Loader2, ArrowLeft } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 
-const BookingsListPage = () => {
+const BookingsListPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { profile, loading: authLoading } = useAuth();
@@ -246,6 +246,20 @@ const BookingsListPage = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const BookingsListPage = () => {
+  return (
+    <Suspense
+      fallback={(
+        <div className="min-h-[80vh] flex items-center justify-center">
+          <Loader2 className="text-orange-500 animate-spin" size={48} />
+        </div>
+      )}
+    >
+      <BookingsListPageContent />
+    </Suspense>
   );
 };
 
