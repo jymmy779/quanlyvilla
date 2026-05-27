@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Check, AlertCircle, HelpCircle, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error';
@@ -30,6 +30,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [confirmModal, setConfirmModal] = useState<ConfirmOptions | null>(null);
 
+  useEffect(() => {
+    const recoverUi = () => {
+      if (document.visibilityState === 'visible') {
+        setConfirmModal(null);
+      }
+    };
+
+    window.addEventListener('pageshow', recoverUi);
+    document.addEventListener('visibilitychange', recoverUi);
+
+    return () => {
+      window.removeEventListener('pageshow', recoverUi);
+      document.removeEventListener('visibilitychange', recoverUi);
+    };
+  }, []);
+
   const showToast = (message: string, type: ToastType = 'success') => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -47,7 +63,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       {/* Global Toasts */}
-      <div className="fixed top-8 right-4 md:right-8 z-[300] flex flex-col gap-3 items-end max-w-sm pointer-events-none">
+      <div className="fixed top-8 right-4 md:right-8 z-300 flex flex-col gap-3 items-end max-w-sm pointer-events-none">
         {toasts.map((toast) => (
           <div 
             key={toast.id}
@@ -55,7 +71,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
               toast.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-rose-600 border-rose-500 text-white'
             }`}
           >
-            {toast.type === 'success' ? <Check size={16} className="flex-shrink-0 animate-bounce" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+            {toast.type === 'success' ? <Check size={16} className="shrink-0 animate-bounce" /> : <AlertCircle size={16} className="shrink-0" />}
             <span className="font-bold text-xs md:text-sm">{toast.message}</span>
             {/* Thanh đếm ngược chạy ngang ở dưới đáy Toast */}
             <div className="absolute bottom-0 left-0 h-1 bg-white/30 animate-toast-progress"></div>
@@ -74,7 +90,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
       {/* Global Confirm Modal */}
       {confirmModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-200 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setConfirmModal(null)}></div>
           <div className="relative bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100">
             <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">

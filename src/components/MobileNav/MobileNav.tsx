@@ -41,6 +41,22 @@ const MobileNav = () => {
     });
   }, [router]);
 
+  useEffect(() => {
+    const recoverUi = () => {
+      if (document.visibilityState === 'visible') {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('pageshow', recoverUi);
+    document.addEventListener('visibilitychange', recoverUi);
+
+    return () => {
+      window.removeEventListener('pageshow', recoverUi);
+      document.removeEventListener('visibilitychange', recoverUi);
+    };
+  }, []);
+
   const navigateTo = (event: React.MouseEvent, href: string) => {
     event.preventDefault();
     setIsOpen(false);

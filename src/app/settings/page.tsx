@@ -309,7 +309,6 @@ const StartupManagementSection = () => {
 
           showToast(`Đã chuyển nhượng quyền Owner thành công cho ${targetAdminName}!`, 'success');
           await refreshProfile();
-          window.location.reload();
         } catch (err: any) {
           showToast(err.message || 'Lỗi chuyển nhượng quyền sở hữu.', 'error');
         } finally {

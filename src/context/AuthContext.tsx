@@ -1,12 +1,31 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { UserProfile, UserRole } from '@/types';
 import { useNotification } from '@/context/NotificationContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { translateAuthError } from '@/lib/errorTranslator';
+
+const promiseTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string, onTimeout?: () => void): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      onTimeout?.();
+      reject(new Error(errorMsg));
+    }, ms);
+
+    promise
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+};
 
 interface AuthContextType {
   user: User | null;
@@ -38,18 +57,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastSessionUserIdRef = useRef<string | null>(null);
   
   const { showToast } = useNotification();
   const router = useRouter();
   const pathname = usePathname();
 
-  const fetchProfile = async (uid: string, email: string) => {
+  const fetchProfile = async (uid: string, email: string, controller?: AbortController) => {
     try {
-      const { data, error } = await supabase
+      const signal = controller?.signal;
+      const profileQuery = supabase
         .from('profiles')
         .select('*')
         .eq('id', uid)
         .single();
+
+      if (signal) {
+        (profileQuery as any).abortSignal(signal);
+      }
+
+      const { data, error } = await promiseTimeout<any>(
+        profileQuery as any,
+        15000,
+        'Tải hồ sơ người dùng quá lâu. Vui lòng thử lại.',
+        () => controller?.abort()
+      );
 
       if (error) {
         console.error('[AuthContext] ❌ Lỗi khi fetch profile từ database:', error);
@@ -57,7 +89,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error.code === 'PGRST116') {
           console.log('[AuthContext] ℹ️ Chưa có profile, tiến hành tạo mặc định...');
           // Kiểm tra xem hệ thống có tài khoản nào chưa để xét quyền Admin đầu tiên
-          const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+          const countQuery = supabase.from('profiles').select('*', { count: 'exact', head: true });
+
+          if (signal) {
+            (countQuery as any).abortSignal(signal);
+          }
+
+          const { count } = await promiseTimeout<any>(
+            countQuery as any,
+            15000,
+            'Kiểm tra số lượng hồ sơ quá lâu. Vui lòng thử lại.',
+            () => controller?.abort()
+          );
           const isFirstUser = count === 0;
 
           const defaultProfile = {
@@ -69,11 +112,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             tenant_id: uid // Admin mới/User mới tự làm chủ chính mình làm tenant mặc định
           };
 
-          const { data: insertedData } = await supabase
+          const insertQuery = supabase
             .from('profiles')
             .insert(defaultProfile)
             .select()
             .single();
+
+          if (signal) {
+            (insertQuery as any).abortSignal(signal);
+          }
+
+          const { data: insertedData } = await promiseTimeout<any>(
+            insertQuery as any,
+            15000,
+            'Tạo hồ sơ mặc định quá lâu. Vui lòng thử lại.',
+            () => controller?.abort()
+          );
 
           if (insertedData) {
             console.log('[AuthContext] ✅ Tạo profile mặc định thành công:', insertedData);
@@ -91,7 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async () => {
     if (user) {
-      const prof = await fetchProfile(user.id, user.email || '');
+      const controller = new AbortController();
+      const prof = await fetchProfile(user.id, user.email || '', controller);
       setProfile(prof);
     }
   };
@@ -138,8 +193,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (session?.user) {
-        setUser(session.user);
+        if (lastSessionUserIdRef.current !== session.user.id) {
+          lastSessionUserIdRef.current = session.user.id;
+          setUser(session.user);
+        }
       } else {
+        lastSessionUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         setLoading(false);
@@ -155,16 +214,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
+
+      const controller = new AbortController();
       
       try {
-        const prof = await fetchProfile(user.id, user.email || '');
+        const prof = await fetchProfile(user.id, user.email || '', controller);
         setProfile(prof);
 
         if (prof) {
           await autoApproveStartupIfConfirmed(prof);
         }
       } catch (error) {
+        controller.abort();
         console.error('[AuthContext] ❌ Lỗi khi tải profile của user:', error);
+        showToast('Không thể tải hồ sơ người dùng. Vui lòng thử lại.', 'error');
       } finally {
         setLoading(false);
       }
