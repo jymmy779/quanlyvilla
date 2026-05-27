@@ -62,7 +62,7 @@ const VillaDetailPage = () => {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-right duration-700 pb-20 px-4">
+    <div className="max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-right duration-700 pb-20">
       <div className="flex items-center justify-between">
         <button 
           onClick={() => router.back()}

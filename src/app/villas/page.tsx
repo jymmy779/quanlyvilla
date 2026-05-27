@@ -39,7 +39,7 @@ const VillaListPage = () => {
   };
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16">
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách căn</h1>

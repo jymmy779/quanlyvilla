@@ -147,7 +147,7 @@ const CalendarPage = () => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-16 md:pb-20 px-2 md:px-4 mt-6 md:mt-8">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-16 mt-6 md:mt-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Lịch điều phối</h1>

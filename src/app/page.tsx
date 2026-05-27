@@ -120,7 +120,7 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700 pb-10 md:pb-16 px-4">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
       <header>
         <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Báo cáo hôm nay 👋</h1>
       </header>

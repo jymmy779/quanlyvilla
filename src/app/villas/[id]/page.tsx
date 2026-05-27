@@ -61,7 +61,7 @@ const VillaDetailPage = () => {
   }
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right duration-700 pb-16 px-4 mt-6 md:mt-8">
+    <div className="max-w-[1200px] mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right duration-700 pb-16 mt-6 md:mt-8">
       {zoomedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center m-0 bg-black/90 p-4" onClick={() => setZoomedImage(null)}>
           <button className="absolute top-6 right-6 text-white p-2 bg-white/10 rounded-full hover:bg-white/20">
