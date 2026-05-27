@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rentify - Quản lý Villa & Booking
 
-## Getting Started
+Hệ thống quản lý cho thuê villa nhiều chủ (multi-tenant) với Supabase. Cho phép chủ villa quản lý đặt phòng, khách hàng và doanh thu.
 
-First, run the development server:
+## Tính năng
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Đa chủ (Multi-tenant)** — Mỗi chủ sở hữu nhiều villa, có tài khoản riêng biệt
+- **Quản lý Villa** — Thêm, sửa, xoá villa; quản lý thông tin, giá cả, lịch
+- **Đặt phòng (Booking)** — Xem lịch rảnh, đặt phòng, quản lý trạng thái
+- **Người dùng & Phân quyền** — Owner, Admin, Staff với quyền hạn khác nhau
+- **Báo cáo** — Xuất báo cáo doanh thu, thống kê đặt phòng (Word, PDF)
+- **Giao diện responsive** — Hỗ trợ mobile & desktop
+
+## Công nghệ sử dụng
+
+| Frontend | Backend / Database |
+|----------|-------------------|
+| Next.js 14 (App Router) | Supabase (PostgreSQL) |
+| TypeScript | Row Level Security (RLS) |
+| Tailwind CSS | realtime subscriptions |
+| Mermaid (ER diagram) | Multi-tenant schema |
+
+## Cấu trúc thư mục
+
+```
+src/
+├── app/               # Next.js App Router pages
+│   ├── bookings/      # Trang quản lý booking
+│   ├── villas/        # Trang quản lý villa
+│   ├── login/         # Đăng nhập
+│   ├── register/      # Đăng ký tài khoản
+│   ├── settings/      # Cài đặt hệ thống
+│   ├── calendar/      # Xem lịch
+│   └── pricing/       # Quản lý giá
+├── components/        # Shared components
+├── context/           # React context (auth, theme, notification)
+├── lib/               # Utilities & helpers
+├── data/              # Dữ liệu mẫu & seed
+└── types/             # TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Cài đặt
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 1. Clone repo
+git clone https://github.com/jymmy779/quanlyvilla.git
+cd rentify
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 2. Cài dependencies
+npm install
 
-## Learn More
+# 3. Tạo file .env.local
+cp .env.example .env.local
+# Điền SUPABASE_URL và SUPABASE_ANON_KEY
 
-To learn more about Next.js, take a look at the following resources:
+# 4. Chạy migration database
+# Import supabase_setup.sql vào Supabase SQL Editor
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 5. Chạy dev server
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
+Sơ đồ ER (Entity-Relationship):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+![ER Diagram](public/Screenshot%202026-05-27%20230649.png)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Hoặc mở `render-erd.html` trong trình duyệt để xem tương tác (có thanh trượt phóng to và nút tải PNG).
+
+### Entities chính
+
+| Table | Mô tả |
+|-------|-------|
+| `TENANTS` | Chủ sở hữu (mỗi tenant là một chủ villa) |
+| `PROFILES` | Hồ sơ người dùng (liên kết với auth.users) |
+| `VILLAS` | Các villa / căn hộ cho thuê |
+| `BOOKINGS` | Đặt phòng |
+| `SETTINGS` | Cài đặt (key-value theo tenant) |
+
+## API Routes
+
+| Method | Path | Mô tả |
+|--------|------|-------|
+| POST | `/api/auth/login` | Đăng nhập |
+| POST | `/api/auth/register` | Đăng ký chủ villa mới |
+| GET/POST | `/api/bookings` | Danh sách / tạo booking |
+| GET/PUT/DELETE | `/api/bookings/[id]` | Chi tiết / sửa / xoá booking |
+| GET/POST | `/api/villas` | Danh sách / tạo villa |
+| GET/PUT/DELETE | `/api/villas/[id]` | Chi tiết / sửa / xoá villa |
+
+## Biên dịch & Triển khai
+
+```bash
+# Build production
+npm run build
+
+# Start production server
+npm start
+
+# Export static site
+npm run export
+```
+
+## Scripts
+
+| Script | Mô tả |
+|--------|-------|
+| `npm run dev` | Dev server |
+| `npm run build` | Build production |
+| `npm run lint` | Kiểm tra lint |
+| `generate_report.py` | Sinh báo cáo Word |
+| `fill_report.py` | Điền dữ liệu vào template report |
+| `read_docx.py` | Đọc và extract nội dung file .docx |
+
+## License
+
+MIT
