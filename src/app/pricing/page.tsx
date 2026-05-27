@@ -7,8 +7,27 @@ import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCir
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 
+// Helper function to enforce promise timeout
+const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, errorMsg = 'Yêu cầu quá thời gian phản hồi.'): Promise<T> => {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(errorMsg));
+    }, ms);
+
+    Promise.resolve(promise)
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+};
+
 const PricingPage = () => {
-  const { role } = useAuth();
+  const { role, logout } = useAuth();
   const isAdmin = role === 'admin';
   const [villas, setVillas] = useState<Villa[]>([]);
   const [selectedVillaId, setSelectedVillaId] = useState<string | null>(null);
@@ -20,33 +39,71 @@ const PricingPage = () => {
   const { showToast } = useNotification();
 
   useEffect(() => {
-    fetchVillas();
+    const controller = new AbortController();
+    fetchVillas(controller.signal);
+    return () => {
+      controller.abort();
+    };
   }, []);
 
-  const fetchVillas = async () => {
-    console.log('[PricingPage] 🚀 Bắt đầu fetchVillas...');
+  const fetchVillas = async (signal?: AbortSignal) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Kiểm tra session trước khi fetch bằng cách bọc getSession vào promiseTimeout
+      const { data: { session } } = await promiseTimeout(
+        supabase.auth.getSession(),
+        5000,
+        'Không thể kiểm tra phiên đăng nhập.'
+      );
+      
+      const now = Math.floor(Date.now() / 1000);
+      // Chỉ tự động đăng xuất nếu session thực sự đã hết hạn và trước đó user đang trong trạng thái đăng nhập
+      if (!session || (session.expires_at && session.expires_at < now + 5)) {
+        // Nếu user trong context đã null (nghĩa là đã chủ động đăng xuất), ta không bắn thông báo session hết hạn nữa
+        if (supabase.auth.getUser() !== null) {
+          console.warn('[PricingPage] ⚠️ Session hết hạn hoặc không tồn tại, tiến hành đăng xuất...');
+          showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!', 'error');
+        }
+        await logout();
+        return;
+      }
+
+      const query = supabase
         .from('villas')
         .select('*')
         .neq('status', 'inactive');
+      
+      if (signal) {
+        query.abortSignal(signal);
+      }
+
+      const { data, error } = await promiseTimeout(
+        query,
+        10000,
+        'Lấy danh sách Villa quá hạn (10s). Vui lòng tải lại trang!'
+      );
 
       if (error) {
+        // Bỏ qua lỗi nếu do abort
+        if (error.name === 'AbortError' || (error as any).message?.includes('AbortError')) {
+          return;
+        }
         console.error('[PricingPage] ❌ Lỗi khi tải danh sách Villa:', error);
         throw error;
       }
       
-      console.log('[PricingPage] 🎉 Tải danh sách Villa thành công, số lượng:', data?.length);
       if (data && data.length > 0) {
         setVillas(data);
         setSelectedVillaId(data[0].id);
         setMonthlyPrices(data[0].monthly_prices || []);
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+        return;
+      }
       console.error('[PricingPage] 💥 Lỗi bắt ngoại lệ fetchVillas:', error);
     } finally {
-      console.log('[PricingPage] 🏁 Hoàn thành fetchVillas (finally block)');
       setLoading(false);
     }
   };
@@ -63,16 +120,21 @@ const PricingPage = () => {
     return monthlyPrices.find(p => p.month === month && p.year === selectedYear);
   };
 
-  const handlePriceChange = (month: number, type: 'weekday' | 'weekend', inputVal: string, inputElement: HTMLInputElement) => {
+  const handlePriceChange = (month: number, type: 'weekday' | 'friday' | 'weekend' | 'sunday', inputVal: string, inputElement: HTMLInputElement) => {
     const key = `${month}-${type}`;
     
     // Đếm số chữ số trước con trỏ để giữ vị trí
     const cursorPosition = inputElement.selectionStart || 0;
     const digitsBeforeCursor = inputVal.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    // Manual VN Formatter: Thêm dấu chấm nhưng KHÔNG ép kiểu Number sớm (để giữ số 0 ở đầu)
+    // Loại bỏ mọi ký tự không phải số
     const digits = inputVal.replace(/\D/g, '');
-    const formattedVal = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    
+    // Định dạng tiền tệ VND
+    let formattedVal = '';
+    if (digits !== '') {
+      formattedVal = new Intl.NumberFormat('vi-VN').format(Number(digits));
+    }
 
     setEditingValue({ key, val: formattedVal });
 
@@ -84,13 +146,17 @@ const PricingPage = () => {
     
     if (index >= 0) {
       if (type === 'weekday') newPrices[index].weekday_price = amount;
-      else newPrices[index].weekend_price = amount;
+      else if (type === 'friday') newPrices[index].friday_price = amount;
+      else if (type === 'weekend') newPrices[index].weekend_price = amount;
+      else if (type === 'sunday') newPrices[index].sunday_price = amount;
     } else {
       const newItem: any = { 
         month, 
         year: selectedYear,
         weekday_price: type === 'weekday' ? amount : 5000000,
-        weekend_price: type === 'weekend' ? amount : 7000000
+        friday_price: type === 'friday' ? amount : 5000000,
+        weekend_price: type === 'weekend' ? amount : 7000000,
+        sunday_price: type === 'sunday' ? amount : 5000000
       };
       newPrices.push(newItem);
     }
@@ -109,22 +175,59 @@ const PricingPage = () => {
   };
 
   const handleSave = async () => {
-    if (!selectedVillaId) return;
+    if (!selectedVillaId) {
+      console.warn('[PricingPage] Không thể lưu vì selectedVillaId rỗng');
+      return;
+    }
+    console.log('[PricingPage] 🚀 Bắt đầu gọi handleSave...');
     try {
       setSaving(true);
-      const { error } = await supabase
-        .from('villas')
-        .update({ monthly_prices: monthlyPrices })
-        .eq('id', selectedVillaId);
+      
+      // 1. Kiểm tra session trước khi gọi database để tránh treo vô hạn do refresh token lỗi
+      console.log('[PricingPage] 🔑 Đang kiểm tra session của người dùng...');
+      const { data: { session }, error: sessionError } = await promiseTimeout(
+        supabase.auth.getSession(),
+        5000,
+        'Không thể kiểm tra phiên đăng nhập.'
+      );
+      
+      const now = Math.floor(Date.now() / 1000);
+      if (sessionError || !session || (session.expires_at && session.expires_at < now + 5)) {
+        console.error('[PricingPage] ❌ Session không hợp lệ hoặc đã hết hạn:', sessionError);
+        showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!', 'error');
+        await logout();
+        return;
+      }
 
-      if (error) throw error;
+      console.log('[PricingPage] 📡 Gửi request lên Supabase cho villa:', selectedVillaId);
+      console.log('[PricingPage] 📦 Dữ liệu monthlyPrices gửi đi:', monthlyPrices);
+
+      // Enforce a 10-second timeout on the Supabase update request
+      const { data, error } = await promiseTimeout(
+        supabase
+          .from('villas')
+          .update({ monthly_prices: monthlyPrices })
+          .eq('id', selectedVillaId)
+          .select(),
+        10000,
+        'Kết nối đến máy chủ quá hạn (10s). Vui lòng kiểm tra lại mạng hoặc tải lại trang!'
+      );
+
+      console.log('[PricingPage] 📥 Kết quả trả về từ Supabase:', { data, error });
+
+      if (error) {
+        console.error('[PricingPage] ❌ Supabase trả về lỗi:', error);
+        throw error;
+      }
       
       setVillas(villas.map(v => v.id === selectedVillaId ? { ...v, monthly_prices: monthlyPrices } : v));
       showToast(`Đã cập nhật thành công bảng giá năm ${selectedYear}!`);
-    } catch (error) {
-      console.error(error);
-      showToast('Lỗi khi lưu bảng giá!', 'error');
+      console.log('[PricingPage] 🎉 Đã cập nhật thành công bảng giá!');
+    } catch (error: any) {
+      console.error('[PricingPage] 💥 Lỗi bắt ngoại lệ khi lưu bảng giá:', error);
+      showToast(error?.message || 'Lỗi khi lưu bảng giá!', 'error');
     } finally {
+      console.log('[PricingPage] 🏁 Hoàn thành block try-catch, setSaving(false)');
       setSaving(false);
     }
   };
@@ -198,9 +301,11 @@ const PricingPage = () => {
             <thead>
               <tr className="text-slate-400 text-sm border-b border-slate-100 font-semibold">
                 <th className="pb-4 pl-2">Tháng</th>
-                <th className="pb-4 hidden md:table-cell">Mùa vụ</th>
-                <th className="pb-4 text-center">Giá Ngày Thường</th>
-                <th className="pb-4 text-center">Giá Cuối Tuần</th>
+                <th className="pb-4 hidden lg:table-cell">Mùa vụ</th>
+                <th className="pb-4 text-center">Thứ 2 - 5</th>
+                <th className="pb-4 text-center">Thứ 6</th>
+                <th className="pb-4 text-center">Thứ 7</th>
+                <th className="pb-4 text-center">Chủ Nhật</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -214,32 +319,46 @@ const PricingPage = () => {
                 
                 // Hiển thị giá từ DB, nếu chưa có thì dùng mặc định
                 const displayWeekday = seasonal ? seasonal.weekday_price.toLocaleString('vi-VN') : (isPast ? '' : '5.000.000');
+                
+                const displayFriday = seasonal 
+                  ? (seasonal.friday_price !== undefined && seasonal.friday_price !== null 
+                      ? seasonal.friday_price.toLocaleString('vi-VN') 
+                      : seasonal.weekday_price.toLocaleString('vi-VN')) 
+                  : (isPast ? '' : '5.000.000');
+                  
                 const displayWeekend = seasonal ? seasonal.weekend_price.toLocaleString('vi-VN') : (isPast ? '' : '7.000.000');
+                
+                const displaySunday = seasonal 
+                  ? (seasonal.sunday_price !== undefined && seasonal.sunday_price !== null 
+                      ? seasonal.sunday_price.toLocaleString('vi-VN') 
+                      : seasonal.weekday_price.toLocaleString('vi-VN')) 
+                  : (isPast ? '' : '5.000.000');
 
                 return (
                   <tr key={month} className={`group ${isPast ? 'opacity-40' : ''} hover:bg-slate-50 transition-colors`}>
                     <td className="py-4 pl-2">
-                      <span className="font-semibold text-slate-900 text-sm md:text-lg leading-tight">T{month}</span>
+                      <span className="font-semibold text-slate-900 text-sm md:text-base leading-tight">T{month}</span>
                       <p className="text-xs text-slate-400 font-medium">{selectedYear}</p>
                     </td>
-                    <td className="py-4 hidden md:table-cell">
+                    <td className="py-4 hidden lg:table-cell">
                       {isPeak ? (
                         <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-xs font-semibold border border-red-100">Cao điểm</span>
                       ) : (
                         <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded text-xs font-semibold border border-slate-100">Thường</span>
                       )}
                     </td>
-                    <td className="py-4 px-2 md:px-4">
-                      <div className={`flex items-center justify-center gap-1.5 md:gap-2 border rounded-lg md:rounded-2xl p-0.5 md:p-1 transition-all ${
+                    {/* T2 - T5 */}
+                    <td className="py-4 px-1.5 md:px-2">
+                      <div className={`flex items-center justify-center gap-1 border rounded-xl p-0.5 transition-all ${
                         !isAdmin 
                           ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
                           : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'
                       }`}>
-                        <span className="pl-1.5 md:pl-3 text-slate-300 font-semibold text-sm">đ</span>
+                        <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
                         <input 
                           type="text" 
                           disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none py-2 md:py-3 text-right font-semibold w-full outline-none text-sm ${
+                          className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${
                             !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'
                           }`}
                           value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
@@ -249,23 +368,66 @@ const PricingPage = () => {
                         />
                       </div>
                     </td>
-                    <td className="py-4 px-2 md:px-4">
-                      <div className={`flex items-center justify-center gap-1.5 md:gap-2 border rounded-lg md:rounded-2xl p-0.5 md:p-1 transition-all ${
+                    {/* Thứ 6 */}
+                    <td className="py-4 px-1.5 md:px-2">
+                      <div className={`flex items-center justify-center gap-1 border rounded-xl p-0.5 transition-all ${
+                        !isAdmin 
+                          ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
+                          : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'
+                      }`}>
+                        <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
+                        <input 
+                          type="text" 
+                          disabled={isPast || !isAdmin}
+                          className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${
+                            !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'
+                          }`}
+                          value={editingValue?.key === `${month}-friday` ? editingValue.val : displayFriday}
+                          onFocus={() => setEditingValue({ key: `${month}-friday`, val: displayFriday })}
+                          onBlur={() => setEditingValue(null)}
+                          onChange={(e) => handlePriceChange(month, 'friday', e.target.value, e.target)}
+                        />
+                      </div>
+                    </td>
+                    {/* Thứ 7 */}
+                    <td className="py-4 px-1.5 md:px-2">
+                      <div className={`flex items-center justify-center gap-1 border rounded-xl p-0.5 transition-all ${
                         !isAdmin 
                           ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
                           : 'bg-indigo-50/50 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-500'
                       }`}>
-                        <span className="pl-1.5 md:pl-3 text-indigo-300 font-semibold text-sm">đ</span>
+                        <span className="pl-1.5 text-indigo-300 font-semibold text-xs">đ</span>
                         <input 
                           type="text" 
                           disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none py-2 md:py-3 text-right font-semibold w-full outline-none text-sm ${
+                          className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${
                             !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'
                           }`}
                           value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                           onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                           onBlur={() => setEditingValue(null)}
                           onChange={(e) => handlePriceChange(month, 'weekend', e.target.value, e.target)}
+                        />
+                      </div>
+                    </td>
+                    {/* Chủ Nhật */}
+                    <td className="py-4 px-1.5 md:px-2">
+                      <div className={`flex items-center justify-center gap-1 border rounded-xl p-0.5 transition-all ${
+                        !isAdmin 
+                          ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' 
+                          : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'
+                      }`}>
+                        <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
+                        <input 
+                          type="text" 
+                          disabled={isPast || !isAdmin}
+                          className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${
+                            !isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'
+                          }`}
+                          value={editingValue?.key === `${month}-sunday` ? editingValue.val : displaySunday}
+                          onFocus={() => setEditingValue({ key: `${month}-sunday`, val: displaySunday })}
+                          onBlur={() => setEditingValue(null)}
+                          onChange={(e) => handlePriceChange(month, 'sunday', e.target.value, e.target)}
                         />
                       </div>
                     </td>

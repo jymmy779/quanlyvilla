@@ -22,6 +22,7 @@ const BookingDetailPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isManualDeposit, setIsManualDeposit] = useState(false);
+  const [isManualTotal, setIsManualTotal] = useState(false);
   const [conflictError, setConflictError] = useState<string | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateText, setTemplateText] = useState('');
@@ -92,6 +93,7 @@ const BookingDetailPage = () => {
   };
 
   const handleRecalculate = useCallback(() => {
+    if (isManualTotal) return;
     if (!villa || !editForm.check_in || !editForm.check_out) return;
     const start = new Date(editForm.check_in);
     const end = new Date(editForm.check_out);
@@ -104,7 +106,15 @@ const BookingDetailPage = () => {
       const dayOfWeek = current.getDay();
       const priceConfig = villa.monthly_prices?.find((p: MonthlyPrice) => p.month === month && p.year === year);
       if (priceConfig) {
-        total += dayOfWeek === 6 ? priceConfig.weekend_price : priceConfig.weekday_price;
+        let price = priceConfig.weekday_price;
+        if (dayOfWeek === 6) {
+          price = priceConfig.weekend_price;
+        } else if (dayOfWeek === 5) {
+          price = priceConfig.friday_price ?? priceConfig.weekday_price;
+        } else if (dayOfWeek === 0) {
+          price = priceConfig.sunday_price ?? priceConfig.weekday_price;
+        }
+        total += price;
       } else {
         total += villa.price || 5000000;
       }
@@ -113,7 +123,7 @@ const BookingDetailPage = () => {
     const servicesTotal = (editForm.additional_services || []).reduce((sum, s) => sum + s.price, 0);
     const grandTotal = total + servicesTotal;
     setEditForm(prev => ({ ...prev, total_amount: grandTotal, deposit_amount: isManualDeposit ? prev.deposit_amount : grandTotal / 2 }));
-  }, [villa, editForm.check_in, editForm.check_out, editForm.additional_services, isManualDeposit]);
+  }, [villa, editForm.check_in, editForm.check_out, editForm.additional_services, isManualDeposit, isManualTotal]);
 
   useEffect(() => {
     if (isEditing) {
@@ -275,6 +285,7 @@ Cám ơn quý khách 🌸`;
 
     if (field === 'total_amount') {
       setEditForm(prev => ({ ...prev, total_amount: numValue, deposit_amount: isManualDeposit ? prev.deposit_amount : Math.floor(numValue / 2) }));
+      setIsManualTotal(true);
     } else {
       setEditForm(prev => ({ ...prev, deposit_amount: numValue }));
       setIsManualDeposit(true);
@@ -527,9 +538,32 @@ Cám ơn quý khách 🌸`;
             </h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center text-slate-500 font-medium">
-                <span className="text-sm">Tổng cộng</span>
+                <span className="text-sm flex items-center gap-1">
+                  Tổng cộng
+                  {isEditing && (
+                    <button 
+                      type="button" 
+                      onClick={() => setIsManualTotal(!isManualTotal)}
+                      className={`p-1 rounded hover:bg-slate-100 transition-colors ${isManualTotal ? 'text-orange-500' : 'text-slate-400'}`}
+                      title={isManualTotal ? "Đang khóa giá thủ công (Zalo Flow). Click để tự động tính lại theo hệ thống." : "Hệ thống tự động tính. Click để khóa giá."}
+                    >
+                      {isManualTotal ? <ShieldCheck size={14} className="text-orange-500" /> : <Clock size={14} />}
+                    </button>
+                  )}
+                </span>
                 {isEditing ? (
-                  <input ref={totalAmountRef} type="text" className="w-24 md:w-32 bg-slate-50 p-2 rounded-xl text-right font-semibold text-sm" value={formatMoney(editForm.total_amount || 0)} onChange={e => handleMoneyChange('total_amount', e)} />
+                  <div className="relative flex items-center">
+                    <input 
+                      ref={totalAmountRef} 
+                      type="text" 
+                      className={`w-24 md:w-32 p-2 pr-6 rounded-xl text-right font-semibold text-sm ${isManualTotal ? 'bg-orange-50 border border-orange-200 text-orange-700' : 'bg-slate-50 border border-slate-200 text-slate-900'}`} 
+                      value={formatMoney(editForm.total_amount || 0)} 
+                      onChange={e => handleMoneyChange('total_amount', e)} 
+                    />
+                    {isManualTotal && (
+                      <span className="absolute right-2 text-xs" title="Đã khóa giá tự động">🔒</span>
+                    )}
+                  </div>
                 ) : (
                   <span className="text-sm md:text-base font-semibold text-slate-900">{booking.total_amount.toLocaleString()}đ</span>
                 )}

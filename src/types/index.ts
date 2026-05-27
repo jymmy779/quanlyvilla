@@ -11,6 +11,8 @@ export interface MonthlyPrice {
   year: number;
   weekday_price: number;
   weekend_price: number;
+  friday_price?: number;
+  sunday_price?: number;
 }
 
 export interface AdditionalService {

@@ -18,6 +18,8 @@ const CreateBookingPageContent = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isManualDeposit, setIsManualDeposit] = useState(false);
+  const [isManualTotal, setIsManualTotal] = useState(false);
+  const [priceChangeReason, setPriceChangeReason] = useState('');
   const [editingValue, setEditingValue] = useState<{ key: string; val: string } | null>(null);
 
   const [booking, setBooking] = useState({
@@ -61,6 +63,7 @@ const CreateBookingPageContent = () => {
   const villa = villas.find(v => v.id === villaId);
 
   const handleRecalculate = useCallback(() => {
+    if (isManualTotal) return;
     if (!villa || !booking.checkIn || !booking.checkOut) return;
 
     const start = new Date(booking.checkIn);
@@ -79,7 +82,14 @@ const CreateBookingPageContent = () => {
       const priceConfig = villa.monthly_prices?.find((p: MonthlyPrice) => p.month === month && p.year === year);
 
       if (priceConfig) {
-        const price = dayOfWeek === 6 ? priceConfig.weekend_price : priceConfig.weekday_price;
+        let price = priceConfig.weekday_price;
+        if (dayOfWeek === 6) {
+          price = priceConfig.weekend_price;
+        } else if (dayOfWeek === 5) {
+          price = priceConfig.friday_price ?? priceConfig.weekday_price;
+        } else if (dayOfWeek === 0) {
+          price = priceConfig.sunday_price ?? priceConfig.weekday_price;
+        }
         total += price;
       } else {
         total += villa.price || 5000000;
@@ -97,7 +107,7 @@ const CreateBookingPageContent = () => {
       totalAmount: grandTotal,
       depositAmount: isManualDeposit ? prev.depositAmount : grandTotal / 2
     }));
-  }, [villa, booking.checkIn, booking.checkOut, booking.additionalServices, isManualDeposit]);
+  }, [villa, booking.checkIn, booking.checkOut, booking.additionalServices, isManualDeposit, isManualTotal]);
 
   useEffect(() => {
     handleRecalculate();
@@ -132,6 +142,13 @@ const CreateBookingPageContent = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+      
+      let finalNotes = booking.notes;
+      if (isManualTotal && priceChangeReason.trim()) {
+        const reasonTag = `[Lý do chỉnh giá: ${priceChangeReason.trim()}]`;
+        finalNotes = finalNotes ? `${finalNotes}\n${reasonTag}` : reasonTag;
+      }
+
       const { error } = await supabase
         .from('bookings')
         .insert([{
@@ -144,7 +161,7 @@ const CreateBookingPageContent = () => {
           children: booking.children,
           total_amount: booking.totalAmount,
           deposit_amount: booking.depositAmount,
-          notes: booking.notes,
+          notes: finalNotes,
           additional_services: booking.additionalServices,
           status: 'deposited'
         }]);
@@ -182,6 +199,7 @@ const CreateBookingPageContent = () => {
 
     if (field === 'totalAmount') {
       setBooking(prev => ({ ...prev, totalAmount: numValue, depositAmount: isManualDeposit ? prev.depositAmount : Math.floor(numValue / 2) }));
+      setIsManualTotal(true);
     } else {
       setBooking(prev => ({ ...prev, depositAmount: numValue }));
       setIsManualDeposit(true);
@@ -380,18 +398,60 @@ const CreateBookingPageContent = () => {
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-400 ml-1">Tổng cộng (VNĐ)</label>
-                    <input
-                      ref={totalAmountInputRef}
-                      type="text"
-                      className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-200 rounded-xl p-3.5 md:p-4 font-semibold text-slate-900 text-lg md:text-2xl outline-none transition-all shadow-inner"
-                      value={editingValue?.key === 'totalAmount' ? editingValue.val : formatMoney(booking.totalAmount)}
-                      onFocus={() => setEditingValue({ key: 'totalAmount', val: formatMoney(booking.totalAmount) })}
-                      onBlur={() => setEditingValue(null)}
-                      onChange={(e) => handleMoneyChange('totalAmount', e)}
+              <div className="space-y-1.5 relative">
+                <div className="flex items-center justify-between ml-1">
+                  <label className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                    Tổng cộng (VNĐ)
+                    <button 
+                      type="button" 
+                      onClick={() => setIsManualTotal(!isManualTotal)}
+                      className={`p-1 rounded hover:bg-slate-100 transition-colors ${isManualTotal ? 'text-orange-500 font-bold' : 'text-slate-400'}`}
+                      title={isManualTotal ? "Đang khóa giá thủ công (Zalo Flow). Click để mở khóa và tự động tính lại." : "Click để khóa giá thủ công."}
+                    >
+                      {isManualTotal ? <span className="text-[10px] text-orange-500">🔒 Khóa Zalo</span> : <span className="text-[10px] text-slate-400">🔓 Tự động</span>}
+                    </button>
+                  </label>
+                  {isManualTotal && (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setIsManualTotal(false);
+                        setPriceChangeReason('');
+                      }}
+                      className="text-[10px] text-slate-400 hover:text-slate-900 flex items-center gap-0.5"
+                    >
+                      <RefreshCw size={10} /> Reset
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    ref={totalAmountInputRef}
+                    type="text"
+                    className={`w-full border-2 rounded-xl p-3.5 md:p-4 font-semibold text-lg md:text-2xl outline-none transition-all shadow-inner ${isManualTotal ? 'bg-orange-50 border-orange-400 text-orange-700' : 'bg-slate-50 border-transparent focus:border-indigo-200 text-slate-900'}`}
+                    value={editingValue?.key === 'totalAmount' ? editingValue.val : formatMoney(booking.totalAmount)}
+                    onFocus={() => setEditingValue({ key: 'totalAmount', val: formatMoney(booking.totalAmount) })}
+                    onBlur={() => setEditingValue(null)}
+                    onChange={(e) => handleMoneyChange('totalAmount', e)}
+                  />
+                  {isManualTotal && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500 text-lg">🔒</span>
+                  )}
+                </div>
+                {isManualTotal && (
+                  <div className="mt-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                    <span className="text-[10px] font-bold text-orange-500 ml-1">Lý do chỉnh giá (nhắn Zalo, bớt gần ngày...):</span>
+                    <input 
+                      type="text" 
+                      placeholder="Nhập lý do thay đổi..." 
+                      className="w-full bg-orange-50 border border-orange-200 rounded-lg p-2 text-xs font-semibold text-orange-750 outline-none placeholder-orange-350 focus:border-orange-400"
+                      value={priceChangeReason}
+                      onChange={e => setPriceChangeReason(e.target.value)}
                     />
+                  </div>
+                )}
               </div>
+              
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-orange-400 ml-1">Tiền cọc (VNĐ)</label>
                 <input

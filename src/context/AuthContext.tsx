@@ -35,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const pathname = usePathname();
 
   const fetchProfile = async (uid: string, email: string) => {
-    console.log('[AuthContext] 🚀 Bắt đầu fetch profile cho UID:', uid);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -73,8 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return null;
       }
-
-      console.log('[AuthContext] 🎉 Fetch profile thành công:', data);
       return data as UserProfile;
     } catch (err) {
       console.error('[AuthContext] 💥 Lỗi bắt ngoại lệ fetch profile:', err);
@@ -90,32 +87,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Khôi phục session và lắng nghe thay đổi trạng thái đăng nhập (Single Source of Truth)
-  useEffect(() => {
-    console.log('[AuthContext] 🛠️ Khởi tạo Auth State Listener...');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[AuthContext] 🔔 Sự kiện Auth thay đổi: ${event}`);
-      try {
-        if (session?.user) {
-          setUser(session.user);
-          const prof = await fetchProfile(session.user.id, session.user.email || '');
-          setProfile(prof);
-        } else {
-          setUser(null);
-          setProfile(null);
+  useEffect(() => {    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {        
+        // Giải mã JWT để xem chi tiết thời gian hết hạn của Access Token
+        try {
+          const token = session.access_token;
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            const now = Math.floor(Date.now() / 1000);
+          }
+        } catch (e) {
+          console.error('[AuthContext] Lỗi parse JWT:', e);
         }
-      } catch (error) {
-        console.error('[AuthContext] ❌ Lỗi trong Auth Listener:', error);
-      } finally {
+      }
+
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+        setProfile(null);
         setLoading(false);
       }
     });
 
     return () => {
-      console.log('[AuthContext] 🔌 Hủy đăng ký Auth State Listener.');
       subscription.unsubscribe();
     };
   }, []);
+
+  // Tải profile người dùng riêng biệt khi trạng thái user thay đổi (Tránh deadlock trong Auth Listener)
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const prof = await fetchProfile(user.id, user.email || '');
+        setProfile(prof);
+      } catch (error) {
+        console.error('[AuthContext] ❌ Lỗi khi tải profile của user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   // Bảo vệ Router (Route Guard) client-side
   useEffect(() => {
@@ -209,9 +227,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Đăng xuất
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      // Hủy bỏ user state trước để các logic tự động session hết hạn nhận biết user đã chủ động logout
       setUser(null);
       setProfile(null);
+      await supabase.auth.signOut();
       showToast('Đăng xuất thành công!');
       router.push('/login');
     } catch (err) {
