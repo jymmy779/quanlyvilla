@@ -222,7 +222,7 @@ export default function UsersManagementPage() {
   const handleSendEmailReset = async (userProfile: UserProfile) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(userProfile.email, {
-        redirectTo: `${window.location.origin}/settings`
+        redirectTo: `${window.location.origin}/reset-password`
       });
       if (error) throw error;
       showToast(`Đã gửi email khôi phục mật khẩu đến ${userProfile.email}!`, 'success');

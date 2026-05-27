@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (loading) return;
 
-    const publicPaths = ['/login', '/register'];
+    const publicPaths = ['/login', '/register', '/reset-password'];
     const isPublicPath = publicPaths.includes(pathname);
 
     if (!user) {
@@ -149,6 +149,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       // Đã đăng nhập
       if (isPublicPath) {
+        // Nếu đang ở trang đặt lại mật khẩu thì tuyệt đối KHÔNG tự động chuyển hướng về trang chủ
+        if (pathname === '/reset-password') {
+          return;
+        }
         // Nếu đã đăng nhập mà được duyệt quyền rồi thì cho vào trang chủ
         if (profile && profile.role !== 'pending') {
           router.push('/');
@@ -273,7 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const sendPasswordReset = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/settings` : undefined,
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
       });
       if (error) throw error;
       return { success: true };
