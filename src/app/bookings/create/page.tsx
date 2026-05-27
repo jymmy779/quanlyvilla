@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Villa, Booking, MonthlyPrice, AdditionalService } from '@/types';
 import { ArrowLeft, User, Calendar as CalendarIcon, Save, Plus, Calculator, AlertTriangle, Search, Loader2, Users, RefreshCw, Trash2, PlusCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const CreateBookingPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { profile, loading: authLoading } = useAuth();
 
   const villaIdFromUrl = searchParams.get('villaId') || '';
   const dateStr = searchParams.get('date') || '';
@@ -42,13 +44,20 @@ const CreateBookingPageContent = () => {
   const depositAmountInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchVillas();
-  }, []);
+    if (profile?.tenant_id) {
+      fetchVillas();
+    }
+  }, [profile]);
 
   const fetchVillas = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
-      const { data } = await supabase.from('villas').select('*').neq('status', 'inactive');
+      const { data } = await supabase
+        .from('villas')
+        .select('*')
+        .eq('tenant_id', profile.tenant_id)
+        .neq('status', 'inactive');
       if (data && data.length > 0) {
         setVillas(data);
         if (!villaId) setVillaId(data[0].id);
@@ -120,11 +129,13 @@ const CreateBookingPageContent = () => {
   }, [booking.checkIn, booking.checkOut, villaId]);
 
   const checkAvailability = async () => {
+    if (!profile?.tenant_id) return;
     try {
       const { data } = await supabase
         .from('bookings')
         .select('id')
         .eq('villa_id', villaId)
+        .eq('tenant_id', profile.tenant_id)
         .neq('status', 'cancelled')
         .lt('check_in', booking.checkOut)
         .gt('check_out', booking.checkIn);
@@ -140,6 +151,10 @@ const CreateBookingPageContent = () => {
   };
 
   const handleSave = async () => {
+    if (!profile?.tenant_id) {
+      alert('Không tìm thấy thông tin Startup (tenant_id).');
+      return;
+    }
     try {
       setSaving(true);
       
@@ -163,7 +178,8 @@ const CreateBookingPageContent = () => {
           deposit_amount: booking.depositAmount,
           notes: finalNotes,
           additional_services: booking.additionalServices,
-          status: 'deposited'
+          status: 'deposited',
+          tenant_id: profile.tenant_id // Gán tenant_id cho đơn đặt phòng mới
         }]);
 
       if (error) throw error;
@@ -305,6 +321,8 @@ const CreateBookingPageContent = () => {
     const numValue = value === '' ? 0 : Number(value);
     setBooking({ ...booking, [field]: numValue });
   };
+
+  if (authLoading) return null;
 
   if (loading) {
     return (

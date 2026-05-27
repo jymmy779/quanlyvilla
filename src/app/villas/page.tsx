@@ -8,24 +8,29 @@ import { Villa } from '@/types';
 import { Plus, MapPin, Users, Bed, Eye, Edit, ImageIcon, AlertCircle, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getOptimizedImageUrl } from '@/lib/utils';
+import { canManageVillas } from '@/lib/permissions';
 
 const VillaListPage = () => {
   const router = useRouter();
-  const { role } = useAuth();
-  const isAdmin = role === 'admin';
+  const { role, profile, loading: authLoading } = useAuth();
+  const canManage = canManageVillas(role);
   const [villas, setVillas] = useState<Villa[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchVillas();
-  }, []);
+    if (profile?.tenant_id) {
+      fetchVillas();
+    }
+  }, [profile]);
 
   const fetchVillas = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('villas')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .neq('status', 'inactive')
         .order('created_at', { ascending: false });
 
@@ -45,7 +50,7 @@ const VillaListPage = () => {
           <h1 className="text-xl md:text-2xl font-semibold text-slate-900">Danh sách căn</h1>
           <p className="text-slate-500 mt-0.5 text-xs md:text-sm font-medium">Quản lý và cập nhật trạng thái vận hành cho các căn.</p>
         </div>
-        {isAdmin && (
+        {canManage && (
           <Link 
             href="/villas/edit/new"
             className="bg-slate-900 hover:bg-orange-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl md:rounded-2xl font-semibold text-sm shadow-md flex items-center gap-2 transition-all active:scale-95 flex-shrink-0 cursor-pointer"
@@ -57,7 +62,7 @@ const VillaListPage = () => {
         )}
       </header>
 
-      {loading ? (
+      {authLoading ? null : loading ? (
         <div className="min-h-[65vh] flex items-center justify-center">
           <Loader2 className="text-orange-500 animate-spin" size={48} />
         </div>
@@ -116,7 +121,7 @@ const VillaListPage = () => {
                     <Eye size={16} />
                     Chi tiết
                   </Link>
-                  {isAdmin && (
+                  {canManage && (
                     <Link 
                       href={`/villas/edit/${villa.id}`}
                       className="p-2 md:p-2.5 bg-slate-50 hover:bg-slate-100 rounded-lg md:rounded-xl transition-colors group/btn cursor-pointer"

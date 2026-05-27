@@ -11,10 +11,12 @@ import {
   Edit3, Save, X, Copy, Check, PlusCircle, RefreshCw, AlertTriangle, Info
 } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 
 const BookingDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState<Booking | null>(null);
   const [villa, setVilla] = useState<Villa | null>(null);
@@ -37,16 +39,20 @@ const BookingDetailPage = () => {
   const { showToast, confirm: showConfirm } = useNotification();
 
   useEffect(() => {
-    fetchBookingDetail();
-  }, [id]);
+    if (profile?.tenant_id) {
+      fetchBookingDetail();
+    }
+  }, [id, profile]);
 
   const fetchBookingDetail = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const { data: bookingData, error: bError } = await supabase
         .from('bookings')
         .select('*')
         .eq('id', id)
+        .eq('tenant_id', profile.tenant_id)
         .single();
 
       if (bError) throw bError;
@@ -58,6 +64,7 @@ const BookingDetailPage = () => {
           .from('villas')
           .select('*')
           .eq('id', bookingData.villa_id)
+          .eq('tenant_id', profile.tenant_id)
           .single();
         setVilla(villaData);
       }
@@ -71,12 +78,13 @@ const BookingDetailPage = () => {
   };
 
   const checkAvailability = async (checkIn: string, checkOut: string) => {
-    if (!villa || !checkIn || !checkOut) return;
+    if (!villa || !checkIn || !checkOut || !profile?.tenant_id) return;
     try {
       const { data } = await supabase
         .from('bookings')
         .select('id, customer_name')
         .eq('villa_id', villa.id)
+        .eq('tenant_id', profile.tenant_id)
         .neq('id', id)
         .neq('status', 'cancelled')
         .lt('check_in', checkOut)
@@ -133,10 +141,14 @@ const BookingDetailPage = () => {
   }, [editForm.check_in, editForm.check_out, isEditing, handleRecalculate]);
 
   const handleUpdate = async () => {
-    if (!booking || conflictError) return;
+    if (!booking || conflictError || !profile?.tenant_id) return;
     try {
       setUpdating(true);
-      const { error } = await supabase.from('bookings').update({ ...editForm }).eq('id', id);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ ...editForm })
+        .eq('id', id)
+        .eq('tenant_id', profile.tenant_id);
       if (error) throw error;
       setBooking({ ...booking, ...editForm } as Booking);
       setIsEditing(false);
@@ -150,10 +162,14 @@ const BookingDetailPage = () => {
   };
 
   const updateStatus = async (newStatus: string) => {
-    if (!booking) return;
+    if (!booking || !profile?.tenant_id) return;
     try {
       setUpdating(true);
-      const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', id);
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', id)
+        .eq('tenant_id', profile.tenant_id);
       if (error) throw error;
       setBooking({ ...booking, status: newStatus as any });
       showToast('Cập nhật trạng thái thành công!');
@@ -166,11 +182,13 @@ const BookingDetailPage = () => {
   };
 
   const fetchTemplate = async () => {
+    if (!profile?.tenant_id) return null;
     try {
       const { data } = await supabase
         .from('settings')
         .select('value')
         .eq('key', 'booking_confirmation_template')
+        .eq('tenant_id', profile.tenant_id)
         .single();
       
       return data?.value || null;
@@ -223,34 +241,9 @@ const BookingDetailPage = () => {
         setRawTemplate(fetched);
         template = fetched;
       } else {
-        // Fallback to the original hardcoded template if DB is empty
-        template = `✍️ XÁC NHẬN TIỀN CỌC VILLA
-Địa chỉ: {{villa_address}}
-Định vị: {{villa_map_link}}
-Khách Hàng: {{customer_name}}
-SĐT: {{customer_phone}}
-Số lượng khách: {{total_guests}} gồm {{adults}} người lớn và {{children}} trẻ em
-⏰𝐂𝐡𝐞𝐜𝐤 𝐢𝐧: sau 14h ngày {{check_in}}
-⏰𝐂𝐡𝐞𝐜𝐤 𝐨𝐮𝐭: trước 12h ngày {{check_out}}
-💸 𝐓𝐢𝐞̂̀𝐧 𝐜𝐨̀𝐧 𝐥𝐚̣𝐢 (𝐭𝐡𝐚𝐧𝐡 𝐭𝐨𝐚́𝐧 𝐤𝐡𝐢 𝐧𝐡𝐚̣̂𝐧 𝐩𝐡𝐨̀𝐧𝐠): {{remaining_amount}}
-
-📞  Quản giá đón khách và hỗ trợ: 0326151111 (a Tùng)
-
-🚫 QUY ĐỊNH LƯU TRÚ & PHỤ PHÍ
--  Quý khách vui lòng cung cấp ảnh chụp CCCD của cả đoàn để làm thủ tục khai báo tạm trú. Chúng em sẽ từ chối nhận khách nếu mục này không thể thực hiện.
--  Theo quy định mới ko được giữ căn cước công dân nên villa sẽ giữ thế chân 2 triệu đối với mỗi đoàn . Số tiền này sẽ được gửi lại vào ngày check out khi thủ tục check out không xảy ra hư hỏng gì nghiêm trọng.
--  Ở quá giờ phụ thu 300k/h nếu ngày hôm sau villa ko có khách .
--  Villa báo giá dựa trên số khách đăng ký. Phát sinh thêm người phụ thu 150.000đ/người (Vui lòng báo trước để villa chuẩn bị thêm chăn ga).
--  Quý khách vui lòng dọn dẹp, rửa bát đĩa sau khi nấu nướng. Phí hỗ trợ dọn dẹp từ 300.000-500.000đ tùy hiện trạng nếu không tự dọn.
--  Karaoke được hát tới 22h  ( quy định của toàn bộ nhà phố và villa Vũng Tàu)
--  Không bỏ đồ ăn xuống hồ bơi, phụ thu 1tr-3tr tuỳ hiện trạng.
--  Không sử dụng, tàng trữ chất cấm, cờ bạc, mại dâm theo quy định pháp luật.
--  Villa không nhận dàn loa công suất lớn và DJ
-
-♻️ Khách hàng hủy đặt phòng sẽ không được hoàn lại tiền cọc.
-
-Cám ơn quý khách 🌸`;
-        setRawTemplate(template);
+        // Mặc định để trống hoàn toàn đối với Startup mới chưa thiết lập mẫu
+        template = "";
+        setRawTemplate("");
       }
     }
 
@@ -379,6 +372,7 @@ Cám ơn quý khách 🌸`;
     setEditForm({ ...editForm, additional_services: newServices });
   };
 
+  if (authLoading) return null;
   if (loading) return <div className="min-h-[80vh] flex items-center justify-center"><Loader2 className="text-orange-500 animate-spin" size={48} /></div>;
   if (!booking) return null;
 

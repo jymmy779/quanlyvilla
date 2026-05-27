@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { canResetUserPassword, isActiveRole } from '../../../../lib/permissions';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,8 +16,13 @@ export async function POST(req: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-    // Khởi tạo client thông thường để verify token của người gọi API
+    // Khởi tạo client có gắn JWT của người gọi để mọi truy vấn đều đi qua RLS đúng ngữ cảnh
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      },
       auth: { persistSession: false }
     });
 
@@ -26,15 +32,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Phiên đăng nhập hết hạn hoặc không hợp lệ.' }, { status: 401 });
     }
 
-    // 2. Kiểm tra xem người gọi API này có đúng là Admin trong bảng profiles không
-    const { data: adminProfile, error: profileError } = await supabase
+    // 2. Kiểm tra xem người gọi API này có đúng là Admin hoặc Owner trong bảng profiles không
+    const { data: creatorProfile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !adminProfile || adminProfile.role !== 'admin') {
-      return NextResponse.json({ error: 'Từ chối truy cập! Chỉ Admin mới được thực hiện thao tác này.' }, { status: 403 });
+    if (profileError || !creatorProfile || !isActiveRole(creatorProfile.role)) {
+      return NextResponse.json({ error: 'Từ chối truy cập! Chỉ Chủ sở hữu hoặc Quản trị viên mới được thực hiện thao tác này.' }, { status: 403 });
     }
 
     // 3. Đọc dữ liệu gửi lên
@@ -42,6 +48,22 @@ export async function POST(req: NextRequest) {
 
     if (!userId || !newPassword) {
       return NextResponse.json({ error: 'Thiếu thông tin User ID hoặc Mật khẩu mới.' }, { status: 400 });
+    }
+
+    // Lấy thông tin vai trò của tài khoản cần đặt lại mật khẩu
+    const { data: targetProfile, error: targetError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (targetError || !targetProfile) {
+      return NextResponse.json({ error: 'Không tìm thấy thông tin tài khoản cần đặt lại mật khẩu.' }, { status: 404 });
+    }
+
+    // Kiểm tra tính hợp lệ về phân cấp quyền lực khi đặt lại mật khẩu
+    if (!canResetUserPassword(creatorProfile.role, targetProfile.role, user.id === userId)) {
+      return NextResponse.json({ error: 'Bạn không có quyền đặt lại mật khẩu cho tài khoản này.' }, { status: 403 });
     }
 
     if (newPassword.length < 6) {

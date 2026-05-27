@@ -7,13 +7,14 @@ import { Villa } from '@/types';
 import { ArrowLeft, Users, Bed, Bath, CheckCircle2, MapPin, Edit, ImageIcon, DollarSign, Navigation, AlertCircle, Loader2, Info, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getOptimizedImageUrl } from '@/lib/utils';
+import { canManageVillas } from '@/lib/permissions';
 
 
 const VillaDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
-  const { role } = useAuth();
-  const isAdmin = role === 'admin';
+  const { role, loading: authLoading } = useAuth();
+  const canManage = canManageVillas(role);
 
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,8 @@ const VillaDetailPage = () => {
       setLoading(false);
     }
   };
+
+  if (authLoading) return null;
 
   if (loading) {
     return (
@@ -80,7 +83,7 @@ const VillaDetailPage = () => {
           Quay lại
         </button>
 
-        {isAdmin && (
+        {canManage && (
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => router.push(`/villas/edit/${id}`)}
@@ -250,7 +253,7 @@ const VillaDetailPage = () => {
                 Cài đặt bảng giá
               </button>
 
-              {isAdmin && (
+              {canManage && (
                 <button
                   onClick={() => router.push(`/villas/edit/${id}`)}
                   className="w-full bg-slate-100 text-slate-600 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-slate-200 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"

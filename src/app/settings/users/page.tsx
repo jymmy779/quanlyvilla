@@ -12,6 +12,14 @@ import { useRouter } from 'next/navigation';
 import { UserProfile, UserRole } from '@/types';
 import { useFormStore } from '@/lib/formStore';
 import { translateAuthError } from '@/lib/errorTranslator';
+import {
+  canCreateUser,
+  canDeleteUser,
+  canEditUserProfile,
+  canResetUserPassword,
+  canSetUserRole,
+  getAssignableRoles
+} from '@/lib/permissions';
 
 
 
@@ -30,6 +38,14 @@ export default function UsersManagementPage() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+
+  // States cho modal sửa thông tin nhân viên
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEditUser, setSelectedEditUser] = useState<UserProfile | null>(null);
+  const [editFullName, setEditFullName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editRole, setEditRole] = useState<UserRole>('staff');
+  const [editLoading, setEditLoading] = useState(false);
 
   // States cho modal thêm tài khoản mới
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -77,18 +93,38 @@ export default function UsersManagementPage() {
 
   // Cập nhật vai trò (cấp quyền) trực tiếp
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
-    if (userId === currentAdminProfile?.id) {
-      showToast('Bạn không thể tự thay đổi quyền hạn của chính mình!', 'error');
+    const targetUser = users.find(u => u.id === userId);
+    if (!targetUser) return;
+
+    const isSelf = userId === currentAdminProfile?.id;
+
+    if (!canSetUserRole(currentAdminProfile?.role, targetUser.role, newRole, isSelf)) {
+      showToast('Bạn không có quyền đổi vai trò này!', 'error');
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
 
-      if (error) throw error;
+      const response = await fetch('/api/admin/manage-user', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId,
+          role: newRole
+        })
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        showToast(translateAuthError(resData.error) || 'Lỗi khi thay đổi quyền hạn!', 'error');
+        return;
+      }
 
       showToast('Cập nhật quyền hạn nhân viên thành công!', 'success');
       
@@ -167,6 +203,11 @@ export default function UsersManagementPage() {
     const isValid = validateCreateUser();
     if (!isValid) return;
 
+    if (!canCreateUser(currentAdminProfile?.role, createRole)) {
+      showToast('Bạn không có quyền tạo tài khoản với vai trò này!', 'error');
+      return;
+    }
+
     try {
       setCreateLoading(true);
 
@@ -233,8 +274,10 @@ export default function UsersManagementPage() {
 
   // Xóa tài khoản nhân viên (Xóa khỏi bảng profiles)
   const handleDeleteUser = (userProfile: UserProfile) => {
-    if (userProfile.id === currentAdminProfile?.id) {
-      showToast('Bạn không thể tự xóa tài khoản của chính mình!', 'error');
+    const isSelf = userProfile.id === currentAdminProfile?.id;
+
+    if (!canDeleteUser(currentAdminProfile?.role, userProfile.role, isSelf)) {
+      showToast('Bạn không có quyền xóa tài khoản này!', 'error');
       return;
     }
 
@@ -243,12 +286,25 @@ export default function UsersManagementPage() {
       message: `Bạn có chắc muốn xóa tài khoản của ${userProfile.full_name || userProfile.email}? Hành động này sẽ tước quyền truy cập hệ thống ngay lập tức.`,
       onConfirm: async () => {
         try {
-          const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userProfile.id);
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token || '';
 
-          if (error) throw error;
+          const response = await fetch('/api/admin/manage-user', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              userId: userProfile.id
+            })
+          });
+
+          const resData = await response.json();
+
+          if (!response.ok) {
+            throw new Error(resData.error || 'Lỗi khi xóa tài khoản!');
+          }
 
           showToast('Đã xóa tài khoản nhân viên thành công!', 'success');
           setUsers(prev => prev.filter(u => u.id !== userProfile.id));
@@ -258,6 +314,67 @@ export default function UsersManagementPage() {
         }
       }
     });
+  };
+
+  const openEditUserModal = (userProfile: UserProfile) => {
+    if (!canEditUserProfile(currentAdminProfile?.role, userProfile.role, userProfile.id === currentAdminProfile?.id)) {
+      showToast('Bạn không có quyền sửa thông tin tài khoản này!', 'error');
+      return;
+    }
+
+    setSelectedEditUser(userProfile);
+    setEditFullName(userProfile.full_name || '');
+    setEditPhone(userProfile.phone || '');
+    setEditRole(userProfile.role);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedEditUser) return;
+
+    try {
+      setEditLoading(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || '';
+
+      const response = await fetch('/api/admin/manage-user', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: selectedEditUser.id,
+          fullName: editFullName,
+          phone: editPhone,
+          ...(selectedEditUser.id !== currentAdminProfile?.id ? { role: editRole } : {})
+        })
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        showToast(translateAuthError(resData.error) || 'Lỗi khi cập nhật tài khoản.', 'error');
+        return;
+      }
+
+      showToast('Đã cập nhật thông tin tài khoản thành công!', 'success');
+      setIsEditModalOpen(false);
+      setSelectedEditUser(null);
+      setUsers(prev => prev.map(u => (
+        u.id === selectedEditUser.id
+          ? { ...u, full_name: editFullName, phone: editPhone, role: editRole }
+          : u
+      )));
+    } catch (err) {
+      console.error(err);
+      showToast('Lỗi khi cập nhật tài khoản.', 'error');
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   // Lọc tìm kiếm nhân viên
@@ -279,10 +396,14 @@ export default function UsersManagementPage() {
 
   const getRoleBadgeClass = (role: UserRole) => {
     switch (role) {
+      case 'owner':
+        return 'bg-violet-50 text-violet-600 border-violet-200';
       case 'admin':
         return 'bg-red-50 text-red-600 border-red-200';
       case 'staff':
         return 'bg-orange-50 text-orange-600 border-orange-200';
+      case 'pending_owner':
+        return 'bg-indigo-50 text-indigo-600 border-indigo-200';
       case 'pending':
         return 'bg-slate-100 text-slate-500 border-slate-200';
     }
@@ -290,9 +411,11 @@ export default function UsersManagementPage() {
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'admin': return 'Quản trị';
-      case 'staff': return 'Nhân viên';
-      case 'pending': return 'Chờ duyệt';
+      case 'owner': return 'Chủ sở hữu (Owner)';
+      case 'admin': return 'Quản trị (Admin)';
+      case 'staff': return 'Nhân viên (Staff)';
+      case 'pending_owner': return 'Chủ Startup chờ duyệt';
+      case 'pending': return 'Nhân sự chờ duyệt';
     }
   };
 
@@ -316,7 +439,11 @@ export default function UsersManagementPage() {
 
         {/* Nút thêm nhân viên mới */}
         <button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => {
+            // Đặt mặc định vai trò là staff
+            setCreateRole('staff');
+            setIsCreateModalOpen(true);
+          }}
           className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition-all shadow-lg active:scale-95 cursor-pointer shadow-slate-900/10 self-start md:self-auto"
         >
           <Plus size={16} /> Thêm nhân viên
@@ -356,7 +483,7 @@ export default function UsersManagementPage() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-slate-100">
-            <table className="w-full text-left min-w-[800px]">
+            <table className="w-full text-left min-w-200">
               <thead>
                 <tr className="bg-slate-55 bg-slate-50/80 border-b border-slate-100 text-slate-400 text-xs font-bold uppercase">
                   <th className="py-4 pl-6">Nhân viên</th>
@@ -375,8 +502,9 @@ export default function UsersManagementPage() {
                       <td className="py-4 pl-6">
                         <div className="flex items-center gap-3.5">
                           <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shadow-inner text-white ${
-                            u.role === 'admin' ? 'bg-gradient-to-tr from-red-500 to-rose-400' :
-                            u.role === 'staff' ? 'bg-gradient-to-tr from-orange-500 to-amber-400' : 'bg-slate-400'
+                            u.role === 'owner' ? 'bg-linear-to-tr from-violet-600 to-fuchsia-400' :
+                            u.role === 'admin' ? 'bg-linear-to-tr from-red-500 to-rose-400' :
+                            u.role === 'staff' ? 'bg-linear-to-tr from-orange-500 to-amber-400' : 'bg-slate-400'
                           }`}>
                             {getInitials(u.full_name || '')}
                           </div>
@@ -408,7 +536,7 @@ export default function UsersManagementPage() {
 
                       {/* Cột Cấp quyền (Dropdown) */}
                       <td className="py-4">
-                        {isSelf ? (
+                        {isSelf || getAssignableRoles(currentAdminProfile?.role, u.role, isSelf).length === 0 ? (
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getRoleBadgeClass(u.role)}`}>
                             {getRoleLabel(u.role)}
                           </span>
@@ -421,9 +549,11 @@ export default function UsersManagementPage() {
                                 getRoleBadgeClass(u.role)
                               }`}
                             >
-                              <option value="pending" className="text-slate-700 bg-white">Chờ duyệt</option>
-                              <option value="staff" className="text-orange-600 bg-white">Nhân viên</option>
-                              <option value="admin" className="text-red-600 bg-white">Quản trị</option>
+                              {getAssignableRoles(currentAdminProfile?.role, u.role, isSelf).map(roleOption => (
+                                <option key={roleOption} value={roleOption} className="text-slate-700 bg-white">
+                                  {getRoleLabel(roleOption)}
+                                </option>
+                              ))}
                             </select>
                             <div className="absolute right-2.5 top-2.5 pointer-events-none text-slate-400">
                               <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -444,25 +574,37 @@ export default function UsersManagementPage() {
                       <td className="py-4 text-center pr-6">
                         <div className="flex items-center justify-center gap-2">
                           {/* Đặt lại mật khẩu */}
-                          <button
-                            onClick={() => {
-                              setSelectedUser(u);
-                              setIsResetModalOpen(true);
-                            }}
-                            className="p-2 hover:bg-orange-50 text-slate-400 hover:text-orange-600 rounded-xl transition-all"
-                            title="Đặt lại mật khẩu"
-                          >
-                            <KeyRound size={16} />
-                          </button>
+                          {canResetUserPassword(currentAdminProfile?.role, u.role, isSelf) && (
+                            <button
+                              onClick={() => {
+                                setSelectedUser(u);
+                                setIsResetModalOpen(true);
+                              }}
+                              className="p-2 hover:bg-orange-50 text-slate-400 hover:text-orange-600 rounded-xl transition-all"
+                              title="Đặt lại mật khẩu"
+                            >
+                              <KeyRound size={16} />
+                            </button>
+                          )}
 
                           {/* Xóa tài khoản */}
-                          {!isSelf && (
+                          {canDeleteUser(currentAdminProfile?.role, u.role, isSelf) && (
                             <button
                               onClick={() => handleDeleteUser(u)}
                               className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all"
                               title="Xóa tài khoản nhân viên"
                             >
                               <Trash2 size={16} />
+                            </button>
+                          )}
+
+                          {canEditUserProfile(currentAdminProfile?.role, u.role, isSelf) && (
+                            <button
+                              onClick={() => openEditUserModal(u)}
+                              className="p-2 hover:bg-slate-50 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                              title="Sửa thông tin"
+                            >
+                              <Search size={16} className="rotate-90" />
                             </button>
                           )}
                         </div>
@@ -478,7 +620,7 @@ export default function UsersManagementPage() {
 
       {/* MODAL RESET MẬT KHẨU */}
       {isResetModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white max-w-md w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-6 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start">
               <div>
@@ -520,7 +662,7 @@ export default function UsersManagementPage() {
               </div>
 
               <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-3.5 flex gap-2.5 text-xs text-orange-700 leading-relaxed font-semibold">
-                <ShieldAlert size={16} className="text-orange-500 flex-shrink-0 mt-0.5" />
+                <ShieldAlert size={16} className="text-orange-500 shrink-0 mt-0.5" />
                 Hãy đảm bảo gửi lại mật khẩu mới này cho nhân viên sau khi bạn đặt lại thành công.
               </div>
 
@@ -558,7 +700,7 @@ export default function UsersManagementPage() {
 
       {/* MODAL THÊM TÀI KHOẢN MỚI */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start">
               <div>
@@ -688,7 +830,9 @@ export default function UsersManagementPage() {
                       disabled={createLoading}
                     >
                       <option value="staff">Nhân viên (Staff)</option>
-                      <option value="admin">Quản trị viên (Admin)</option>
+                      {currentAdminProfile?.role === 'owner' && (
+                        <option value="admin">Quản trị viên (Admin)</option>
+                      )}
                     </select>
                     <div className="absolute right-4 top-3.5 pointer-events-none text-slate-400">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -719,6 +863,110 @@ export default function UsersManagementPage() {
                   ) : (
                     <>
                       Tạo tài khoản <Check size={14} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SỬA THÔNG TIN NHÂN VIÊN */}
+      {isEditModalOpen && selectedEditUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-200 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl p-6 md:p-8 space-y-5 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                  <User className="text-orange-600" size={20} />
+                  Sửa thông tin tài khoản
+                </h2>
+                <p className="text-slate-400 text-xs font-semibold mt-1">
+                  {selectedEditUser.full_name || selectedEditUser.email}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedEditUser(null);
+                }}
+                className="p-1.5 hover:bg-slate-50 border border-slate-100 text-slate-400 hover:text-slate-600 rounded-xl transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditUserSubmit} className="space-y-4 pt-2" noValidate>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <input
+                  type="text"
+                  value={editFullName}
+                  onChange={(e) => setEditFullName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 transition-all"
+                  disabled={editLoading}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Số điện thoại</label>
+                <input
+                  type="text"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-semibold text-slate-800 transition-all"
+                  disabled={editLoading}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Vai trò</label>
+                {selectedEditUser.id === currentAdminProfile?.id ? (
+                  <input
+                    type="text"
+                    value={getRoleLabel(editRole)}
+                    disabled
+                    className="w-full bg-slate-100 border border-slate-200 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-500 cursor-not-allowed"
+                  />
+                ) : (
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as UserRole)}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs font-bold text-slate-800 cursor-pointer"
+                    disabled={editLoading}
+                  >
+                    {getAssignableRoles(currentAdminProfile?.role, selectedEditUser.role, false).map(roleOption => (
+                      <option key={roleOption} value={roleOption}>
+                        {getRoleLabel(roleOption)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedEditUser(null);
+                  }}
+                  className="flex-1 py-3 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-500 font-bold transition-all text-xs active:scale-95 cursor-pointer"
+                  disabled={editLoading}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-slate-900 hover:bg-orange-600 text-white rounded-xl font-bold transition-all text-xs flex items-center justify-center gap-1.5 active:scale-95 shadow-md cursor-pointer"
+                  disabled={editLoading}
+                >
+                  {editLoading ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <>
+                      Lưu thay đổi <Check size={14} />
                     </>
                   )}
                 </button>

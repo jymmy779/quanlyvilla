@@ -6,23 +6,38 @@ import { supabase } from '@/lib/supabase';
 import { Villa, Booking } from '@/types';
 import { Users, DollarSign, CalendarCheck, TrendingUp, ChevronRight, ImageIcon, BarChart3, Loader2, Wallet } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 const DashboardPage = () => {
   const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [villas, setVillas] = useState<Villa[]>([]);
   const [allBookings, setAllBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (profile?.tenant_id) {
+      fetchDashboardData();
+    }
+  }, [profile]);
 
   const fetchDashboardData = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
-      const { data: villasData } = await supabase.from('villas').select('*').neq('status', 'inactive');
-      const { data: allBookingsData } = await supabase.from('bookings').select('*').neq('status', 'cancelled');
+      const { data: villasData } = await supabase
+        .from('villas')
+        .select('*')
+        .eq('tenant_id', profile.tenant_id)
+        .neq('status', 'inactive');
+
+      const { data: allBookingsData } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('tenant_id', profile.tenant_id)
+        .neq('status', 'cancelled');
+
       setVillas(villasData || []);
       setAllBookings(allBookingsData || []);
     } catch (error) {
@@ -110,6 +125,8 @@ const DashboardPage = () => {
     { label: 'Lấp đầy tháng này', value: `${occupancyRate}%`, fullValue: `${occupancyRate}%`, icon: TrendingUp, color: 'bg-orange-600' },
     { label: 'Tổng số căn', value: villas.length.toString(), fullValue: villas.length.toString(), icon: Users, color: 'bg-indigo-600' },
   ];
+
+  if (authLoading) return null;
 
   if (loading) {
     return (

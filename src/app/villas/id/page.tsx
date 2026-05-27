@@ -11,38 +11,45 @@ import {
   Bath, Bed, Info, Loader2, ImageIcon, AlertCircle, Edit, DollarSign, Navigation, X
 } from 'lucide-react';
 import { getOptimizedImageUrl } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 const VillaDetailPage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const [villa, setVilla] = useState<Villa | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchVilla();
-  }, [id]);
+    if (profile?.tenant_id) {
+      fetchVilla();
+    }
+  }, [id, profile]);
 
   const fetchVilla = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('villas')
         .select('*')
         .eq('id', id)
+        .eq('tenant_id', profile.tenant_id)
         .single();
 
       if (error) throw error;
       setVilla(data);
     } catch (error) {
       console.error('Error fetching villa:', error);
+      setVilla(null);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <Loader2 className="text-orange-500 animate-spin" size={48} />

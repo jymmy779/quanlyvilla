@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Villa } from '@/types';
-import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon, Hotel } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
+import { canManageVillas } from '@/lib/permissions';
 
 // Helper function to enforce promise timeout
 const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, errorMsg = 'Yêu cầu quá thời gian phản hồi.'): Promise<T> => {
@@ -28,8 +29,8 @@ const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, erro
 };
 
 const PricingPage = () => {
-  const { role, logout } = useAuth();
-  const isAdmin = role === 'admin';
+  const { role, logout, profile, loading: authLoading } = useAuth();
+  const canManage = canManageVillas(role);
   const searchParams = useSearchParams();
   const urlVillaId = searchParams.get('villaId');
 
@@ -43,14 +44,17 @@ const PricingPage = () => {
   const { showToast } = useNotification();
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchVillas(controller.signal);
-    return () => {
-      controller.abort();
-    };
-  }, []);
+    if (profile?.tenant_id) {
+      const controller = new AbortController();
+      fetchVillas(controller.signal);
+      return () => {
+        controller.abort();
+      };
+    }
+  }, [profile]);
 
   const fetchVillas = async (signal?: AbortSignal) => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       
@@ -76,6 +80,7 @@ const PricingPage = () => {
       const query = supabase
         .from('villas')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .neq('status', 'inactive');
       
       if (signal) {
@@ -207,8 +212,9 @@ const PricingPage = () => {
   };
 
   const handleSave = async () => {
-    if (!selectedVillaId) {
-      console.warn('[PricingPage] Không thể lưu vì selectedVillaId rỗng');
+    if (!selectedVillaId || !profile?.tenant_id) {
+      console.warn('[PricingPage] Không thể lưu vì selectedVillaId hoặc tenant_id rỗng');
+      showToast('Không tìm thấy thông tin Startup (tenant_id).', 'error');
       return;
     }
     console.log('[PricingPage] 🚀 Bắt đầu gọi handleSave...');
@@ -240,6 +246,7 @@ const PricingPage = () => {
           .from('villas')
           .update({ monthly_prices: monthlyPrices })
           .eq('id', selectedVillaId)
+          .eq('tenant_id', profile.tenant_id)
           .select(),
         10000,
         'Kết nối đến máy chủ quá hạn (10s). Vui lòng kiểm tra lại mạng hoặc tải lại trang!'
@@ -264,6 +271,8 @@ const PricingPage = () => {
     }
   };
 
+  if (authLoading) return null;
+
   if (loading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
@@ -287,7 +296,7 @@ const PricingPage = () => {
 
           <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm self-start">
             <button onClick={() => setSelectedYear(selectedYear - 1)} className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-all rounded-lg"><ChevronLeft size={16} /></button>
-            <div className="px-4 py-1 flex flex-col items-center min-w-[60px]">
+            <div className="px-4 py-1 flex flex-col items-center min-w-15">
               <span className="text-[10px] font-semibold text-orange-500 leading-none mb-0.5 uppercase tracking-wider">Năm</span>
               <span className="text-base font-bold text-slate-900 leading-none">{selectedYear}</span>
             </div>
@@ -296,7 +305,7 @@ const PricingPage = () => {
         </div>
 
         {/* Right: Save button / Read-only badge */}
-        {isAdmin ? (
+        {canManage ? (
           <button
             onClick={handleSave}
             disabled={saving || !selectedVillaId}
@@ -307,28 +316,37 @@ const PricingPage = () => {
           </button>
         ) : (
           <div className="bg-orange-50 border border-orange-100 text-orange-700 px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs font-bold self-start">
-            <AlertCircle size={13} className="text-orange-500 flex-shrink-0" />
+            <AlertCircle size={13} className="text-orange-500 shrink-0" />
             Chế độ Chỉ xem (Read-only)
           </div>
         )}
       </header>
 
       {/* ── VILLA TABS ── */}
-      <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 -mx-0.5 px-0.5">
-        {villas.map((villa) => (
-          <button
-            key={villa.id}
-            onClick={() => setSelectedVillaId(villa.id)}
-            className={`flex-shrink-0 px-4 py-2 rounded-t-xl font-semibold text-sm transition-all border-b-2 ${
-              selectedVillaId === villa.id
-                ? 'border-orange-500 bg-orange-50/30 text-orange-600'
-                : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            {villa.name}
-          </button>
-        ))}
-      </div>
+      {villas.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar border-b border-slate-100 -mx-0.5 px-0.5">
+          {villas.map((villa) => (
+            <button
+              key={villa.id}
+              onClick={() => setSelectedVillaId(villa.id)}
+              className={`shrink-0 px-4 py-2 rounded-t-xl font-semibold text-sm transition-all border-b-2 ${
+                selectedVillaId === villa.id
+                  ? 'border-orange-500 bg-orange-50/30 text-orange-600'
+                  : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {villa.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── EMPTY STATE ── */}
+      {villas.length === 0 && (
+        <div className="py-20 text-center bg-white border border-slate-200 rounded-[2.5rem]">
+          <p className="text-slate-400 font-semibold text-xs">Chưa có Villa nào để cấu hình giá</p>
+        </div>
+      )}
 
       {selectedVilla && (
         <>
@@ -384,10 +402,10 @@ const PricingPage = () => {
                       </td>
                       {/* T2–T5 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!isAdmin ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
                           <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
-                          <input type="text" disabled={isPast || !isAdmin}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          <input type="text" disabled={isPast || !canManage}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                             value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
                             onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
                             onBlur={() => setEditingValue(null)}
@@ -397,10 +415,10 @@ const PricingPage = () => {
                       </td>
                       {/* Thứ 6 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!isAdmin ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
                           <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
-                          <input type="text" disabled={isPast || !isAdmin}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          <input type="text" disabled={isPast || !canManage}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                             value={editingValue?.key === `${month}-friday` ? editingValue.val : displayFriday}
                             onFocus={() => setEditingValue({ key: `${month}-friday`, val: displayFriday })}
                             onBlur={() => setEditingValue(null)}
@@ -410,10 +428,10 @@ const PricingPage = () => {
                       </td>
                       {/* Thứ 7 */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!isAdmin ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-indigo-50/50 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-500'}`}>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-indigo-50/50 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-500'}`}>
                           <span className="pl-1.5 text-indigo-300 font-semibold text-xs">đ</span>
-                          <input type="text" disabled={isPast || !isAdmin}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
+                          <input type="text" disabled={isPast || !canManage}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
                             value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                             onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                             onBlur={() => setEditingValue(null)}
@@ -423,10 +441,10 @@ const PricingPage = () => {
                       </td>
                       {/* Chủ Nhật */}
                       <td className="py-4 px-2">
-                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!isAdmin ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
+                        <div className={`flex items-center border rounded-xl p-0.5 transition-all ${!canManage ? 'bg-slate-50/60 border-slate-100 cursor-not-allowed' : 'bg-white border-slate-100 focus-within:ring-2 focus-within:ring-orange-500'}`}>
                           <span className="pl-1.5 text-slate-300 font-semibold text-xs">đ</span>
-                          <input type="text" disabled={isPast || !isAdmin}
-                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          <input type="text" disabled={isPast || !canManage}
+                            className={`bg-transparent border-none py-1.5 text-right font-semibold w-full outline-none text-xs ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                             value={editingValue?.key === `${month}-sunday` ? editingValue.val : displaySunday}
                             onFocus={() => setEditingValue({ key: `${month}-sunday`, val: displaySunday })}
                             onBlur={() => setEditingValue(null)}
@@ -490,13 +508,13 @@ const PricingPage = () => {
                     {/* T2–T5 */}
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Thứ 2 – 5</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!isAdmin ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
                         <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          disabled={isPast || !canManage}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                           value={editingValue?.key === `${month}-weekday` ? editingValue.val : displayWeekday}
                           onFocus={() => setEditingValue({ key: `${month}-weekday`, val: displayWeekday })}
                           onBlur={() => setEditingValue(null)}
@@ -508,13 +526,13 @@ const PricingPage = () => {
                     {/* Thứ 6 */}
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Thứ 6</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!isAdmin ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
                         <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          disabled={isPast || !canManage}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                           value={editingValue?.key === `${month}-friday` ? editingValue.val : displayFriday}
                           onFocus={() => setEditingValue({ key: `${month}-friday`, val: displayFriday })}
                           onBlur={() => setEditingValue(null)}
@@ -526,13 +544,13 @@ const PricingPage = () => {
                     {/* Thứ 7 */}
                     <div>
                       <p className="text-[10px] font-bold text-indigo-400 mb-1.5 uppercase tracking-wider">Thứ 7</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!isAdmin ? 'bg-slate-50 border-slate-100' : 'bg-indigo-50/60 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-400 focus-within:border-indigo-300'}`}>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-indigo-50/60 border-indigo-100 focus-within:ring-2 focus-within:ring-indigo-400 focus-within:border-indigo-300'}`}>
                         <span className="text-indigo-300 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
+                          disabled={isPast || !canManage}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-indigo-600'}`}
                           value={editingValue?.key === `${month}-weekend` ? editingValue.val : displayWeekend}
                           onFocus={() => setEditingValue({ key: `${month}-weekend`, val: displayWeekend })}
                           onBlur={() => setEditingValue(null)}
@@ -544,13 +562,13 @@ const PricingPage = () => {
                     {/* Chủ Nhật */}
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Chủ Nhật</p>
-                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!isAdmin ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
+                      <div className={`flex items-center border rounded-xl px-2.5 py-2 gap-1 transition-all ${!canManage ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-200 focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-300'}`}>
                         <span className="text-slate-300 font-bold text-xs shrink-0">đ</span>
                         <input
                           type="text"
                           inputMode="numeric"
-                          disabled={isPast || !isAdmin}
-                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!isAdmin ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
+                          disabled={isPast || !canManage}
+                          className={`bg-transparent border-none text-right font-semibold w-full outline-none text-sm min-w-0 ${!canManage ? 'text-slate-400 cursor-not-allowed' : 'text-slate-900'}`}
                           value={editingValue?.key === `${month}-sunday` ? editingValue.val : displaySunday}
                           onFocus={() => setEditingValue({ key: `${month}-sunday`, val: displaySunday })}
                           onBlur={() => setEditingValue(null)}

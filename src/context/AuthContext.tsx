@@ -16,6 +16,15 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, fullName: string, phone: string) => Promise<{ success: boolean; error?: string }>;
+  registerStartup: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone: string,
+    startupName: string,
+    businessType: string,
+    activationCode?: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (fullName: string, phone: string) => Promise<{ success: boolean; error?: string }>;
   changePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -56,7 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email,
             full_name: '',
             phone: '',
-            role: isFirstUser ? 'admin' : 'pending' as UserRole
+            role: isFirstUser ? 'owner' : ('pending' as UserRole),
+            tenant_id: uid // Admin mới/User mới tự làm chủ chính mình làm tenant mặc định
           };
 
           const { data: insertedData } = await supabase
@@ -84,6 +94,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const prof = await fetchProfile(user.id, user.email || '');
       setProfile(prof);
     }
+  };
+
+  const autoApproveStartupIfConfirmed = async (currentProfile: UserProfile) => {
+    if (!user?.email_confirmed_at) return false;
+    if (currentProfile.role !== 'pending_owner') return false;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return false;
+
+    const response = await fetch('/api/auth/approve-startup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result?.error || 'Không thể tự động phê duyệt tài khoản.');
+    }
+
+    await refreshProfile();
+    return true;
   };
 
   // Khôi phục session và lắng nghe thay đổi trạng thái đăng nhập (Single Source of Truth)
@@ -125,6 +159,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const prof = await fetchProfile(user.id, user.email || '');
         setProfile(prof);
+
+        if (prof) {
+          await autoApproveStartupIfConfirmed(prof);
+        }
       } catch (error) {
         console.error('[AuthContext] ❌ Lỗi khi tải profile của user:', error);
       } finally {
@@ -139,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (loading) return;
 
-    const publicPaths = ['/login', '/register', '/reset-password'];
+    const publicPaths = ['/login', '/register', '/register-startup', '/reset-password'];
     const isPublicPath = publicPaths.includes(pathname);
 
     if (!user) {
@@ -154,21 +192,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         // Nếu đã đăng nhập mà được duyệt quyền rồi thì cho vào trang chủ
-        if (profile && profile.role !== 'pending') {
+        if (profile && profile.role !== 'pending' && profile.role !== 'pending_owner') {
           router.push('/');
         }
       } else {
         // Đang ở các trang nội bộ, kiểm tra xem tài khoản có bị pending không
         if (profile && profile.role === 'pending' && pathname !== '/pending') {
-          router.push('/login'); // Để AuthProvider tự bắt và hiển thị màn hình chờ duyệt ở /login hoặc /register
+          router.push('/login'); // Để AppLayout tự động xử lý view chờ duyệt
+        }
+        if (profile && profile.role === 'pending_owner' && pathname !== '/pending-startup') {
+          // pending_owner sẽ được giữ hoặc redirect sang view chờ duyệt Startup (được xử lý trong AppLayout hoặc redirect)
         }
 
-        // Chặn non-admin vào các trang cấu hình và quản trị nhân sự
+        // Chặn non-owner/non-admin vào các trang cấu hình nâng cao và quản trị nhân sự
         const isProtectedAdminPath = pathname.startsWith('/settings/users') || pathname.startsWith('/villas/edit');
         const isSettings = pathname === '/settings';
-        // Đối với trang settings thường, non-admin vẫn vào được để chỉnh sửa cá nhân,
-        // nhưng chúng ta sẽ ẩn tab Mẫu cọc. Còn các trang quản trị nhân sự và chỉnh sửa villa thì chặn hoàn toàn.
-        if (isProtectedAdminPath && profile?.role !== 'admin') {
+        
+        if (isProtectedAdminPath && profile?.role !== 'admin' && profile?.role !== 'owner') {
           showToast('Bạn không có quyền truy cập trang quản trị này!', 'error');
           router.push('/');
         }
@@ -228,15 +268,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Đăng ký Startup/Chuỗi kinh doanh mới chống Spam
+  const registerStartup = async (
+    email: string,
+    password: string,
+    fullName: string,
+    phone: string,
+    startupName: string,
+    businessType: string,
+    activationCode?: string
+  ) => {
+    try {
+      const response = await fetch('/api/auth/register-startup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone,
+          startupName,
+          businessType,
+          activationCode,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Không thể khởi tạo tài khoản mới.');
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('[AuthContext] Lỗi đăng ký Startup:', err);
+      return { success: false, error: translateAuthError(err.message) };
+    }
+  };
+
   // Đăng xuất
   const logout = async () => {
     try {
-      // Hủy bỏ user state trước để các logic tự động session hết hạn nhận biết user đã chủ động logout
       setUser(null);
       setProfile(null);
-      await supabase.auth.signOut();
+      router.replace('/login');
       showToast('Đăng xuất thành công!');
-      router.push('/login');
+      void supabase.auth.signOut().catch((err) => {
+        console.error(err);
+      });
     } catch (err) {
       console.error(err);
     }
@@ -297,6 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         loginWithGoogle,
         register,
+        registerStartup,
         logout,
         updateProfile,
         changePassword,

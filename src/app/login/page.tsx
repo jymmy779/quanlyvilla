@@ -210,8 +210,16 @@ export default function LoginPage() {
               </form>
 
 
-              <div className="text-center pt-2 bg-slate-55 bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[11px] text-slate-400 font-semibold leading-relaxed">
-                Hệ thống nội bộ bảo mật. Nhân viên mới vui lòng liên hệ Quản trị viên (Admin) để được cấp tài khoản truy cập.
+              <div className="flex flex-col gap-2.5 pt-2">
+                <Link
+                  href="/register-startup"
+                  className="w-full bg-orange-50 hover:bg-orange-100 text-orange-600 font-bold py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 text-xs border border-orange-200"
+                >
+                  <Sparkles size={14} /> Đăng ký Startup / Chuỗi của bạn
+                </Link>
+                <div className="text-center bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[10px] text-slate-400 font-semibold leading-relaxed">
+                  Hệ thống bảo mật. Nhân viên mới vui lòng liên hệ Admin để được cấp tài khoản truy cập.
+                </div>
               </div>
             </div>
           ) : (

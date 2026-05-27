@@ -59,7 +59,7 @@ export interface Booking {
   created_at?: string;
 }
 
-export type UserRole = 'admin' | 'staff' | 'pending';
+export type UserRole = 'owner' | 'admin' | 'staff' | 'pending' | 'pending_owner';
 
 export interface UserProfile {
   id: string;
@@ -67,5 +67,6 @@ export interface UserProfile {
   full_name: string;
   phone: string;
   role: UserRole;
+  tenant_id?: string;
   created_at: string;
 }

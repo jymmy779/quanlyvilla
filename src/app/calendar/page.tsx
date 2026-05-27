@@ -5,10 +5,12 @@ import { supabase } from '@/lib/supabase';
 import { Villa, Booking } from '@/types';
 import { ChevronLeft, ChevronRight, Plus, Wrench, LogOut, LogIn, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 const CalendarPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { profile, loading: authLoading } = useAuth();
 
   const [villas, setVillas] = useState<Villa[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -33,8 +35,10 @@ const CalendarPage = () => {
   }, [router]);
 
   useEffect(() => {
-    fetchInitialData();
-  }, []);
+    if (profile?.tenant_id) {
+      fetchInitialData();
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (selectedVillaId) {
@@ -43,11 +47,13 @@ const CalendarPage = () => {
   }, [currentDate, selectedVillaId]);
 
   const fetchInitialData = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('villas')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .neq('status', 'inactive');
 
       if (error) throw error;
@@ -68,6 +74,7 @@ const CalendarPage = () => {
   };
 
   const fetchBookings = async () => {
+    if (!profile?.tenant_id) return;
     try {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
@@ -78,6 +85,7 @@ const CalendarPage = () => {
         .from('bookings')
         .select('*')
         .eq('villa_id', selectedVillaId)
+        .eq('tenant_id', profile.tenant_id)
         .not('status', 'in', '("cancelled", "deleted")')
         .or(`check_in.lte.${lastDay},check_out.gte.${firstDay}`);
 
@@ -137,6 +145,8 @@ const CalendarPage = () => {
       staying: bookings.find(b => dateStr > b.check_in && dateStr < b.check_out)
     };
   };
+
+  if (authLoading) return null;
 
   if (loading) {
     return (

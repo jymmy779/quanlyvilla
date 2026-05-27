@@ -7,10 +7,12 @@ import { ArrowLeft, Save, Plus, X, Upload, Image as ImageIcon, Trash2, CheckCirc
 import { VillaStatus, Villa, VillaDetailItem } from '@/types';
 import { useNotification } from '@/context/NotificationContext';
 import { getOptimizedImageUrl } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 const VillaEditPage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const isEdit = id && id !== 'new';
 
   // States
@@ -40,17 +42,19 @@ const VillaEditPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && profile?.tenant_id) {
       fetchVilla();
     }
-  }, [id]);
+  }, [id, profile]);
 
   const fetchVilla = async () => {
+    if (!profile?.tenant_id) return;
     try {
       const { data, error } = await supabase
         .from('villas')
         .select('*')
         .eq('id', id)
+        .eq('tenant_id', profile.tenant_id)
         .single();
 
       if (error) throw error;
@@ -139,7 +143,8 @@ const VillaEditPage = () => {
         bathrooms,
         capacity,
         price: 5000000,
-        monthly_prices: monthlyPrices
+        monthly_prices: monthlyPrices,
+        tenant_id: profile?.tenant_id // Gán tenant_id của người tạo
       };
 
       let result;
@@ -147,7 +152,8 @@ const VillaEditPage = () => {
         result = await supabase
           .from('villas')
           .update(villaData)
-          .eq('id', id);
+          .eq('id', id)
+          .eq('tenant_id', profile?.tenant_id);
       } else {
         result = await supabase
           .from('villas')
@@ -214,6 +220,8 @@ const VillaEditPage = () => {
       }
     });
   };
+
+  if (authLoading) return null;
 
   if (loading) {
     return (

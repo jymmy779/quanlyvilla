@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { canCreateUser, isActiveRole } from '../../../../lib/permissions';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,8 +16,13 @@ export async function POST(req: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-    // Khởi tạo client thông thường để verify token của người gọi API
+    // Khởi tạo client có gắn JWT của người gọi để mọi truy vấn đều đi qua RLS đúng ngữ cảnh
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      },
       auth: { persistSession: false }
     });
 
@@ -26,15 +32,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Phiên đăng nhập hết hạn hoặc không hợp lệ.' }, { status: 401 });
     }
 
-    // 2. Kiểm tra xem người gọi API này có đúng là Admin trong bảng profiles không
-    const { data: adminProfile, error: profileError } = await supabase
+    // 2. Kiểm tra xem người gọi API này có đúng là Admin hoặc Owner trong bảng profiles không
+    const { data: creatorProfile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, tenant_id')
       .eq('id', user.id)
       .single();
 
-    if (profileError || !adminProfile || adminProfile.role !== 'admin') {
-      return NextResponse.json({ error: 'Từ chối truy cập! Chỉ Admin mới được thực hiện thao tác này.' }, { status: 403 });
+    if (profileError || !creatorProfile || !isActiveRole(creatorProfile.role)) {
+      return NextResponse.json({ error: 'Từ chối truy cập! Chỉ Chủ sở hữu (Owner) hoặc Quản trị viên (Admin) mới được thực hiện thao tác này.' }, { status: 403 });
     }
 
     // 3. Đọc dữ liệu gửi lên
@@ -44,6 +50,11 @@ export async function POST(req: NextRequest) {
     if (!email || !password || !fullName || !phone || !role) {
       console.warn('[API Create User] ⚠️ Thiếu thông tin đầu vào');
       return NextResponse.json({ error: 'Vui lòng điền đầy đủ các trường thông tin.' }, { status: 400 });
+    }
+
+    // Kiểm tra tính hợp lệ về phân cấp vai trò
+    if (!canCreateUser(creatorProfile.role, role)) {
+      return NextResponse.json({ error: 'Vai trò cần tạo không hợp lệ với quyền hiện tại.' }, { status: 403 });
     }
 
     if (password.length < 6) {
@@ -81,16 +92,22 @@ export async function POST(req: NextRequest) {
 
     if (createUserError || !createdUserData.user) {
       console.error('[API Create User] ❌ Lỗi từ auth.admin.createUser:', createUserError);
+      if (createUserError?.status === 422 || createUserError?.code === 'email_exists') {
+        return NextResponse.json({ error: 'Email này đã được đăng ký trong hệ thống.' }, { status: 409 });
+      }
       return NextResponse.json({ error: createUserError?.message || 'Lỗi khi tạo tài khoản.' }, { status: 500 });
     }
 
     console.log('[API Create User] ✅ Tạo tài khoản thành công trong auth.users! ID:', createdUserData.user.id);
 
-    // 6. Cập nhật ngay lập tức quyền hạn (role) trong bảng profiles
-    console.log('[API Create User] 📝 Đang cập nhật vai trò (role) trong bảng profiles...');
+    // 6. Cập nhật ngay lập tức quyền hạn (role) và tenant_id trong bảng profiles
+    console.log('[API Create User] 📝 Đang cập nhật vai trò (role) và tenant_id trong bảng profiles...');
     const { error: updateProfileError } = await supabaseAdmin
       .from('profiles')
-      .update({ role: role })
+      .update({ 
+        role: role,
+        tenant_id: creatorProfile?.tenant_id || user.id // Thuộc cùng một tenant với Admin/Owner khởi tạo
+      })
       .eq('id', createdUserData.user.id);
 
     if (updateProfileError) {

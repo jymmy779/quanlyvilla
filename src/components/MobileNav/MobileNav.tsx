@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Calendar, DollarSign, Hotel, Settings, LogOut, Menu, X, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
@@ -10,7 +10,9 @@ import { useNotification } from '@/context/NotificationContext';
 
 const MobileNav = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const { profile, role, logout } = useAuth();
   const { confirm } = useNotification();
 
@@ -32,6 +34,25 @@ const MobileNav = () => {
     { name: 'Quản lý căn', href: '/villas', icon: Hotel },
   ];
 
+  useEffect(() => {
+    const routes = ['/', '/calendar', '/pricing', '/villas', '/settings', '/settings/users'];
+    routes.forEach((route) => {
+      Promise.resolve(router.prefetch(route)).catch(() => {});
+    });
+  }, [router]);
+
+  const navigateTo = (event: React.MouseEvent, href: string) => {
+    event.preventDefault();
+    setIsOpen(false);
+    if (isNavigating || href === pathname) return;
+
+    setIsNavigating(true);
+    requestAnimationFrame(() => {
+      router.push(href);
+      requestAnimationFrame(() => setIsNavigating(false));
+    });
+  };
+
   const moreItems = [
     { name: 'Cài đặt', href: '/settings', icon: Settings },
     { name: 'Đăng xuất', icon: LogOut, isAction: true },
@@ -46,23 +67,28 @@ const MobileNav = () => {
 
   return (
     <>
+
+
+
       {/* Overlay Menu */}
       {isOpen && (
         <div 
-          className="xl:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[49] transition-all duration-300"
+          className="xl:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-49 transition-all duration-300"
           onClick={() => setIsOpen(false)}
         >
           <div 
-            className="absolute bottom-24 right-4 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-3 min-w-[210px] overflow-hidden space-y-2 animate-in slide-in-from-bottom-2 duration-250"
+            className="absolute bottom-24 right-4 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-3 min-w-52.5 overflow-hidden space-y-2 animate-in slide-in-from-bottom-2 duration-250"
             onClick={(e) => e.stopPropagation()}
           >
             {/* User Profile Widget */}
             {profile && (
-              <div className="flex items-center gap-2.5 p-2 bg-slate-50 border border-slate-100 rounded-xl mb-1">
+              <div className="flex items-center gap-2.5 p-2 bg-slate-55 bg-slate-50 border border-slate-100 rounded-xl mb-1">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white ${
-                  role === 'admin' 
-                    ? 'bg-gradient-to-tr from-red-500 to-rose-400' 
-                    : 'bg-gradient-to-tr from-orange-500 to-amber-400'
+                  role === 'owner'
+                    ? 'bg-linear-to-tr from-violet-600 to-fuchsia-400'
+                    : role === 'admin' 
+                    ? 'bg-linear-to-tr from-red-500 to-rose-400' 
+                    : 'bg-linear-to-tr from-orange-500 to-amber-400'
                 }`}>
                   {getInitials(profile.full_name || '')}
                 </div>
@@ -71,9 +97,9 @@ const MobileNav = () => {
                     {profile.full_name || 'Chưa cập nhật'}
                   </p>
                   <span className={`text-[8px] font-bold uppercase block mt-0.5 ${
-                    role === 'admin' ? 'text-red-500' : 'text-orange-500'
+                    role === 'owner' ? 'text-violet-500' : role === 'admin' ? 'text-red-500' : 'text-orange-500'
                   }`}>
-                    {role === 'admin' ? 'Quản trị' : 'Nhân viên'}
+                    {role === 'owner' ? 'Chủ sở hữu' : role === 'admin' ? 'Quản trị' : 'Nhân viên'}
                   </span>
                 </div>
               </div>
@@ -102,10 +128,14 @@ const MobileNav = () => {
                 <Link
                   key={item.href}
                   href={item.href!}
+                  prefetch
+                  onMouseEnter={() => {
+                    Promise.resolve(router.prefetch(item.href!)).catch(() => {});
+                  }}
+                  onClick={(event) => navigateTo(event, item.href!)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-semibold text-xs ${
                     pathname.startsWith(item.href!) ? 'bg-orange-50 text-orange-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
-                  onClick={() => setIsOpen(false)}
                 >
                   <div className={`p-1.5 rounded-lg transition-colors ${
                     pathname.startsWith(item.href!) ? 'bg-orange-100' : 'bg-slate-50'
@@ -128,6 +158,11 @@ const MobileNav = () => {
             <Link
               key={item.href}
               href={item.href}
+              prefetch
+              onMouseEnter={() => {
+                Promise.resolve(router.prefetch(item.href)).catch(() => {});
+              }}
+              onClick={(event) => navigateTo(event, item.href)}
               className={`flex flex-col items-center gap-1 transition-all duration-300 ${
                 isActive ? 'text-orange-600' : 'text-slate-400'
               }`}

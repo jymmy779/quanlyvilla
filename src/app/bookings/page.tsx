@@ -6,10 +6,12 @@ import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
 import { Search, Filter, Calendar, Loader2, ArrowLeft } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 
 const BookingsListPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [villas, setVillas] = useState<Villa[]>([]);
@@ -41,15 +43,26 @@ const BookingsListPage = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (profile?.tenant_id) {
+      fetchData();
+    }
+  }, [profile]);
 
   const fetchData = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const [bookingsRes, villasRes] = await Promise.all([
-        supabase.from('bookings').select('*').neq('status', 'deleted').order('check_in', { ascending: false }),
-        supabase.from('villas').select('*')
+        supabase
+          .from('bookings')
+          .select('*')
+          .eq('tenant_id', profile.tenant_id)
+          .neq('status', 'deleted')
+          .order('check_in', { ascending: false }),
+        supabase
+          .from('villas')
+          .select('*')
+          .eq('tenant_id', profile.tenant_id)
       ]);
 
       if (bookingsRes.error) throw bookingsRes.error;
@@ -111,6 +124,8 @@ const BookingsListPage = () => {
       default: return { label: 'Chờ cọc', color: 'bg-slate-50 text-slate-400 border-slate-100' };
     }
   };
+
+  if (authLoading) return null;
 
   if (loading) {
     return (

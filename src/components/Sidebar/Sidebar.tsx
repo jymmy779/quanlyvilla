@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Calendar, DollarSign, Home, Settings, LogOut, Hotel, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
@@ -10,6 +10,8 @@ import { useNotification } from '@/context/NotificationContext';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
   const { profile, role, logout } = useAuth();
   const { confirm } = useNotification();
 
@@ -30,6 +32,24 @@ const Sidebar = () => {
     { name: 'Quản lý giá', href: '/pricing', icon: DollarSign },
     { name: 'Quản lý căn', href: '/villas', icon: Hotel },
   ];
+
+  useEffect(() => {
+    const routes = ['/', '/calendar', '/pricing', '/villas', '/settings', '/settings/users'];
+    routes.forEach((route) => {
+      Promise.resolve(router.prefetch(route)).catch(() => {});
+    });
+  }, [router]);
+
+  const navigateTo = (event: React.MouseEvent, href: string) => {
+    event.preventDefault();
+    if (isNavigating || href === pathname) return;
+
+    setIsNavigating(true);
+    requestAnimationFrame(() => {
+      router.push(href);
+      requestAnimationFrame(() => setIsNavigating(false));
+    });
+  };
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -59,6 +79,11 @@ const Sidebar = () => {
             <Link
               key={item.href}
               href={item.href}
+              prefetch
+              onMouseEnter={() => {
+                Promise.resolve(router.prefetch(item.href)).catch(() => {});
+              }}
+              onClick={(event) => navigateTo(event, item.href)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                 isActive
                   ? 'bg-orange-50 text-orange-600 font-semibold'
@@ -79,9 +104,11 @@ const Sidebar = () => {
         {profile && (
           <div className="flex items-center gap-3 p-2 bg-slate-50/50 border border-slate-100 rounded-2xl mb-1">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-inner text-white ${
-              role === 'admin' 
-                ? 'bg-gradient-to-tr from-red-500 to-rose-400' 
-                : 'bg-gradient-to-tr from-orange-500 to-amber-400'
+              role === 'owner'
+                ? 'bg-linear-to-tr from-violet-600 to-fuchsia-400'
+                : role === 'admin' 
+                ? 'bg-linear-to-tr from-red-500 to-rose-400' 
+                : 'bg-linear-to-tr from-orange-500 to-amber-400'
             }`}>
               {getInitials(profile.full_name || '')}
             </div>
@@ -90,11 +117,13 @@ const Sidebar = () => {
                 {profile.full_name || 'Chưa cập nhật'}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${role === 'admin' ? 'bg-red-500' : 'bg-orange-500'}`}></span>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  role === 'owner' ? 'bg-violet-500' : role === 'admin' ? 'bg-red-500' : 'bg-orange-500'
+                }`}></span>
                 <span className={`text-[9px] font-bold uppercase ${
-                  role === 'admin' ? 'text-red-500' : 'text-orange-500'
+                  role === 'owner' ? 'text-violet-500' : role === 'admin' ? 'text-red-500' : 'text-orange-500'
                 }`}>
-                  {role === 'admin' ? 'Quản trị' : 'Nhân viên'}
+                  {role === 'owner' ? 'Chủ sở hữu' : role === 'admin' ? 'Quản trị' : 'Nhân viên'}
                 </span>
               </div>
             </div>
@@ -104,6 +133,11 @@ const Sidebar = () => {
         <div className="space-y-1">
           <Link 
             href="/settings"
+            prefetch
+            onMouseEnter={() => {
+              Promise.resolve(router.prefetch('/settings')).catch(() => {});
+            }}
+            onClick={(event) => navigateTo(event, '/settings')}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
               pathname.startsWith('/settings')
                 ? 'bg-orange-50 text-orange-600 font-semibold'

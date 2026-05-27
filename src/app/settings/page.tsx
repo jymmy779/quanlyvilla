@@ -10,7 +10,7 @@ import {
   Trash2, Bold, Italic, Underline as UnderlineIcon,
   Type, Smile, CaseSensitive,
   ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle,
-  User, Lock, Users, KeyRound, Phone, Mail, Loader2
+  User, Lock, Users, KeyRound, Phone, Mail, Loader2, Building2
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import EmojiPicker, { Theme, EmojiClickData } from 'emoji-picker-react';
@@ -181,6 +181,268 @@ const toggleCase = (text: string) => {
   }
 };
 
+interface TenantData {
+  id: string;
+  name: string;
+  phone: string | null;
+  business_type: string | null;
+  status: string;
+}
+
+const StartupManagementSection = () => {
+  const { profile, role, refreshProfile } = useAuth();
+  const { showToast, confirm: showConfirmModal } = useNotification();
+  const [tenant, setTenant] = useState<TenantData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [startupName, setStartupName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [businessType, setBusinessType] = useState('');
+
+  // Transfer states
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [transferLoading, setTransferLoading] = useState(false);
+
+  useEffect(() => {
+    if (profile?.tenant_id) {
+      fetchTenantDetails();
+      if (role === 'owner') {
+        fetchCoAdmins();
+      }
+    }
+  }, [profile, role]);
+
+  const fetchTenantDetails = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', profile?.tenant_id)
+        .single();
+
+      if (data) {
+        setTenant(data);
+        setStartupName(data.name || '');
+        setPhone(data.phone || '');
+        setBusinessType(data.business_type || '');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCoAdmins = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, role')
+        .eq('tenant_id', profile?.tenant_id)
+        .in('role', ['admin', 'owner'])
+        .neq('id', profile?.id); // Trừ chính mình
+
+      if (data) {
+        setAdmins(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (role !== 'owner') {
+      showToast('Từ chối thao tác! Bạn không có quyền thực hiện việc này.', 'error');
+      return;
+    }
+    if (!startupName) {
+      showToast('Vui lòng nhập tên Startup!', 'error');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('tenants')
+        .update({
+          name: startupName,
+          phone: phone,
+          business_type: businessType
+        })
+        .eq('id', profile?.tenant_id);
+
+      if (error) throw error;
+      showToast('Cập nhật thông tin Startup thành công!', 'success');
+      fetchTenantDetails();
+    } catch (err: any) {
+      showToast(err.message || 'Lỗi khi cập nhật Startup', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTransferOwner = async (targetAdminId: string, targetAdminName: string) => {
+    showConfirmModal({
+      title: 'Chuyển nhượng quyền sở hữu tối cao?',
+      message: `Bạn có chắc chắn muốn chuyển quyền sở hữu Startup này cho ${targetAdminName}? Sau khi xác nhận, vai trò của bạn sẽ tự động hạ cấp xuống Quản trị viên (Admin) và không thể đảo ngược tác vụ này thủ công.`,
+      onConfirm: async () => {
+        try {
+          setTransferLoading(true);
+          
+          // 1. Thăng cấp tài khoản đích lên Owner
+          const { error: promoteError } = await supabase
+            .from('profiles')
+            .update({ role: 'owner' })
+            .eq('id', targetAdminId);
+
+          if (promoteError) throw promoteError;
+
+          // 2. Hạ cấp chính mình xuống Admin
+          const { error: demoteError } = await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('id', profile?.id);
+
+          if (demoteError) throw demoteError;
+
+          showToast(`Đã chuyển nhượng quyền Owner thành công cho ${targetAdminName}!`, 'success');
+          await refreshProfile();
+          window.location.reload();
+        } catch (err: any) {
+          showToast(err.message || 'Lỗi chuyển nhượng quyền sở hữu.', 'error');
+        } finally {
+          setTransferLoading(false);
+        }
+      }
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex items-center justify-center min-h-[200px]">
+        <Loader2 className="animate-spin text-orange-500" size={24} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl mt-6">
+      
+      {/* Cấu hình Startup */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 pb-4">
+          <h2 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+            <Building2 className="text-orange-600" size={20} />
+            Thông tin Startup / Chuỗi của bạn
+          </h2>
+          <p className="text-slate-400 text-xs md:text-sm mt-0.5">Cấu hình chuỗi kinh doanh lưu trú trên Rentify</p>
+        </div>
+
+        <form onSubmit={handleUpdateTenant} className="space-y-4" noValidate>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase">Tên Startup</label>
+              <input
+                type="text"
+                value={startupName}
+                onChange={(e) => setStartupName(e.target.value)}
+                disabled={role !== 'owner' || saving}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-400 uppercase">Loại hình kinh doanh</label>
+              <select
+                value={businessType}
+                onChange={(e) => setBusinessType(e.target.value)}
+                disabled={role !== 'owner' || saving}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <option value="homestay">Homestay / Hostel</option>
+                <option value="villa">Biệt thự / Villa</option>
+                <option value="apartment">Căn hộ dịch vụ</option>
+                <option value="hotel">Khách sạn nhỏ</option>
+                <option value="room">Phòng cho thuê</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-400 uppercase">SĐT liên hệ chính</label>
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={role !== 'owner' || saving}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 rounded-2xl py-2.5 px-4 outline-none text-xs md:text-sm font-semibold text-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {role === 'owner' ? (
+            <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 text-xs cursor-pointer"
+              >
+                {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+                Cập nhật Startup
+              </button>
+            </div>
+          ) : (
+            <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
+              ⚠️ Chỉ có Chủ sở hữu (Owner) mới được quyền thay đổi thông tin Startup.
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* Khu vực Owner Transfer - Chỉ hiển thị cho Owner chính của chuỗi */}
+      {role === 'owner' && (
+        <div className="bg-white border border-red-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="border-b border-red-100 pb-4">
+            <h2 className="text-lg font-bold text-red-950 flex items-center gap-2">
+              <KeyRound className="text-red-600" size={20} />
+              Chuyển nhượng quyền Chủ sở hữu (Owner)
+            </h2>
+            <p className="text-slate-400 text-xs md:text-sm mt-0.5">
+              Ủy thác hoặc bàn giao toàn quyền kiểm soát tối cao của Startup Rentify cho một cộng sự Admin khác trong chuỗi.
+            </p>
+          </div>
+
+          {admins.length === 0 ? (
+            <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center text-xs font-semibold text-slate-400">
+              Chưa có Admin nào khác cùng Startup để thực hiện chuyển nhượng. Bạn có thể thêm nhân sự mới với vai trò Admin tại trang Quản lý nhân sự.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {admins.map((admin) => (
+                <div key={admin.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all">
+                  <div>
+                    <h4 className="text-xs md:text-sm font-bold text-slate-800">{admin.full_name || 'Chưa đặt tên'}</h4>
+                    <p className="text-[11px] font-semibold text-slate-400 mt-0.5">{admin.email}</p>
+                  </div>
+
+                  <button
+                    onClick={() => handleTransferOwner(admin.id, admin.full_name || admin.email)}
+                    disabled={transferLoading}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-xl text-xs font-bold border border-red-200 hover:border-red-500 transition-all active:scale-95 shrink-0 cursor-pointer"
+                  >
+                    Bàn giao quyền Owner
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SettingsPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -218,14 +480,14 @@ const SettingsPage = () => {
   const [securitySaving, setSecuritySaving] = useState(false);
 
   // Tab 3: Template States (Được giữ nguyên)
-  const [template, setTemplate] = useState(DEFAULT_TEMPLATE);
+  const [template, setTemplate] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const editorRef = React.useRef<HTMLDivElement>(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [showBullets, setShowBullets] = useState(false);
-
+ 
   // Load thông tin ban đầu
   useEffect(() => {
     if (profile) {
@@ -233,13 +495,13 @@ const SettingsPage = () => {
       setPhone(profile.phone || '');
     }
   }, [profile]);
-
+ 
   useEffect(() => {
-    if (activeTab === 'template' && role === 'admin') {
+    if (activeTab === 'template' && ['admin', 'owner'].includes(role || '') && profile?.tenant_id) {
       fetchSettings();
     }
-  }, [activeTab, role]);
-
+  }, [activeTab, role, profile]);
+ 
   useEffect(() => {
     if (activeTab === 'template' && !loading && editorRef.current) {
       const currentHtml = editorRef.current.innerHTML;
@@ -249,21 +511,26 @@ const SettingsPage = () => {
       }
     }
   }, [template, loading, activeTab]);
-
+ 
   const fetchSettings = async () => {
+    if (!profile?.tenant_id) return;
     try {
       setLoading(true);
       const { data } = await supabase
         .from('settings')
         .select('value')
         .eq('key', 'booking_confirmation_template')
+        .eq('tenant_id', profile.tenant_id)
         .single();
-
+ 
       if (data) {
         setTemplate(data.value);
+      } else {
+        setTemplate('');
       }
     } catch (err) {
-      console.log('Using default template');
+      console.log('Using empty template for new startup');
+      setTemplate('');
     } finally {
       setLoading(false);
     }
@@ -330,12 +597,20 @@ const SettingsPage = () => {
 
   // Lưu cấu hình template tin nhắn (Tab 3)
   const handleSaveTemplate = async () => {
+    if (!profile?.tenant_id) {
+      showToast('Không tìm thấy thông tin Startup (tenant_id).', 'error');
+      return;
+    }
     try {
       setSaving(true);
       const currentTemplate = htmlToTemplate(editorRef.current?.innerHTML || '');
       const { error } = await supabase
         .from('settings')
-        .upsert({ key: 'booking_confirmation_template', value: currentTemplate }, { onConflict: 'key' });
+        .upsert({ 
+          key: 'booking_confirmation_template', 
+          value: currentTemplate,
+          tenant_id: profile.tenant_id
+        }, { onConflict: 'key,tenant_id' });
 
       if (error) throw error;
 
@@ -486,7 +761,7 @@ const SettingsPage = () => {
 
         {/* Nút hành động bổ sung */}
         <div className="flex items-center gap-3">
-          {role === 'admin' && (
+          {['admin', 'owner'].includes(role || '') && (
             <button
               onClick={() => router.push('/settings/users')}
               className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-600 font-bold rounded-xl text-xs transition-all shadow-sm cursor-pointer"
@@ -496,7 +771,7 @@ const SettingsPage = () => {
             </button>
           )}
 
-          {activeTab === 'template' && role === 'admin' && (
+          {activeTab === 'template' && ['admin', 'owner'].includes(role || '') && (
             <button
               onClick={handleSaveTemplate}
               disabled={saving}
@@ -536,7 +811,7 @@ const SettingsPage = () => {
           <Lock size={16} />
           Mật khẩu & Bảo mật
         </button>
-        {role === 'admin' && (
+        {['admin', 'owner'].includes(role || '') && (
           <button
             onClick={() => handleTabChange('template')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
@@ -621,6 +896,11 @@ const SettingsPage = () => {
           </div>
         )}
 
+        {/* --- KHU VỰC THÔNG TIN STARTUP & CHUYỂN NHƯỢNG CHO OWNER --- */}
+        {activeTab === 'profile' && (role === 'owner' || role === 'admin') && (
+          <StartupManagementSection />
+        )}
+
         {/* --- TAB 2: ĐỔI MẬT KHẨU --- */}
         {activeTab === 'security' && (
           <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -676,7 +956,7 @@ const SettingsPage = () => {
         )}
 
         {/* --- TAB 3: MẪU TIN NHẮN (Được giữ nguyên giao diện cũ cực đẹp) --- */}
-        {activeTab === 'template' && role === 'admin' && (
+        {activeTab === 'template' && ['admin', 'owner'].includes(role || '') && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Editor Side */}
             <div className="lg:col-span-7 space-y-6">
