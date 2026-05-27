@@ -1,40 +1,78 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
 import { UserProfile, UserRole } from '@/types';
 import { useNotification } from '@/context/NotificationContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { translateAuthError } from '@/lib/errorTranslator';
 
-const promiseTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string, onTimeout?: () => void): Promise<T> => {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      onTimeout?.();
-      reject(new Error(errorMsg));
-    }, ms);
+// Helper: decode JWT payload (client-side only)
+const decodeToken = (token: string): { userId: string; role?: string; tenantId?: string; exp?: number } | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return {
+      userId: payload.userId,
+      role: payload.role,
+      tenantId: payload.tenantId,
+      exp: payload.exp,
+    };
+  } catch {
+    return null;
+  }
+};
 
-    promise
-      .then((result) => {
-        clearTimeout(timer);
-        resolve(result);
-      })
-      .catch((error) => {
-        clearTimeout(timer);
-        reject(error);
-      });
+// Helper: check if token is expired
+const isTokenExpired = (token: string): boolean => {
+  const decoded = decodeToken(token);
+  if (!decoded?.exp) return true;
+  return Date.now() >= decoded.exp * 1000;
+};
+
+// Helper: get auth headers for API calls
+export const getAuthHeaders = (): HeadersInit => {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('rentify_token');
+  if (!token) return {};
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+// Helper: authenticated fetch
+export const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const headers = {
+    ...getAuthHeaders(),
+    ...(options.headers || {}),
+  } as Record<string, string>;
+
+  // Ensure Content-Type for POST/PATCH/PUT with body
+  if (options.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
   });
 };
 
+// Helper: get current token
+export const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('rentify_token');
+};
+
 interface AuthContextType {
-  user: User | null;
+  user: { id: string; email: string } | null;
   profile: UserProfile | null;
   role: UserRole | null;
   startupName: string | null;
+  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, fullName: string, phone: string) => Promise<{ success: boolean; error?: string }>;
   registerStartup: (
     email: string,
@@ -56,140 +94,100 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [startupName, setStartupName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const lastSessionUserIdRef = useRef<string | null>(null);
-  
+
   const { showToast } = useNotification();
   const router = useRouter();
   const pathname = usePathname();
 
-  const fetchProfile = async (uid: string, email: string, controller?: AbortController) => {
-    try {
-      const signal = controller?.signal;
-      const profileQuery = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .single();
+  // Restore session from localStorage on mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem('rentify_token');
+    if (savedToken && !isTokenExpired(savedToken)) {
+      setToken(savedToken);
+      const decoded = decodeToken(savedToken);
+      if (decoded) {
+        setUser({ id: decoded.userId, email: '' });
+      }
+    } else {
+      localStorage.removeItem('rentify_token');
+      setLoading(false);
+    }
+  }, []);
 
-      if (signal) {
-        (profileQuery as any).abortSignal(signal);
+  // Fetch profile when user/token changes
+  const fetchProfile = async (userId: string, email: string): Promise<UserProfile | null> => {
+    try {
+      // Try to get profile from our own API
+      const response = await authFetch('/api/profile');
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile) return data.profile as UserProfile;
       }
 
-      const { data, error } = await promiseTimeout<any>(
-        profileQuery as any,
-        15000,
-        'Tải hồ sơ người dùng quá lâu. Vui lòng thử lại.',
-        () => controller?.abort()
-      );
+      // If 401, token might have expired
+      if (response.status === 401) {
+        localStorage.removeItem('rentify_token');
+        setToken(null);
+        setUser(null);
+        return null;
+      }
 
-      if (error) {
-        console.error('[AuthContext] ❌ Lỗi khi fetch profile từ database:', error);
-        // Nếu hồ sơ chưa được tạo tự động bởi trigger (do lỗi đồng bộ hoặc tài khoản cũ)
-        if (error.code === 'PGRST116') {
-          console.log('[AuthContext] ℹ️ Chưa có profile, tiến hành tạo mặc định...');
-          // Kiểm tra xem hệ thống có tài khoản nào chưa để xét quyền Admin đầu tiên
-          const countQuery = supabase.from('profiles').select('*', { count: 'exact', head: true });
-
-          if (signal) {
-            (countQuery as any).abortSignal(signal);
-          }
-
-          const { count } = await promiseTimeout<any>(
-            countQuery as any,
-            15000,
-            'Kiểm tra số lượng hồ sơ quá lâu. Vui lòng thử lại.',
-            () => controller?.abort()
-          );
-          const isFirstUser = count === 0;
-
-          const defaultProfile = {
-            id: uid,
+      // For new users, profile might not exist yet
+      // Fallback: use decoded token info to create a minimal profile
+      const savedToken = localStorage.getItem('rentify_token');
+      if (savedToken) {
+        const decoded = decodeToken(savedToken);
+        if (decoded) {
+          const minimalProfile: UserProfile = {
+            id: userId,
             email,
             full_name: '',
             phone: '',
-            role: isFirstUser ? 'owner' : ('pending' as UserRole),
-            tenant_id: uid // Admin mới/User mới tự làm chủ chính mình làm tenant mặc định
+            role: (decoded.role as UserRole) || 'pending',
+            tenant_id: decoded.tenantId,
+            created_at: new Date().toISOString(),
           };
-
-          const insertQuery = supabase
-            .from('profiles')
-            .insert(defaultProfile)
-            .select()
-            .single();
-
-          if (signal) {
-            (insertQuery as any).abortSignal(signal);
-          }
-
-          const { data: insertedData } = await promiseTimeout<any>(
-            insertQuery as any,
-            15000,
-            'Tạo hồ sơ mặc định quá lâu. Vui lòng thử lại.',
-            () => controller?.abort()
-          );
-
-          if (insertedData) {
-            console.log('[AuthContext] ✅ Tạo profile mặc định thành công:', insertedData);
-            return insertedData as UserProfile;
-          }
+          return minimalProfile;
         }
-        return null;
       }
-      return data as UserProfile;
+
+      return null;
     } catch (err) {
-      console.error('[AuthContext] 💥 Lỗi bắt ngoại lệ fetch profile:', err);
+      console.error('[AuthContext] 💥 fetchProfile error:', err);
       return null;
     }
   };
 
-  const fetchStartupName = async (tenantId: string, controller?: AbortController) => {
+  const fetchStartupName = async (tenantId: string): Promise<string | null> => {
     try {
-      const signal = controller?.signal;
-      const tenantQuery = supabase
-        .from('tenants')
-        .select('name')
-        .eq('id', tenantId)
-        .single();
-
-      if (signal) {
-        (tenantQuery as any).abortSignal(signal);
+      const response = await authFetch(`/api/tenants/${tenantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        return data.name || null;
       }
-
-      const { data, error } = await promiseTimeout<any>(
-        tenantQuery as any,
-        15000,
-        'Tải tên startup quá lâu. Vui lòng thử lại.',
-        () => controller?.abort()
-      );
-
-      if (error) {
-        console.error('[AuthContext] ❌ Lỗi khi fetch tenant:', error);
-        return null;
-      }
-
-      return data?.name || null;
+      return null;
     } catch (err) {
-      console.error('[AuthContext] 💥 Lỗi bắt ngoại lệ fetch tenant:', err);
+      console.error('[AuthContext] 💥 fetchStartupName error:', err);
       return null;
     }
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      const controller = new AbortController();
-      const prof = await fetchProfile(user.id, user.email || '', controller);
-      setProfile(prof);
+    if (!token || !user) return;
+    const prof = await fetchProfile(user.id, user.email);
+    setProfile(prof);
 
-      if (prof?.tenant_id) {
-        const name = await fetchStartupName(prof.tenant_id, controller);
-        setStartupName(name);
-      } else {
-        setStartupName(null);
-      }
+    if (prof?.tenant_id) {
+      const name = await fetchStartupName(prof.tenant_id);
+      setStartupName(name);
+    } else {
+      setStartupName(null);
     }
   };
 
@@ -198,96 +196,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStartupName(null);
       return;
     }
-
-    const controller = new AbortController();
-    const name = await fetchStartupName(profile.tenant_id, controller);
+    const name = await fetchStartupName(profile.tenant_id);
     setStartupName(name);
   };
 
-  const autoApproveStartupIfConfirmed = async (currentProfile: UserProfile) => {
-    if (!user?.email_confirmed_at) return false;
-    if (currentProfile.role !== 'pending_owner') return false;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) return false;
-
-    const response = await fetch('/api/auth/approve-startup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      throw new Error(result?.error || 'Không thể tự động phê duyệt tài khoản.');
-    }
-
-    await refreshProfile();
-    return true;
-  };
-
-  // Khôi phục session và lắng nghe thay đổi trạng thái đăng nhập (Single Source of Truth)
-  useEffect(() => {    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {        
-        // Giải mã JWT để xem chi tiết thời gian hết hạn của Access Token
-        try {
-          const token = session.access_token;
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            const now = Math.floor(Date.now() / 1000);
-          }
-        } catch (e) {
-          console.error('[AuthContext] Lỗi parse JWT:', e);
-        }
-      }
-
-      if (session?.user) {
-        if (lastSessionUserIdRef.current !== session.user.id) {
-          lastSessionUserIdRef.current = session.user.id;
-          setUser(session.user);
-        }
-      } else {
-        lastSessionUserIdRef.current = null;
-        setUser(null);
-        setProfile(null);
-        setStartupName(null);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Tải profile người dùng riêng biệt khi trạng thái user thay đổi (Tránh deadlock trong Auth Listener)
+  // Load profile when user is set
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
+    if (!user || !token) return;
 
-      const controller = new AbortController();
-      
+    const loadProfile = async () => {
       try {
-        const prof = await fetchProfile(user.id, user.email || '', controller);
+        const prof = await fetchProfile(user.id, user.email);
         setProfile(prof);
 
         if (prof?.tenant_id) {
-          const name = await fetchStartupName(prof.tenant_id, controller);
+          const name = await fetchStartupName(prof.tenant_id);
           setStartupName(name);
         } else {
           setStartupName(null);
         }
-
-        if (prof) {
-          await autoApproveStartupIfConfirmed(prof);
-        }
       } catch (error) {
-        controller.abort();
-        console.error('[AuthContext] ❌ Lỗi khi tải profile của user:', error);
+        console.error('[AuthContext] ❌ Error loading profile:', error);
         showToast('Không thể tải hồ sơ người dùng. Vui lòng thử lại.', 'error');
       } finally {
         setLoading(false);
@@ -295,9 +224,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     loadProfile();
-  }, [user]);
+  }, [user, token]);
 
-  // Bảo vệ Router (Route Guard) client-side
+  // Route guard
   useEffect(() => {
     if (loading) return;
 
@@ -309,29 +238,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         router.push('/login');
       }
     } else {
-      // Đã đăng nhập
       if (isPublicPath) {
-        // Nếu đang ở trang đặt lại mật khẩu thì tuyệt đối KHÔNG tự động chuyển hướng về trang chủ
-        if (pathname === '/reset-password') {
-          return;
-        }
-        // Nếu đã đăng nhập mà được duyệt quyền rồi thì cho vào trang chủ
+        if (pathname === '/reset-password') return;
         if (profile && profile.role !== 'pending' && profile.role !== 'pending_owner') {
           router.push('/');
         }
       } else {
-        // Đang ở các trang nội bộ, kiểm tra xem tài khoản có bị pending không
         if (profile && profile.role === 'pending' && pathname !== '/pending') {
-          router.push('/login'); // Để AppLayout tự động xử lý view chờ duyệt
-        }
-        if (profile && profile.role === 'pending_owner' && pathname !== '/pending-startup') {
-          // pending_owner sẽ được giữ hoặc redirect sang view chờ duyệt Startup (được xử lý trong AppLayout hoặc redirect)
+          router.push('/login');
         }
 
-        // Chặn non-owner/non-admin vào các trang cấu hình nâng cao và quản trị nhân sự
         const isProtectedAdminPath = pathname.startsWith('/settings/users') || pathname.startsWith('/villas/edit');
-        const isSettings = pathname === '/settings';
-        
         if (isProtectedAdminPath && profile?.role !== 'admin' && profile?.role !== 'owner') {
           showToast('Bạn không có quyền truy cập trang quản trị này!', 'error');
           router.push('/');
@@ -340,28 +257,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, profile, loading, pathname, router]);
 
-  // Đăng nhập bằng Email/Password
+  // Login
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      return { success: true };
-    } catch (err: any) {
-      console.error(err);
-      return { success: false, error: translateAuthError(err.message) };
-    }
-  };
-
-  // Đăng nhập bằng Google
-  const loginWithGoogle = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
-        }
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
-      if (error) throw error;
+
+      const result = await response.json();
+      if (!response.ok) {
+        return { success: false, error: translateAuthError(result.error) };
+      }
+
+      // Store token
+      localStorage.setItem('rentify_token', result.token);
+      setToken(result.token);
+      setUser({ id: result.user.id, email: result.user.email });
+
+      // Fetch profile after login
+      const prof = await fetchProfile(result.user.id, result.user.email);
+      setProfile(prof);
+
+      if (prof?.tenant_id) {
+        const name = await fetchStartupName(prof.tenant_id);
+        setStartupName(name);
+      }
+
       return { success: true };
     } catch (err: any) {
       console.error(err);
@@ -369,21 +292,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Đăng ký tài khoản mới kèm metadata Họ tên & SĐT
+  // Register (normal user)
   const register = async (email: string, password: string, fullName: string, phone: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            phone: phone,
-          }
-        }
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, fullName, phone }),
       });
 
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) {
+        return { success: false, error: translateAuthError(result.error) };
+      }
+
+      // Store token
+      localStorage.setItem('rentify_token', result.token);
+      setToken(result.token);
+      setUser({ id: result.user.id, email: result.user.email });
+
+      const prof = await fetchProfile(result.user.id, result.user.email);
+      setProfile(prof);
 
       return { success: true };
     } catch (err: any) {
@@ -392,7 +321,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Đăng ký Startup/Chuỗi kinh doanh mới chống Spam
+  // Register Startup
   const registerStartup = async (
     email: string,
     password: string,
@@ -405,9 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await fetch('/api/auth/register-startup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
@@ -419,10 +346,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }),
       });
 
-      const result = await response.json().catch(() => ({}));
-
+      const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error || 'Không thể khởi tạo tài khoản mới.');
+        return { success: false, error: translateAuthError(result.error) };
       }
 
       return { success: true };
@@ -432,31 +358,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Đăng xuất
+  // Logout
   const logout = async () => {
-    try {
-      setUser(null);
-      setProfile(null);
-      router.replace('/login');
-      showToast('Đăng xuất thành công!');
-      void supabase.auth.signOut().catch((err) => {
-        console.error(err);
-      });
-    } catch (err) {
-      console.error(err);
-    }
+    localStorage.removeItem('rentify_token');
+    setUser(null);
+    setProfile(null);
+    setToken(null);
+    setStartupName(null);
+    router.replace('/login');
+    showToast('Đăng xuất thành công!');
   };
 
-  // Người dùng tự cập nhật thông tin cá nhân
+  // Update profile
   const updateProfile = async (fullName: string, phone: string) => {
     if (!user) return { success: false, error: 'Chưa đăng nhập.' };
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName, phone: phone })
-        .eq('id', user.id);
+      const response = await authFetch('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ fullName, phone }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const result = await response.json();
+        return { success: false, error: result.error || 'Không thể cập nhật hồ sơ.' };
+      }
 
       await refreshProfile();
       return { success: true };
@@ -466,11 +391,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Tự đổi mật khẩu của mình
+  // Change password
   const changePassword = async (password: string) => {
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      const response = await authFetch('/api/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        return { success: false, error: result.error || 'Không thể đổi mật khẩu.' };
+      }
+
       return { success: true };
     } catch (err: any) {
       console.error(err);
@@ -478,13 +411,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Gửi email khôi phục mật khẩu (Quên mật khẩu)
+  // Password reset (send email - we use a simple API for now)
   const sendPasswordReset = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined,
+      const response = await fetch('/api/auth/reset-password-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
-      if (error) throw error;
+
+      if (!response.ok) {
+        const result = await response.json();
+        return { success: false, error: result.error || 'Không thể gửi yêu cầu đặt lại mật khẩu.' };
+      }
+
       return { success: true };
     } catch (err: any) {
       console.error(err);
@@ -499,9 +439,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         role: profile ? profile.role : null,
         startupName,
+        token,
         loading,
         login,
-        loginWithGoogle,
         register,
         registerStartup,
         logout,

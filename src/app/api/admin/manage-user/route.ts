@@ -1,87 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import {
-  canDeleteUser,
-  canEditUserProfile,
-  canSetUserRole,
-  isActiveRole
-} from '../../../../lib/permissions';
+import db from '@/lib/db';
+import { authenticateRequest } from '@/lib/auth';
 
-const buildAuthClient = (supabaseUrl: string, supabaseAnonKey: string, token: string) => {
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    },
-    auth: { persistSession: false }
-  });
-};
+const ACTIVE_ROLES = ['owner', 'admin'];
 
-const getAdminClient = (supabaseUrl: string, serviceRoleKey: string) => {
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-};
+function canEditUserProfile(actorRole: string, targetRole: string, isSelf: boolean): boolean {
+  if (isSelf) return true;
+  if (!ACTIVE_ROLES.includes(actorRole)) return false;
+  if (actorRole === 'owner') return true;
+  // admin can only edit staff/pending
+  if (actorRole === 'admin' && !['owner', 'admin'].includes(targetRole)) return true;
+  return false;
+}
+
+function canSetUserRole(actorRole: string, currentRole: string, newRole: string, isSelf: boolean): boolean {
+  if (isSelf) return false; // can't change your own role
+  if (!ACTIVE_ROLES.includes(actorRole)) return false;
+  if (actorRole === 'owner') return true;
+  // admin can only change roles to/from non-owner non-admin
+  if (actorRole === 'admin' && !['owner', 'admin'].includes(currentRole) && !['owner', 'admin'].includes(newRole)) return true;
+  return false;
+}
+
+function canDeleteUser(actorRole: string, targetRole: string, isSelf: boolean): boolean {
+  if (isSelf) return false; // can't delete yourself
+  if (!ACTIVE_ROLES.includes(actorRole)) return false;
+  if (actorRole === 'owner') return true;
+  if (actorRole === 'admin' && !['owner', 'admin'].includes(targetRole)) return true;
+  return false;
+}
 
 export async function PATCH(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization') || '';
-    const token = authHeader.replace('Bearer ', '');
-
-    if (!token) {
+    const payload = authenticateRequest(req);
+    if (!payload) {
       return NextResponse.json({ error: 'Chưa xác thực quyền truy cập.' }, { status: 401 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-    const supabase = buildAuthClient(supabaseUrl, supabaseAnonKey, token);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Phiên đăng nhập hết hạn hoặc không hợp lệ.' }, { status: 401 });
+    const actorProfile = await db('profiles').where({ id: payload.userId }).first();
+    if (!actorProfile) {
+      return NextResponse.json({ error: 'Không tìm thấy hồ sơ người dùng.' }, { status: 404 });
     }
-
-    const { data: actorProfile, error: actorError } = await supabase
-      .from('profiles')
-      .select('role, tenant_id')
-      .eq('id', user.id)
-      .single();
-
-    if (actorError || !actorProfile || !isActiveRole(actorProfile.role)) {
+    if (!ACTIVE_ROLES.includes(actorProfile.role)) {
       return NextResponse.json({ error: 'Từ chối truy cập.' }, { status: 403 });
     }
 
-    if (!serviceRoleKey) {
-      return NextResponse.json({ error: 'Thiếu SUPABASE_SERVICE_ROLE_KEY trên server.' }, { status: 501 });
-    }
-
     const { userId, fullName, phone, role } = await req.json();
-
     if (!userId) {
       return NextResponse.json({ error: 'Thiếu User ID.' }, { status: 400 });
     }
 
-    const { data: targetProfile, error: targetError } = await supabase
-      .from('profiles')
-      .select('id, role, tenant_id')
-      .eq('id', userId)
-      .single();
-
-    if (targetError || !targetProfile) {
+    const targetProfile = await db('profiles').where({ id: userId }).first();
+    if (!targetProfile) {
       return NextResponse.json({ error: 'Không tìm thấy tài khoản cần cập nhật.' }, { status: 404 });
     }
 
+    // Tenant isolation check
     if (actorProfile.tenant_id && targetProfile.tenant_id && actorProfile.tenant_id !== targetProfile.tenant_id) {
       return NextResponse.json({ error: 'Tài khoản không thuộc cùng hệ thống.' }, { status: 403 });
     }
 
-    const isSelf = user.id === userId;
+    const isSelf = payload.userId === userId;
     const hasProfileUpdate = typeof fullName === 'string' || typeof phone === 'string';
     const hasRoleUpdate = typeof role === 'string' && role !== targetProfile.role;
 
@@ -93,43 +72,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Bạn không có quyền sửa thông tin tài khoản này.' }, { status: 403 });
     }
 
-    if (hasRoleUpdate && !canSetUserRole(actorProfile.role, targetProfile.role, role as any, isSelf)) {
+    if (hasRoleUpdate && !canSetUserRole(actorProfile.role, targetProfile.role, role, isSelf)) {
       return NextResponse.json({ error: 'Bạn không có quyền thay đổi vai trò này.' }, { status: 403 });
     }
 
-    const supabaseAdmin = getAdminClient(supabaseUrl, serviceRoleKey);
+    const updateData: Record<string, any> = {};
+    if (typeof fullName === 'string') updateData.full_name = fullName.trim();
+    if (typeof phone === 'string') updateData.phone = phone.trim();
+    if (typeof role === 'string') updateData.role = role;
 
-    const updatePayload: Record<string, string> = {};
-
-    if (typeof fullName === 'string') {
-      updatePayload.full_name = fullName.trim();
-    }
-
-    if (typeof phone === 'string') {
-      updatePayload.phone = phone.trim();
-    }
-
-    if (Object.keys(updatePayload).length > 0) {
-      const { error: profileUpdateError } = await supabaseAdmin
-        .from('profiles')
-        .update(updatePayload)
-        .eq('id', userId);
-
-      if (profileUpdateError) {
-        return NextResponse.json({ error: profileUpdateError.message || 'Lỗi khi cập nhật thông tin.' }, { status: 500 });
-      }
-    }
-
-    if (typeof role === 'string') {
-      const { error: roleUpdateError } = await supabaseAdmin
-        .from('profiles')
-        .update({ role })
-        .eq('id', userId);
-
-      if (roleUpdateError) {
-        return NextResponse.json({ error: roleUpdateError.message || 'Lỗi khi cập nhật vai trò.' }, { status: 500 });
-      }
-    }
+    await db('profiles').where({ id: userId }).update(updateData);
 
     return NextResponse.json({ success: true, message: 'Đã cập nhật tài khoản thành công.' });
   } catch (err: any) {
@@ -140,84 +92,41 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization') || '';
-    const token = authHeader.replace('Bearer ', '');
-
-    if (!token) {
+    const payload = authenticateRequest(req);
+    if (!payload) {
       return NextResponse.json({ error: 'Chưa xác thực quyền truy cập.' }, { status: 401 });
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-    const supabase = buildAuthClient(supabaseUrl, supabaseAnonKey, token);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Phiên đăng nhập hết hạn hoặc không hợp lệ.' }, { status: 401 });
+    const actorProfile = await db('profiles').where({ id: payload.userId }).first();
+    if (!actorProfile) {
+      return NextResponse.json({ error: 'Không tìm thấy hồ sơ người dùng.' }, { status: 404 });
     }
-
-    const { data: actorProfile, error: actorError } = await supabase
-      .from('profiles')
-      .select('role, tenant_id')
-      .eq('id', user.id)
-      .single();
-
-    if (actorError || !actorProfile || !isActiveRole(actorProfile.role)) {
+    if (!ACTIVE_ROLES.includes(actorProfile.role)) {
       return NextResponse.json({ error: 'Từ chối truy cập.' }, { status: 403 });
     }
 
-    if (!serviceRoleKey) {
-      return NextResponse.json({ error: 'Thiếu SUPABASE_SERVICE_ROLE_KEY trên server.' }, { status: 501 });
-    }
-
     const { userId } = await req.json();
-
     if (!userId) {
       return NextResponse.json({ error: 'Thiếu User ID.' }, { status: 400 });
     }
 
-    const { data: targetProfile, error: targetError } = await supabase
-      .from('profiles')
-      .select('id, role, tenant_id')
-      .eq('id', userId)
-      .single();
-
-    if (targetError || !targetProfile) {
+    const targetProfile = await db('profiles').where({ id: userId }).first();
+    if (!targetProfile) {
       return NextResponse.json({ error: 'Không tìm thấy tài khoản cần xóa.' }, { status: 404 });
     }
 
+    // Tenant isolation check
     if (actorProfile.tenant_id && targetProfile.tenant_id && actorProfile.tenant_id !== targetProfile.tenant_id) {
       return NextResponse.json({ error: 'Tài khoản không thuộc cùng hệ thống.' }, { status: 403 });
     }
 
-    const isSelf = user.id === userId;
-
+    const isSelf = payload.userId === userId;
     if (!canDeleteUser(actorProfile.role, targetProfile.role, isSelf)) {
       return NextResponse.json({ error: 'Bạn không có quyền xóa tài khoản này.' }, { status: 403 });
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
-
-    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (authDeleteError) {
-      return NextResponse.json({ error: authDeleteError.message || 'Lỗi khi xóa tài khoản Auth.' }, { status: 500 });
-    }
-
-    const { error: profileDeleteError } = await supabaseAdmin
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
-
-    if (profileDeleteError) {
-      return NextResponse.json({ error: profileDeleteError.message || 'Lỗi khi xóa hồ sơ.' }, { status: 500 });
-    }
+    // Delete user (CASCADE will remove profile)
+    await db('users').where({ id: userId }).del();
 
     return NextResponse.json({ success: true, message: 'Đã xóa tài khoản thành công.' });
   } catch (err: any) {
