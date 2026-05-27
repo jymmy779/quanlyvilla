@@ -51,7 +51,9 @@ export const canSetUserRole = (
   desiredRole: RoleInput,
   isSelf = false
 ): boolean => {
-  if (!isActiveRole(actorRole) || !targetRole || !manageableRoles.includes(desiredRole as UserRole)) return false;
+  if (!isActiveRole(actorRole) || !targetRole || !desiredRole) return false;
+
+  if (!manageableRoles.includes(desiredRole)) return false;
 
   if (isSelf) {
     return actorRole === 'owner' && desiredRole === 'admin';
