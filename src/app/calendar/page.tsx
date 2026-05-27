@@ -1,18 +1,36 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Villa, Booking } from '@/types';
 import { ChevronLeft, ChevronRight, Plus, Wrench, LogOut, LogIn, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const CalendarPage = () => {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const searchParams = useSearchParams();
+
   const [villas, setVillas] = useState<Villa[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [selectedVillaId, setSelectedVillaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Đọc trạng thái từ URL params để giữ nguyên khi Back từ trang chi tiết
+  const now = new Date();
+  const urlVillaId = searchParams.get('villaId');
+  const urlMonth = parseInt(searchParams.get('month') || String(now.getMonth() + 1));
+  const urlYear = parseInt(searchParams.get('year') || String(now.getFullYear()));
+
+  const [selectedVillaId, setSelectedVillaId] = useState<string | null>(urlVillaId);
+  const [currentDate, setCurrentDate] = useState(new Date(urlYear, urlMonth - 1, 1));
+
+  // Cập nhật URL khi thay đổi villa hoặc tháng (dùng replace để không thêm history entry mới)
+  const updateUrl = useCallback((villaId: string | null, date: Date) => {
+    const params = new URLSearchParams();
+    if (villaId) params.set('villaId', villaId);
+    params.set('month', String(date.getMonth() + 1));
+    params.set('year', String(date.getFullYear()));
+    router.replace(`/calendar?${params.toString()}`, { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     fetchInitialData();
@@ -35,7 +53,12 @@ const CalendarPage = () => {
       if (error) throw error;
       if (data && data.length > 0) {
         setVillas(data);
-        setSelectedVillaId(data[0].id);
+        // Ưu tiên dùng villaId từ URL nếu còn hợp lệ, không thì dùng villa đầu tiên
+        const defaultVillaId = urlVillaId && data.find(v => v.id === urlVillaId)
+          ? urlVillaId
+          : data[0].id;
+        setSelectedVillaId(defaultVillaId);
+        updateUrl(defaultVillaId, currentDate);
       }
     } catch (error) {
       console.error('Error fetching villas:', error);
@@ -63,6 +86,17 @@ const CalendarPage = () => {
     } catch (error) {
       console.error('Error fetching bookings:', error);
     }
+  };
+
+  const handleVillaChange = (villaId: string) => {
+    setSelectedVillaId(villaId);
+    updateUrl(villaId, currentDate);
+  };
+
+  const handleMonthChange = (delta: number) => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
+    setCurrentDate(newDate);
+    updateUrl(selectedVillaId, newDate);
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -97,7 +131,6 @@ const CalendarPage = () => {
 
   const getDailyBookings = (date: Date) => {
     const dateStr = formatDateLocal(date);
-
     return {
       checkingIn: bookings.find(b => b.check_in === dateStr),
       checkingOut: bookings.find(b => b.check_out === dateStr),
@@ -113,8 +146,6 @@ const CalendarPage = () => {
     );
   }
 
-  const selectedVilla = villas.find(v => v.id === selectedVillaId);
-
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-700 pb-16 md:pb-20 px-2 md:px-4 mt-6 md:mt-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -123,13 +154,13 @@ const CalendarPage = () => {
           <p className="text-slate-500 font-medium text-xs">Dữ liệu thời gian thực từ hệ thống.</p>
         </div>
         <div className="flex bg-white border border-slate-200 rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-sm self-start md:self-auto">
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+          <button onClick={() => handleMonthChange(-1)} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
             <ChevronLeft size={18} />
           </button>
           <div className="px-3 md:px-6 flex items-center font-semibold text-slate-900 min-w-[140px] md:min-w-[180px] justify-center text-sm">
             Tháng {currentDate.getMonth() + 1}, {currentDate.getFullYear()}
           </div>
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
+          <button onClick={() => handleMonthChange(1)} className="p-1.5 md:p-2 hover:bg-slate-50 rounded-lg md:rounded-xl text-slate-400 transition-colors">
             <ChevronRight size={18} />
           </button>
         </div>
@@ -140,12 +171,11 @@ const CalendarPage = () => {
         {villas.map((villa) => {
           const isSelected = selectedVillaId === villa.id;
           const isMaintenance = villa.status === 'maintenance';
-
           return (
             <button
               key={villa.id}
               disabled={isMaintenance}
-              onClick={() => setSelectedVillaId(villa.id)}
+              onClick={() => handleVillaChange(villa.id)}
               className={`flex-shrink-0 px-4 md:px-6 py-2.5 md:py-3 rounded-t-xl md:rounded-t-2xl font-semibold text-sm transition-all border-b-2 md:border-b-4 flex items-center gap-2 ${isSelected
                   ? 'border-orange-500 text-slate-900 bg-orange-50/20'
                   : isMaintenance
@@ -176,7 +206,6 @@ const CalendarPage = () => {
                 {days.map((day, idx) => {
                   const { checkingIn, checkingOut, staying } = getDailyBookings(day.date);
                   const isToday = day.date.toDateString() === new Date().toDateString();
-
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
                   const isPast = day.date < today;
@@ -187,11 +216,9 @@ const CalendarPage = () => {
                       className={`min-h-[110px] md:min-h-[140px] border-r border-b border-slate-50 p-1.5 md:p-2 transition-colors relative group ${!day.isCurrentMonth ? 'bg-slate-50/30' : isPast ? 'bg-slate-50/10' : 'hover:bg-slate-50/50'}`}
                     >
                       <div className="flex justify-between items-center h-6 md:h-8 mb-1 md:mb-2">
-                        <span className={`text-xs md:text-sm font-semibold ${!day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'
-                          }`}>
+                        <span className={`text-xs md:text-sm font-semibold ${!day.isCurrentMonth ? 'text-slate-200' : isToday ? 'text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-md' : isPast ? 'text-slate-300' : 'text-slate-400'}`}>
                           {day.date.getDate()}
                         </span>
-
                         {day.isCurrentMonth && !checkingIn && !staying && !isPast && (
                           <button
                             onClick={() => router.push(`/bookings/create?villaId=${selectedVillaId}&date=${formatDateLocal(day.date)}`)}
@@ -218,8 +245,7 @@ const CalendarPage = () => {
                         {staying && (
                           <div
                             onClick={() => router.push(`/bookings/${staying.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                              } ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${staying.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[8px] font-semibold opacity-70 mb-0.5">
                               {staying.status === 'checked_in' ? (
@@ -235,8 +261,7 @@ const CalendarPage = () => {
                         {checkingIn && (
                           <div
                             onClick={() => router.push(`/bookings/${checkingIn.id}`)}
-                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
-                              } ${isPast ? 'opacity-50' : ''}`}
+                            className={`p-1 md:p-1.5 rounded-lg md:rounded-xl cursor-pointer transition-all hover:scale-[1.02] shadow-sm ${checkingIn.status === 'checked_in' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'} ${isPast ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-center gap-1 text-[8px] font-semibold opacity-70 mb-0.5">
                               <LogIn size={8} className="md:w-2.5 md:h-2.5" /> {checkingIn.status === 'checked_in' ? 'Đang ở' : 'Nhận (14h)'}

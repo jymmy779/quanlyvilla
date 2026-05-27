@@ -6,6 +6,7 @@ import { Villa } from '@/types';
 import { DollarSign, Save, ChevronLeft, ChevronRight, TrendingUp, Info, AlertCircle, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { useSearchParams } from 'next/navigation';
 
 // Helper function to enforce promise timeout
 const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, errorMsg = 'Yêu cầu quá thời gian phản hồi.'): Promise<T> => {
@@ -29,6 +30,9 @@ const promiseTimeout = <T = any>(promise: PromiseLike<T> | any, ms: number, erro
 const PricingPage = () => {
   const { role, logout } = useAuth();
   const isAdmin = role === 'admin';
+  const searchParams = useSearchParams();
+  const urlVillaId = searchParams.get('villaId');
+
   const [villas, setVillas] = useState<Villa[]>([]);
   const [selectedVillaId, setSelectedVillaId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,8 +99,12 @@ const PricingPage = () => {
       
       if (data && data.length > 0) {
         setVillas(data);
-        setSelectedVillaId(data[0].id);
-        setMonthlyPrices(data[0].monthly_prices || []);
+        // Ưu tiên villa từ URL param (khi navigate từ trang villa detail), không thì chọn villa đầu tiên
+        const targetVilla = urlVillaId && data.find((v: Villa) => v.id === urlVillaId)
+          ? data.find((v: Villa) => v.id === urlVillaId)!
+          : data[0];
+        setSelectedVillaId(targetVilla.id);
+        setMonthlyPrices(targetVilla.monthly_prices || []);
       }
     } catch (error: any) {
       if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
@@ -127,19 +135,43 @@ const PricingPage = () => {
     const cursorPosition = inputElement.selectionStart || 0;
     const digitsBeforeCursor = inputVal.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    // Loại bỏ mọi ký tự không phải số
-    const digits = inputVal.replace(/\D/g, '');
+    // Loại bỏ tất cả ký tự phi số trừ khi ô trống
+    let digits = inputVal.replace(/\D/g, '');
     
-    // Định dạng tiền tệ VND
+    // Nếu người dùng xóa hết (ô trống), cho phép ô trống hoàn toàn
+    if (digits === '') {
+      setEditingValue({ key, val: '' });
+      
+      const newPrices = [...monthlyPrices];
+      const index = newPrices.findIndex(p => p.month === month && p.year === selectedYear);
+      if (index >= 0) {
+        if (type === 'weekday') newPrices[index].weekday_price = 0;
+        else if (type === 'friday') newPrices[index].friday_price = 0;
+        else if (type === 'weekend') newPrices[index].weekend_price = 0;
+        else if (type === 'sunday') newPrices[index].sunday_price = 0;
+        setMonthlyPrices(newPrices);
+      }
+      return;
+    }
+
+    // Nếu chuỗi số chỉ toàn số 0 và độ dài lớn hơn 1 (ví dụ '000000' sau khi xóa số 4 của '4.000.000')
+    // Ta cho phép giữ lại chuỗi đó mà không gán thành '0' để người dùng gõ số tiếp theo vào trước nó
     let formattedVal = '';
-    if (digits !== '') {
+    if (/^0+$/.test(digits) && digits.length > 1) {
+      // Giữ định dạng hiển thị với các dấu chấm để người dùng không bị mất các số 0
+      formattedVal = digits.split('').map((char, index) => {
+        const revIndex = digits.length - 1 - index;
+        return (revIndex > 0 && revIndex % 3 === 0) ? char + '.' : char;
+      }).join('');
+    } else {
+      // Loại bỏ số 0 dư thừa ở đầu nếu có số khác đằng sau (ví dụ '05' thành '5')
+      digits = digits.replace(/^0+/, '') || '0';
       formattedVal = new Intl.NumberFormat('vi-VN').format(Number(digits));
     }
 
     setEditingValue({ key, val: formattedVal });
 
-    // Cập nhật giá trị số thực tế cho hệ thống
-    const amount = digits === '' ? 0 : Number(digits);
+    const amount = Number(digits.replace(/^0+/, '')) || 0;
     
     const newPrices = [...monthlyPrices];
     const index = newPrices.findIndex(p => p.month === month && p.year === selectedYear);

@@ -160,11 +160,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Chặn non-admin vào các trang cấu hình và quản trị nhân sự
-        const adminPaths = ['/settings/users'];
+        const isProtectedAdminPath = pathname.startsWith('/settings/users') || pathname.startsWith('/villas/edit');
         const isSettings = pathname === '/settings';
         // Đối với trang settings thường, non-admin vẫn vào được để chỉnh sửa cá nhân,
-        // nhưng chúng ta sẽ ẩn tab Mẫu cọc. Còn các trang quản trị nhân sự thì chặn hoàn toàn.
-        if (adminPaths.includes(pathname) && profile?.role !== 'admin') {
+        // nhưng chúng ta sẽ ẩn tab Mẫu cọc. Còn các trang quản trị nhân sự và chỉnh sửa villa thì chặn hoàn toàn.
+        if (isProtectedAdminPath && profile?.role !== 'admin') {
           showToast('Bạn không có quyền truy cập trang quản trị này!', 'error');
           router.push('/');
         }

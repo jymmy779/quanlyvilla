@@ -189,13 +189,37 @@ const CreateBookingPageContent = () => {
     const cursorPosition = input.selectionStart || 0;
     const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    // Manual VN Formatter: Giữ số 0 ở đầu khi đang gõ
-    const digits = value.replace(/\D/g, '');
-    const formattedVal = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    let digits = value.replace(/\D/g, '');
+
+    // Nếu người dùng xóa hết, cho phép ô trống
+    if (digits === '') {
+      setEditingValue({ key: field, val: '' });
+      if (field === 'totalAmount') {
+        setBooking(prev => ({ ...prev, totalAmount: 0, depositAmount: isManualDeposit ? prev.depositAmount : 0 }));
+        setIsManualTotal(true);
+      } else {
+        setBooking(prev => ({ ...prev, depositAmount: 0 }));
+        setIsManualDeposit(true);
+      }
+      return;
+    }
+
+    // Nếu toàn số 0 (ví dụ xóa 4 khỏi 4.000.000 → 000000), giữ nguyên định dạng không ép về 0
+    let formattedVal: string;
+    if (/^0+$/.test(digits) && digits.length > 1) {
+      // Định dạng thủ công với dấu chấm ngăn cách mà không ép về số 0
+      formattedVal = digits.split('').map((char, index) => {
+        const revIndex = digits.length - 1 - index;
+        return (revIndex > 0 && revIndex % 3 === 0) ? char + '.' : char;
+      }).join('');
+    } else {
+      digits = digits.replace(/^0+/, '') || '0';
+      formattedVal = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
 
     setEditingValue({ key: field, val: formattedVal });
 
-    const numValue = digits === '' ? 0 : Number(digits);
+    const numValue = Number(digits.replace(/^0+/, '')) || 0;
 
     if (field === 'totalAmount') {
       setBooking(prev => ({ ...prev, totalAmount: numValue, depositAmount: isManualDeposit ? prev.depositAmount : Math.floor(numValue / 2) }));
@@ -238,12 +262,31 @@ const CreateBookingPageContent = () => {
       const cursorPosition = input.selectionStart || 0;
       const digitsBeforeCursor = val.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-      const num = val.replace(/\D/g, '');
-      const numValue = num === '' ? 0 : Number(num);
+      let digits = val.replace(/\D/g, '');
+
+      // Nếu xóa hết thì để trống
+      if (digits === '') {
+        newServices[index].price = 0;
+        setBooking({ ...booking, additionalServices: newServices });
+        return;
+      }
+
+      // Nếu toàn số 0 (xóa chữ số đầu tiên), giữ định dạng không ép về 0
+      let formatted: string;
+      if (/^0+$/.test(digits) && digits.length > 1) {
+        formatted = digits.split('').map((char, i) => {
+          const revIndex = digits.length - 1 - i;
+          return (revIndex > 0 && revIndex % 3 === 0) ? char + '.' : char;
+        }).join('');
+      } else {
+        digits = digits.replace(/^0+/, '') || '0';
+        formatted = Number(digits).toLocaleString('vi-VN');
+      }
+
+      const numValue = Number(digits.replace(/^0+/, '')) || 0;
       newServices[index].price = numValue;
 
       setTimeout(() => {
-        const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
         let newPos = 0;
         let digitsFound = 0;
         for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {

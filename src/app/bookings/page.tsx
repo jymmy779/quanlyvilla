@@ -1,20 +1,44 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Booking, Villa } from '@/types';
-import { Search, Filter, Calendar, Users, ChevronRight, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import { Search, Filter, Calendar, Loader2 } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 
 const BookingsListPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [villas, setVillas] = useState<Villa[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const { showToast, confirm: showConfirm } = useNotification();
+
+  // Đọc filter từ URL params để giữ nguyên khi Back từ trang chi tiết
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
+
+  // Cập nhật URL khi thay đổi filter (không tạo history entry mới)
+  const updateUrl = useCallback((q: string, status: string) => {
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (status && status !== 'all') params.set('status', status);
+    const queryStr = params.toString();
+    router.replace(`/bookings${queryStr ? `?${queryStr}` : ''}`, { scroll: false });
+  }, [router]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    updateUrl(val, statusFilter);
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setStatusFilter(val);
+    updateUrl(searchTerm, val);
+  };
 
   useEffect(() => {
     fetchData();
@@ -42,7 +66,6 @@ const BookingsListPage = () => {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    
     showConfirm({
       title: 'Xóa đơn đặt?',
       message: 'Bạn có chắc chắn muốn xóa đơn này không? Đơn sẽ bị ẩn hoàn toàn khỏi hệ thống.',
@@ -52,7 +75,6 @@ const BookingsListPage = () => {
             .from('bookings')
             .update({ status: 'deleted' })
             .eq('id', id);
-            
           if (error) throw error;
           setBookings(prev => prev.filter(b => b.id !== id));
           showToast('Đã xóa đơn đặt thành công');
@@ -74,8 +96,7 @@ const BookingsListPage = () => {
   const filteredBookings = bookings.filter(b => {
     const normalizedSearch = removeAccents(searchTerm.toLowerCase());
     const normalizedName = removeAccents(b.customer_name.toLowerCase());
-    
-    const matchesSearch = normalizedName.includes(normalizedSearch) || 
+    const matchesSearch = normalizedName.includes(normalizedSearch) ||
                           b.customer_phone.includes(searchTerm);
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -112,20 +133,20 @@ const BookingsListPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm">
         <div className="md:col-span-2 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input 
-            type="text" 
-            placeholder="Tìm theo tên khách hoặc SĐT..." 
+          <input
+            type="text"
+            placeholder="Tìm theo tên khách hoặc SĐT..."
             className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-medium text-sm outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
         <div className="relative">
           <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <select 
+          <select
             className="w-full bg-slate-50 border-none rounded-xl md:rounded-2xl py-3 md:py-3.5 pl-11 pr-4 font-medium text-sm outline-none focus:ring-2 focus:ring-orange-500 appearance-none transition-all"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={handleStatusChange}
           >
             <option value="all">Tất cả trạng thái</option>
             <option value="deposited">Đã cọc</option>
@@ -155,8 +176,8 @@ const BookingsListPage = () => {
                   const villa = villas.find(v => v.id === booking.villa_id);
                   const status = getStatusLabel(booking.status);
                   return (
-                    <tr 
-                      key={booking.id} 
+                    <tr
+                      key={booking.id}
                       onClick={() => router.push(`/bookings/${booking.id}`)}
                       className="group hover:bg-slate-50/80 transition-all cursor-pointer"
                     >
@@ -187,7 +208,7 @@ const BookingsListPage = () => {
                         </div>
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>

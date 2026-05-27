@@ -12,7 +12,7 @@ import {
   ChevronDown, MapPin, Clock, DollarSign, Home, X, AlertCircle, HelpCircle,
   User, Lock, Users, KeyRound, Phone, Mail, Loader2
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import EmojiPicker, { Theme, EmojiClickData } from 'emoji-picker-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
@@ -183,11 +183,28 @@ const toggleCase = (text: string) => {
 
 const SettingsPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { profile, role, updateProfile, changePassword } = useAuth();
   const { showToast, confirm: showConfirmModal } = useNotification();
 
-  // State Tab tích hợp
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'template'>('profile');
+  // State Tab - đọc từ URL params để giữ nguyên khi Back
+  const urlTab = searchParams.get('tab');
+  const validTabs = ['profile', 'security', 'template'] as const;
+  type TabType = typeof validTabs[number];
+  const [activeTab, setActiveTab] = useState<TabType>(
+    validTabs.includes(urlTab as TabType) ? (urlTab as TabType) : 'profile'
+  );
+
+  useEffect(() => {
+    if (urlTab && validTabs.includes(urlTab as TabType)) {
+      setActiveTab(urlTab as TabType);
+    }
+  }, [urlTab]);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    router.replace(`/settings?tab=${tab}`, { scroll: false });
+  };
 
   // Tab 1: Profile States
   const [fullName, setFullName] = useState('');
@@ -498,7 +515,7 @@ const SettingsPage = () => {
       {/* Tabs thanh chọn */}
       <div className="flex border-b border-slate-200 overflow-x-auto gap-2 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
             activeTab === 'profile'
               ? 'bg-orange-50 text-orange-600'
@@ -509,7 +526,7 @@ const SettingsPage = () => {
           Tài khoản của tôi
         </button>
         <button
-          onClick={() => setActiveTab('security')}
+          onClick={() => handleTabChange('security')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
             activeTab === 'security'
               ? 'bg-orange-50 text-orange-600'
@@ -521,7 +538,7 @@ const SettingsPage = () => {
         </button>
         {role === 'admin' && (
           <button
-            onClick={() => setActiveTab('template')}
+            onClick={() => handleTabChange('template')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
               activeTab === 'template'
                 ? 'bg-orange-50 text-orange-600'

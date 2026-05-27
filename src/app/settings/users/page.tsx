@@ -302,7 +302,7 @@ export default function UsersManagementPage() {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 backdrop-blur-md sticky top-0 z-20 py-4 -mx-4 px-4 border-b border-slate-100 mb-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.push('/settings')} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
+          <button onClick={() => router.back()} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-900 transition-all shadow-sm">
             <ArrowLeft size={20} />
           </button>
           <div>

@@ -280,8 +280,35 @@ Cám ơn quý khách 🌸`;
     const cursorPosition = input.selectionStart || 0;
     const digitsBeforeCursor = value.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-    const rawValue = value.replace(/\D/g, '');
-    const numValue = rawValue === '' ? 0 : Number(rawValue);
+    let digits = value.replace(/\D/g, '');
+
+    // Nếu người dùng xóa hết, cho phép ô trống
+    if (digits === '') {
+      if (field === 'total_amount') {
+        setEditForm(prev => ({ ...prev, total_amount: 0, deposit_amount: isManualDeposit ? prev.deposit_amount : 0 }));
+        setIsManualTotal(true);
+      } else {
+        setEditForm(prev => ({ ...prev, deposit_amount: 0 }));
+        setIsManualDeposit(true);
+      }
+      const targetInput = field === 'total_amount' ? totalAmountRef : depositAmountRef;
+      if (targetInput.current) targetInput.current.value = '';
+      return;
+    }
+
+    // Nếu toàn số 0 (xóa số đầu tiên), giữ định dạng không ép về 0
+    let formatted: string;
+    if (/^0+$/.test(digits) && digits.length > 1) {
+      formatted = digits.split('').map((char, index) => {
+        const revIndex = digits.length - 1 - index;
+        return (revIndex > 0 && revIndex % 3 === 0) ? char + '.' : char;
+      }).join('');
+    } else {
+      digits = digits.replace(/^0+/, '') || '0';
+      formatted = Number(digits).toLocaleString('vi-VN');
+    }
+
+    const numValue = Number(digits.replace(/^0+/, '')) || 0;
 
     if (field === 'total_amount') {
       setEditForm(prev => ({ ...prev, total_amount: numValue, deposit_amount: isManualDeposit ? prev.deposit_amount : Math.floor(numValue / 2) }));
@@ -292,14 +319,12 @@ Cám ơn quý khách 🌸`;
     }
 
     setTimeout(() => {
-      const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
       let newPos = 0;
       let digitsFound = 0;
       for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {
         if (/\d/.test(formatted[i])) digitsFound++;
         newPos = i + 1;
       }
-
       const targetInput = field === 'total_amount' ? totalAmountRef : depositAmountRef;
       if (targetInput.current) {
         targetInput.current.setSelectionRange(newPos, newPos);
@@ -315,11 +340,31 @@ Cám ơn quý khách 🌸`;
       const cursorPosition = input.selectionStart || 0;
       const digitsBeforeCursor = val.substring(0, cursorPosition).replace(/\D/g, '').length;
 
-      const numValue = Number(val.replace(/\D/g, '')) || 0;
+      let digits = val.replace(/\D/g, '');
+
+      // Nếu xóa hết thì để trống
+      if (digits === '') {
+        newServices[index].price = 0;
+        setEditForm({ ...editForm, additional_services: newServices });
+        return;
+      }
+
+      // Nếu toàn số 0 (xóa chữ số đầu tiên), giữ định dạng không ép về 0
+      let formatted: string;
+      if (/^0+$/.test(digits) && digits.length > 1) {
+        formatted = digits.split('').map((char, i) => {
+          const revIndex = digits.length - 1 - i;
+          return (revIndex > 0 && revIndex % 3 === 0) ? char + '.' : char;
+        }).join('');
+      } else {
+        digits = digits.replace(/^0+/, '') || '0';
+        formatted = Number(digits).toLocaleString('vi-VN');
+      }
+
+      const numValue = Number(digits.replace(/^0+/, '')) || 0;
       newServices[index].price = numValue;
 
       setTimeout(() => {
-        const formatted = numValue === 0 ? "" : numValue.toLocaleString('vi-VN');
         let newPos = 0;
         let digitsFound = 0;
         for (let i = 0; i < formatted.length && digitsFound < digitsBeforeCursor; i++) {

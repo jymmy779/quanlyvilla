@@ -242,7 +242,7 @@ const VillaDetailPage = () => {
 
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/pricing')}
+              onClick={() => router.push(`/pricing?villaId=${id}`)}
                 className="w-full bg-orange-500 text-white py-3.5 md:py-4 rounded-xl font-semibold hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-100 text-sm"
               >
                 <DollarSign size={18} />
