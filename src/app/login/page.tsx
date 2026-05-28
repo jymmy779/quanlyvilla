@@ -102,18 +102,19 @@ export default function LoginPage() {
       <div className="max-w-5xl w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl dark:shadow-slate-950/40 flex flex-col md:flex-row overflow-hidden min-h-[600px] animate-in fade-in zoom-in-95 duration-500">
         
         {/* Banner trái */}
-        <div className="md:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-orange-950 p-8 md:p-12 flex flex-col justify-between text-white relative">
+        <div className="md:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-orange-950 p-5 md:p-12 flex flex-col justify-between text-white relative min-h-[100px] md:min-h-full">
           {/* Decorative Pattern overlay */}
           <div className="absolute inset-0 bg-[radial-gradient(#ea580c_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
           
           <div className="flex items-center gap-3 relative z-10">
-            <div className="bg-orange-600 p-2.5 rounded-xl shadow-lg shadow-orange-500/20">
-              <Home className="text-white" size={24} />
+            <div className="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-500/20">
+              <Home className="text-white" size={20} />
             </div>
-            <span className="text-xl font-bold">Rentify</span>
+            <span className="text-lg md:text-xl font-bold">Rentify</span>
           </div>
 
-          <div className="my-auto space-y-4 max-w-sm relative z-10 pt-12 pb-12">
+          {/* Ẩn content chính trên mobile để banner gọn gàng */}
+          <div className="hidden md:block my-auto space-y-4 max-w-sm relative z-10 pt-12 pb-12">
             <span className="text-orange-500 text-xs font-bold uppercase bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 w-fit block">Hệ thống Nội bộ</span>
             <h2 className="text-2xl md:text-3xl font-extrabold leading-tight">Vận hành lưu trú theo tiêu chuẩn 5 sao 🌟</h2>
             <p className="text-slate-400 text-sm leading-relaxed">
